@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import asyncio
 import uuid
 from datetime import datetime
 from typing import Any
@@ -49,8 +50,8 @@ quote минимум 2 строки, по делу. Пример:
 
 ПРИНЯТИЕ
 Пока нет ответов — не принимай. В вопросах не пиши «принять заявку».
-Когда смета показана — спроси «так пойдёт?» Кнопки: «Принять заявку», «Поправить».
-Принимай только на «принять заявку» / «принимаю». Тогда submit=true, message: «Заявка принята!» и коротко что сделаем.
+Когда смета уже в рамке и клиент пишет «давайте», «всё устраивает», «все согласен», «да», «так пойдёт» — сразу submit=true. Цены не меняй. Вопросы больше не задавай.
+Никогда не пиши JSON в message. Смету только в поле quote.
 Правка уже принятой: replace=true, «Заявку обновил.»
 Ссылку на файлы из чата сохрани в lead.description.
 
@@ -131,7 +132,9 @@ def _extract_json(text: str) -> dict[str, Any] | None:
         cleaned = re.sub(r",(\s*[}\]])", r"\1", candidate)
         try:
             data = json.loads(cleaned)
-            if isinstance(data, dict) and ("message" in data or "questions" in data or "quote" in data):
+            if isinstance(data, dict) and (
+                "message" in data or "questions" in data or "quote" in data or "items" in data
+            ):
                 return data
         except json.JSONDecodeError:
             continue
@@ -141,6 +144,50 @@ def _extract_json(text: str) -> dict[str, Any] | None:
     qs_raw = re.search(r'"questions"\s*:\s*\[(.*?)\]', blob, re.S)
     questions = re.findall(r'"([^"]{2,40})"', qs_raw.group(1)) if qs_raw else []
     return {"message": msg, "questions": questions, "quote": None, "submit": False, "replace": False, "lead": None}
+
+
+def _normalize_quote(quote: Any) -> dict[str, Any] | None:
+    if not isinstance(quote, dict):
+        return None
+    items = quote.get("items")
+    if not isinstance(items, list) or not items:
+        return None
+    clean = []
+    for row in items:
+        if not isinstance(row, dict):
+            continue
+        name = row.get("name")
+        price = row.get("price")
+        if not isinstance(name, str) or not isinstance(price, (int, float)):
+            continue
+        item = {"name": name, "price": int(price)}
+        if isinstance(row.get("detail"), str):
+            item["detail"] = row["detail"]
+        clean.append(item)
+    if not clean:
+        return None
+    if len(clean) == 1 and re.search(r"^(услуга|сайт|бот|работа|заказ)$", clean[0]["name"], re.I):
+        return None
+    return {
+        "title": quote.get("title") if isinstance(quote.get("title"), str) else "Смета",
+        "items": clean,
+        "total": sum(i["price"] for i in clean),
+        "timeline": quote.get("timeline") if isinstance(quote.get("timeline"), str) else "по согласованию",
+        "notes": quote.get("notes") if isinstance(quote.get("notes"), str) else "Хостинг на клиенте",
+    }
+
+
+def _quote_from_context(ctx: str | None) -> dict[str, Any] | None:
+    if not ctx:
+        return None
+    m = re.search(r"LAST_QUOTE:\s*(\{.*\})", ctx, re.S)
+    if not m:
+        return None
+    try:
+        data = json.loads(m.group(1))
+    except json.JSONDecodeError:
+        return _normalize_quote(_extract_json(m.group(1)))
+    return _normalize_quote(data)
 
 
 def _plain_text(message: str) -> str:
@@ -201,6 +248,15 @@ def parse_manager(text: str) -> dict[str, Any]:
         message = _plain_text(raw_message)
     else:
         message = _plain_text(text)
+    quote = _normalize_quote(data.get("quote"))
+    if quote is None and isinstance(data.get("items"), list):
+        quote = _normalize_quote(data)
+        if quote and (not isinstance(raw_message, str) or not raw_message.strip()):
+            message = "Смета ниже. Так пойдёт?"
+    buried = _extract_json(message)
+    if buried and isinstance(buried.get("items"), list):
+        quote = quote or _normalize_quote(buried)
+        message = "Смета ниже. Так пойдёт?"
     questions = [
         q.strip()
         for q in data.get("questions", [])
@@ -209,43 +265,11 @@ def parse_manager(text: str) -> dict[str, Any]:
         and not re.search(r"^(тип|место|поля|логотип|оплат|категори|срок|контакт)\b", q.strip(), re.I)
         and "?" not in q
     ][:3]
-    quote = data.get("quote")
-    if not isinstance(quote, dict):
-        quote = None
-    else:
-        items = quote.get("items")
-        if not isinstance(items, list) or not items:
-            quote = None
-        else:
-            clean = []
-            for row in items:
-                if not isinstance(row, dict):
-                    continue
-                name = row.get("name")
-                price = row.get("price")
-                if not isinstance(name, str) or not isinstance(price, (int, float)):
-                    continue
-                item = {"name": name, "price": int(price)}
-                if isinstance(row.get("detail"), str):
-                    item["detail"] = row["detail"]
-                clean.append(item)
-            if not clean:
-                quote = None
-            elif len(clean) == 1 and re.search(
-                r"^(услуга|сайт|бот|работа|заказ)$", clean[0]["name"], re.I
-            ):
-                quote = None
-            else:
-                quote = {
-                    "title": quote.get("title") if isinstance(quote.get("title"), str) else "Смета",
-                    "items": clean,
-                    "total": sum(i["price"] for i in clean),
-                    "timeline": quote.get("timeline") if isinstance(quote.get("timeline"), str) else "по согласованию",
-                    "notes": quote.get("notes") if isinstance(quote.get("notes"), str) else "Хостинг на клиенте",
-                }
     lead = data.get("lead") if isinstance(data.get("lead"), dict) else None
     if quote:
         message = _strip_smeta_lines(message)
+        if message.strip().startswith("{"):
+            message = "Смета ниже. Так пойдёт?"
     return {
         "ok": True,
         "message": message,
@@ -301,6 +325,29 @@ async def _post(
         return str(text)
 
 
+async def _post_with_retries(
+    url: str,
+    key: str,
+    body: dict[str, Any],
+    extra: dict[str, str] | None = None,
+    use_proxy: bool = True,
+) -> str:
+    last: Exception | None = None
+    for attempt in range(5):
+        try:
+            return await _post(url, key, body, extra, use_proxy)
+        except httpx.HTTPStatusError as exc:
+            last = exc
+            code = exc.response.status_code if exc.response is not None else 0
+            if code in (400, 401, 403, 404, 422):
+                raise
+        except Exception as exc:
+            last = exc
+        if attempt < 4:
+            await asyncio.sleep(10)
+    raise last or RuntimeError("retry")
+
+
 def _strip_images(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out = []
     for m in messages:
@@ -330,7 +377,7 @@ async def complete(messages: list[dict[str, Any]], _text_retry: bool = False) ->
         for key in nim_keys:
             for model in (nim_model, nim_model_2):
                 try:
-                    return await _post(
+                    return await _post_with_retries(
                         "https://integrate.api.nvidia.com/v1/chat/completions",
                         key,
                         {"model": model, "messages": messages, "max_tokens": 1200, "temperature": 0.35},
@@ -343,7 +390,7 @@ async def complete(messages: list[dict[str, Any]], _text_retry: bool = False) ->
     async def try_mistral(proxy: bool) -> str | None:
         for key in mistral_keys:
             try:
-                return await _post(
+                return await _post_with_retries(
                     "https://api.mistral.ai/v1/chat/completions",
                     key,
                     {"model": mistral_model, "messages": messages, "max_tokens": 1200, "temperature": 0.35},
@@ -365,7 +412,7 @@ async def complete(messages: list[dict[str, Any]], _text_retry: bool = False) ->
 
     if openrouter_key:
         try:
-            return await _post(
+            return await _post_with_retries(
                 "https://openrouter.ai/api/v1/chat/completions",
                 openrouter_key,
                 {
@@ -514,19 +561,48 @@ ACCEPT_PHRASES = {
     "оформить",
     "да, принять",
     "да принять",
+    "давайте",
+    "да давайте",
+    "да, давайте",
+    "давай",
+    "делаем",
+    "погнали",
+    "все согласен",
+    "всё согласен",
+    "все устраивает",
+    "всё устраивает",
+    "хорошо все устраивает",
+    "хорошо всё устраивает",
+    "так пойдёт",
+    "так пойдет",
+    "ок",
+    "хорошо",
 }
 
 
 def _is_accept(text: str) -> bool:
     t = re.sub(r"[.!?]+$", "", text.lower().strip())
-    return t in ACCEPT_PHRASES or t.startswith("принять заявк")
+    t = re.sub(r"\s+", " ", t)
+    if t in ACCEPT_PHRASES or t.startswith("принять заявк"):
+        return True
+    if len(t) < 80 and re.search(
+        r"все устраива|всё устраива|все соглас|всё соглас|так пойд|давайте|принима",
+        t,
+    ):
+        return True
+    return False
+
+
+def _deal_on_table(trimmed: list[dict[str, str]]) -> bool:
+    prev = " ".join(m["content"] for m in trimmed if m["role"] == "assistant")[-1200:].lower()
+    return bool(re.search(r"так пойд|смета|итого|скину смет", prev))
 
 
 def _prev_is_accept_only(prev: str) -> bool:
     p = prev.lower()
-    if "принять заявк" not in p and "принять заказ" not in p:
+    if not re.search(r"принять заявк|принять заказ|так пойд|устраива", p):
         return False
-    if any(w in p for w in ("логотип", "уточн", "какие поля", "куда пад", "страниц", "оплат?", "нужна оплат")):
+    if p.count("?") > 2:
         return False
     return True
 
@@ -535,11 +611,14 @@ def _should_submit(parsed: dict[str, Any], last: str, trimmed: list[dict[str, st
     if parsed.get("replace"):
         return True
     prev = trimmed[-2]["content"] if len(trimmed) > 1 else ""
-    if _is_accept(last) and _brief_ready(trimmed):
+    if not _is_accept(last):
+        return False
+    if _deal_on_table(trimmed) or _prev_is_accept_only(prev):
         return True
-    if last.lower().strip() in ("да", "да.", "ок") and _prev_is_accept_only(prev) and _brief_ready(trimmed):
+    if _brief_ready(trimmed):
         return True
-    return False
+    users = [m for m in trimmed if m["role"] == "user"]
+    return len(users) >= 4
 
 
 @router.post("")
@@ -577,6 +656,40 @@ async def manager(payload: Payload) -> dict[str, Any]:
             "quote": None,
             "submit": False,
         }
+    frozen = _quote_from_context(payload.context)
+    if _is_accept(last) and not already and (frozen or _deal_on_table(trimmed)):
+        lead: dict[str, Any] = {}
+        form = next((m["content"] for m in trimmed if m["role"] == "user" and m["content"].startswith("Заявка с сайта")), last)
+        cat = re.search(r"Категория:\s*(.+)", form)
+        contact = re.search(r"Контакт:\s*(.+)", form)
+        task = re.search(r"Задача:\s*(.+)", form)
+        due = re.search(r"Срок:\s*(.+)", form)
+        lead = {
+            "category": (cat.group(1).strip(" .") if cat else "Заказ")[:40],
+            "contact": (contact.group(1).strip(" .") if contact else "")[:160],
+            "description": (task.group(1).strip(" .") if task else last)[:4000],
+            "amount": int(frozen["total"]) if frozen else 0,
+            "timeline": (frozen or {}).get("timeline") or (due.group(1).strip(" .") if due else "")[:80],
+        }
+        parsed = {
+            "ok": True,
+            "message": "Заявка принята!",
+            "questions": [],
+            "quote": frozen,
+            "submit": True,
+            "replace": False,
+            "lead": lead,
+        }
+        parsed["ticketId"] = await save_ticket(parsed, trimmed, payload.sessionId)
+        parsed["message"] = (
+            "Заявка принята!\n\n"
+            + f"{lead.get('category')}: {lead.get('description')}\n"
+            + (f"Сумма: {lead.get('amount')} ₽\n" if lead.get("amount") else "")
+            + (f"Срок: {lead.get('timeline')}\n" if lead.get("timeline") else "")
+            + (f"Контакт: {lead.get('contact')}\n" if lead.get("contact") else "")
+            + "Напишите, если нужно что-то поправить."
+        )
+        return parsed
     system = SYSTEM_PROMPT
     if payload.context:
         system += "\n\nКонтекст:\n" + payload.context[:2500]
@@ -631,18 +744,20 @@ async def manager(payload: Payload) -> dict[str, Any]:
                     "description": desc,
                     "timeline": (due.group(1).strip(" .") if due else "")[:80],
                 }
-        ready = _brief_ready(trimmed)
+        ready = _brief_ready(trimmed) or _deal_on_table(trimmed) or bool(frozen)
         if already:
             parsed["replace"] = True
             parsed["submit"] = True
             parsed["questions"] = []
+            if frozen and not parsed.get("quote"):
+                parsed["quote"] = frozen
             parsed["ticketId"] = await save_ticket(parsed, trimmed, payload.sessionId)
             if "заявку обновил" not in (parsed.get("message") or "").lower():
                 parsed["message"] = "Заявку обновил.\n" + (parsed.get("message") or "")
             return parsed
-        if parsed.get("submit") and not ready:
-            parsed["submit"] = False
-        submitting = _should_submit(parsed, last, trimmed) and ready
+        if _is_accept(last) and frozen:
+            parsed["quote"] = frozen
+        submitting = _should_submit(parsed, last, trimmed)
         if not ready:
             parsed["questions"] = [
                 q

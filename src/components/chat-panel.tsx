@@ -157,10 +157,22 @@ export function ChatPanel({
       .filter((m) => m.role === "user" || m.role === "assistant")
       .map((m) => ({ role: m.role, content: m.content }));
 
+    const lastQuote = [...useChat.getState().messages].reverse().find((m) => m.quote)?.quote;
+    const agreed = /все устраива|всё устраива|все соглас|всё соглас|давайте|принима|так пойд/i.test(content);
     const result = await sendManagerMessage({
       data: {
         messages: history,
-        context: [context, extraCtx.current, cartText].filter(Boolean).join("\n"),
+        context: [
+          context,
+          extraCtx.current,
+          cartText,
+          lastQuote ? `LAST_QUOTE: ${JSON.stringify(lastQuote)}` : "",
+          agreed
+            ? "Клиент согласился со сметой. Не меняй цены. submit=true. Не задавай вопросы."
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
         images: shot,
       },
     });
@@ -285,7 +297,7 @@ export function ChatPanel({
         {pending ? (
           <p className="flex items-center gap-2 text-sm text-muted">
             <LoaderCircle className="size-4 animate-spin" />
-            Вей смотрит…
+            Вей печатает…
           </p>
         ) : null}
 
@@ -310,6 +322,24 @@ export function ChatPanel({
               .map((q) => (
               <button
                 key={q}
+                type="button"
+                className="rounded-md bg-surface px-3 py-2 text-left text-sm text-fg shadow-[var(--shadow-border)]"
+                onClick={() => void submit(q)}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {lastAssistant?.quote &&
+        !pending &&
+        !lastAssistant.submitted &&
+        !visible.some((m) => m.submitted) ? (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {["Принять заявку", "Поправить"].map((q) => (
+              <button
+                key={`ok-${q}`}
                 type="button"
                 className="rounded-md bg-surface px-3 py-2 text-left text-sm text-fg shadow-[var(--shadow-border)]"
                 onClick={() => void submit(q)}

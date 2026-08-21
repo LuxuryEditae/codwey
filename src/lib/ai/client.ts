@@ -8,7 +8,6 @@ const API_URL = (import.meta.env.VITE_AI_URL as string | undefined) || "https://
 function isQuote(value: unknown): value is Quote {
   if (!value || typeof value !== "object") return false;
   const q = value as Record<string, unknown>;
-  if (typeof q.title !== "string" || typeof q.timeline !== "string") return false;
   if (typeof q.total !== "number" || !Array.isArray(q.items)) return false;
   return q.items.every((item) => {
     if (!item || typeof item !== "object") return false;
@@ -21,13 +20,17 @@ function visibleMessage(raw: unknown): string {
   if (typeof raw !== "string") return "";
   let t = raw.trim();
   t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-  if (t.startsWith("{") && t.includes('"message"')) {
+  if (t.startsWith("{") && (t.includes('"message"') || t.includes('"items"'))) {
     try {
-      const data = JSON.parse(t) as { message?: unknown };
-      if (typeof data.message === "string" && data.message.trim()) return data.message.trim();
+      const data = JSON.parse(t) as { message?: unknown; items?: unknown };
+      if (typeof data.message === "string" && data.message.trim() && !data.message.trim().startsWith("{")) {
+        return data.message.trim();
+      }
+      if (Array.isArray(data.items)) return "Смета ниже. Так пойдёт?";
     } catch {
       const m = t.match(/"message"\s*:\s*"([\s\S]*?)"\s*,\s*"questions"/);
       if (m?.[1]) return m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+      if (t.includes('"items"')) return "Смета ниже. Так пойдёт?";
     }
   }
   return t;
@@ -47,7 +50,15 @@ export async function sendManagerMessage(input: {
       return { ok: false, error: "Менеджер сейчас недоступен" };
     }
     if (!raw.ok) return { ok: false, error: raw.error || "Менеджер сейчас недоступен" };
-    const quote = isQuote(raw.quote) ? raw.quote : null;
+    const quote = isQuote(raw.quote)
+      ? {
+          title: raw.quote.title || "Смета",
+          items: raw.quote.items,
+          total: raw.quote.total,
+          timeline: raw.quote.timeline || "по согласованию",
+          notes: raw.quote.notes,
+        }
+      : null;
     return {
       ok: true,
       message: visibleMessage(raw.message),
