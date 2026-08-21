@@ -10,6 +10,8 @@ export type ChatMessage = {
   content: string;
   questions?: string[];
   quote?: Quote | null;
+  image?: string;
+  submitted?: boolean;
 };
 
 type ChatState = {

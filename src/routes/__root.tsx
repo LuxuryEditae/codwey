@@ -1,4 +1,4 @@
-import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { createRootRoute, HeadContent, Outlet, Scripts, useRouterState } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AppDock } from "@/components/app-dock";
@@ -39,6 +39,9 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = pathname.startsWith("/admin");
+
   return (
     <html lang="ru" className="antialiased" suppressHydrationWarning>
       <head>
@@ -47,11 +50,15 @@ function RootLayout() {
       <body className="bg-bg text-fg">
         <PreviewHostBridge />
         <AuthProvider>
-          <div className="flex min-h-dvh flex-col pb-24 md:pb-8">
-            <SiteHeader />
+          {isAdmin ? (
             <Outlet />
-            <SiteFooter />
-          </div>
+          ) : (
+            <div className="flex min-h-dvh flex-col pb-24 md:pb-8">
+              <SiteHeader />
+              <Outlet />
+              <SiteFooter />
+            </div>
+          )}
           <AppDock />
           <Toaster
             theme="dark"

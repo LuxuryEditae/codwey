@@ -12,11 +12,22 @@ export type Quote = {
   notes?: string;
 };
 
+export type LeadDraft = {
+  category: string;
+  contact: string;
+  description: string;
+  amount?: number;
+  timeline?: string;
+};
+
 export type ManagerSuccess = {
   ok: true;
   message: string;
   questions: string[];
   quote: Quote | null;
+  submit?: boolean;
+  lead?: LeadDraft | null;
+  ticketId?: string | null;
 };
 
 export type ManagerFailure = {
@@ -25,3 +36,8 @@ export type ManagerFailure = {
 };
 
 export type ManagerReply = ManagerSuccess | ManagerFailure;
+
+export type ChatImage = {
+  mime: string;
+  data: string;
+};

@@ -1,4 +1,5 @@
-import type { ManagerReply, Quote } from "@/lib/ai/types";
+import type { ChatImage, ManagerReply, Quote } from "@/lib/ai/types";
+import { sessionId } from "@/lib/session";
 
 type ChatTurn = { role: "user" | "assistant"; content: string };
 
@@ -17,15 +18,15 @@ function isQuote(value: unknown): value is Quote {
 }
 
 export async function sendManagerMessage(input: {
-  data: { messages: ChatTurn[]; context?: string };
+  data: { messages: ChatTurn[]; context?: string; images?: ChatImage[] };
 }): Promise<ManagerReply> {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input.data),
+      body: JSON.stringify({ ...input.data, sessionId: sessionId() }),
     });
-    const raw = (await res.json()) as ManagerReply & { quote?: Quote | null };
+    const raw = (await res.json()) as ManagerReply;
     if (!res.ok || !raw || typeof raw !== "object") {
       return { ok: false, error: "Менеджер сейчас недоступен" };
     }
@@ -36,8 +37,13 @@ export async function sendManagerMessage(input: {
       message: raw.message,
       questions: Array.isArray(raw.questions) ? raw.questions : [],
       quote,
+      submit: Boolean(raw.submit),
+      lead: raw.lead ?? null,
+      ticketId: raw.ticketId ?? null,
     };
   } catch {
     return { ok: false, error: "Нет связи с менеджером" };
   }
 }
+
+export const ADMIN_API = "https://api.codway.su/api/admin";

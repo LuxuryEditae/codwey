@@ -1,14 +1,17 @@
 import { Link } from "@tanstack/react-router";
-import { LoaderCircle, Send, Trash2 } from "lucide-react";
+import { ImagePlus, LoaderCircle, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConsentCheck } from "@/components/consent-check";
+import { HostingModal, needsHostingAck } from "@/components/hosting-modal";
 import { HostingNote } from "@/components/hosting-note";
 import { QuoteFrame } from "@/components/quote-frame";
 import { Button } from "@/components/ui/button";
 import { sendManagerMessage } from "@/lib/ai/client";
+import type { ChatImage } from "@/lib/ai/types";
 import { resolveCart, useCart } from "@/lib/cart";
 import { useChat } from "@/lib/chat-store";
 import { useConsent } from "@/lib/consent";
+import { useManagerUi } from "@/lib/manager-ui";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +23,23 @@ const STARTERS = [
 ];
 
 const usedSeeds = new Set<string>();
+
+async function fileToImage(file: File): Promise<ChatImage> {
+  const bitmap = await createImageBitmap(file);
+  const max = 1024;
+  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+  const w = Math.max(1, Math.round(bitmap.width * scale));
+  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("canvas");
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close();
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+  return { mime: "image/jpeg", data: dataUrl.slice(dataUrl.indexOf(",") + 1) };
+}
 
 export function ChatPanel({
   seed,
@@ -33,11 +53,16 @@ export function ChatPanel({
   const push = useChat((s) => s.push);
   const reset = useChat((s) => s.reset);
   const lines = useCart((s) => s.lines);
+  const consumeSeed = useManagerUi((s) => s.consumeSeed);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [images, setImages] = useState<{ preview: string; payload: ChatImage }[]>([]);
+  const [hostingOpen, setHostingOpen] = useState(false);
+  const queued = useRef<string | null>(null);
   const consent = useConsent((s) => s.agreed);
   const scroller = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const visible = hydrated ? messages : [];
 
   useEffect(() => {
@@ -45,26 +70,39 @@ export function ChatPanel({
   }, [visible, pending]);
 
   useEffect(() => {
-    if (!hydrated || !seed || !consent || usedSeeds.has(seed)) return;
-    if (useChat.getState().messages.some((m) => m.content === seed)) {
-      usedSeeds.add(seed);
+    const extra = consumeSeed();
+    const next = extra || seed;
+    if (!hydrated || !next || !consent || usedSeeds.has(next)) return;
+    if (useChat.getState().messages.some((m) => m.content === next)) {
+      usedSeeds.add(next);
       return;
     }
-    usedSeeds.add(seed);
-    void submit(seed);
+    usedSeeds.add(next);
+    void submit(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, seed, consent]);
 
-  async function submit(text: string) {
+  async function submit(text: string, imgs?: ChatImage[]) {
     const content = text.trim();
-    if (!content || pending) return;
+    const shot = imgs ?? images.map((i) => i.payload);
+    if ((!content && shot.length === 0) || pending) return;
     if (!consent) {
       setError("Поставьте галочку: без согласия на 152-ФЗ чат не отправит заявку.");
       return;
     }
+    if (needsHostingAck()) {
+      queued.current = content || "Смотри фото.";
+      setHostingOpen(true);
+      return;
+    }
     setError(null);
     setDraft("");
-    push({ role: "user", content });
+    setImages([]);
+    push({
+      role: "user",
+      content: content || "Фото к задаче",
+      image: shot[0] ? `data:${shot[0].mime};base64,${shot[0].data}` : undefined,
+    });
     setPending(true);
 
     const cart = resolveCart(lines);
@@ -83,6 +121,7 @@ export function ChatPanel({
       data: {
         messages: history,
         context: [context, cartText].filter(Boolean).join("\n"),
+        images: shot,
       },
     });
 
@@ -96,6 +135,7 @@ export function ChatPanel({
       content: result.message,
       questions: result.questions,
       quote: result.quote,
+      submitted: result.submit,
     });
   }
 
@@ -103,10 +143,19 @@ export function ChatPanel({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <HostingModal
+        open={hostingOpen}
+        onClose={() => {
+          setHostingOpen(false);
+          const text = queued.current;
+          queued.current = null;
+          if (text) void submit(text);
+        }}
+      />
       <div className="flex items-center justify-between gap-3 border-b border-border px-1 pb-3">
         <div>
           <p className="font-display text-lg font-semibold">Вей</p>
-          <p className="text-xs text-muted">Менеджер Codwey · смета в чате</p>
+          <p className="text-xs text-muted">Менеджер Codwey · смета в чате · можно фото</p>
         </div>
         <button
           type="button"
@@ -125,8 +174,8 @@ export function ChatPanel({
         {visible.length === 0 && !pending ? (
           <div className="space-y-4">
             <p className="max-w-md text-sm leading-relaxed text-muted">
-              Напишите, что нужно: готовый продукт или задача на заказ. Если чего-то не хватает —
-              доспрошу и соберу смету в рамке.
+              Напишите задачу или прикрепите скрин. Если чего-то не хватает — доспрошу и соберу
+              смету. Когда всё ок — отправлю заявку в работу.
             </p>
             <HostingNote />
             <div className="flex flex-wrap gap-2">
@@ -152,21 +201,25 @@ export function ChatPanel({
             <div
               className={cn(
                 "rounded-md px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
-                m.role === "user"
-                  ? "bg-accent text-accent-fg"
-                  : "bg-elevated text-fg",
+                m.role === "user" ? "bg-accent text-accent-fg" : "bg-elevated text-fg",
               )}
             >
+              {m.image ? (
+                <img src={m.image} alt="" className="mb-2 max-h-40 rounded-sm object-cover" />
+              ) : null}
               {m.content}
             </div>
             {m.quote ? <QuoteFrame quote={m.quote} /> : null}
+            {m.submitted ? (
+              <p className="mt-2 text-xs text-muted">Заявка ушла в админ-панель.</p>
+            ) : null}
           </article>
         ))}
 
         {pending ? (
           <p className="flex items-center gap-2 text-sm text-muted">
             <LoaderCircle className="size-4 animate-spin" />
-            Вей считает…
+            Вей смотрит…
           </p>
         ) : null}
 
@@ -192,7 +245,23 @@ export function ChatPanel({
 
       <div className="border-t border-border pt-3">
         <ConsentCheck />
-        {error ? <p className="mt-2 text-xs text-danger">{error}</p> : null}
+        {images.length > 0 ? (
+          <div className="mt-2 flex gap-2">
+            {images.map((img) => (
+              <div key={img.preview} className="relative">
+                <img src={img.preview} alt="" className="h-14 w-14 rounded-sm object-cover" />
+                <button
+                  type="button"
+                  className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-accent text-accent-fg"
+                  onClick={() => setImages((prev) => prev.filter((p) => p.preview !== img.preview))}
+                  aria-label="Убрать фото"
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
         <form
           className="mt-3 flex items-end gap-2"
           onSubmit={(e) => {
@@ -200,6 +269,33 @@ export function ChatPanel({
             void submit(draft);
           }}
         >
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              try {
+                const payload = await fileToImage(file);
+                setImages((prev) =>
+                  [...prev, { preview: URL.createObjectURL(file), payload }].slice(-2),
+                );
+              } catch {
+                setError("Не получилось прочитать фото");
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="grid size-11 shrink-0 place-items-center rounded-md bg-elevated text-fg"
+            onClick={() => fileRef.current?.click()}
+            aria-label="Прикрепить фото"
+          >
+            <ImagePlus className="size-4" />
+          </button>
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -210,18 +306,23 @@ export function ChatPanel({
               }
             }}
             rows={2}
-            placeholder="Опишите задачу или задайте вопрос…"
+            placeholder="Текст или фото референса…"
             className="min-h-11 max-h-32 flex-1 resize-none rounded-md bg-surface px-3.5 py-2.5 text-sm text-fg shadow-[var(--shadow-border)] outline-none placeholder:text-subtle focus-visible:ring-2 focus-visible:ring-accent/50"
           />
-          <Button type="submit" size="icon" disabled={pending || !draft.trim() || !consent} aria-label="Отправить">
+          <Button
+            type="submit"
+            size="icon"
+            disabled={pending || (!draft.trim() && images.length === 0) || !consent}
+            aria-label="Отправить"
+          >
             <Send />
           </Button>
         </form>
       </div>
       <p className="mt-2 text-xs text-subtle">
-        Мы делаем только продукт. Хостинг лежит на вас. Оформление — здесь или в{" "}
+        Мы делаем только продукт. Хостинг лежит на вас.{" "}
         <Link to="/checkout" className="underline-offset-2 hover:text-fg hover:underline">
-          оплате
+          Оплата
         </Link>
         .
       </p>
