@@ -24,6 +24,16 @@ const STARTERS = [
 
 const usedSeeds = new Set<string>();
 
+function plainChat(text: string) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*[-•]\s+/gm, "")
+    .replace(/\*/g, "");
+}
+
 async function fileToImage(file: File): Promise<ChatImage> {
   const bitmap = await createImageBitmap(file);
   const max = 768;
@@ -260,7 +270,7 @@ export function ChatPanel({
               {m.image ? (
                 <img src={m.image} alt="" className="mb-2 max-h-40 rounded-sm object-cover" />
               ) : null}
-              {m.content}
+              {plainChat(m.content)}
             </div>
             {showQuote && m.quote ? <QuoteFrame quote={m.quote} /> : null}
             {m.submitted ? (
