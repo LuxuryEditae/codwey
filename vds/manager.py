@@ -308,7 +308,7 @@ async def _post(
         "Content-Type": "application/json",
         **(extra or {}),
     }
-    kwargs: dict[str, Any] = {"timeout": httpx.Timeout(55.0, connect=10.0)}
+    kwargs: dict[str, Any] = {"timeout": httpx.Timeout(20.0, connect=8.0)}
     if use_proxy:
         kwargs["proxy"] = "socks5://127.0.0.1:9050"
     async with httpx.AsyncClient(**kwargs) as client:
@@ -375,16 +375,29 @@ async def complete(messages: list[dict[str, Any]], _text_retry: bool = False) ->
 
     async def try_nim(proxy: bool) -> str | None:
         for key in nim_keys:
-            for model in (nim_model, nim_model_2):
-                try:
-                    return await _post_with_retries(
-                        "https://integrate.api.nvidia.com/v1/chat/completions",
-                        key,
-                        {"model": model, "messages": messages, "max_tokens": 1200, "temperature": 0.35},
-                        use_proxy=proxy,
-                    )
-                except Exception as exc:
-                    errors.append(f"nim:{model.split('/')[-1]}:{type(exc).__name__}")
+            try:
+                return await _post_with_retries(
+                    "https://integrate.api.nvidia.com/v1/chat/completions",
+                    key,
+                    {"model": nim_model, "messages": messages, "max_tokens": 1200, "temperature": 0.35},
+                    use_proxy=proxy,
+                )
+            except httpx.HTTPStatusError as exc:
+                code = exc.response.status_code if exc.response is not None else 0
+                errors.append(f"nim:{nim_model.split('/')[-1]}:{code}")
+                if code in (401, 403):
+                    continue
+            except Exception as exc:
+                errors.append(f"nim:{nim_model.split('/')[-1]}:{type(exc).__name__}")
+            try:
+                return await _post(
+                    "https://integrate.api.nvidia.com/v1/chat/completions",
+                    key,
+                    {"model": nim_model_2, "messages": messages, "max_tokens": 1200, "temperature": 0.35},
+                    use_proxy=proxy,
+                )
+            except Exception as exc:
+                errors.append(f"nim:{nim_model_2.split('/')[-1]}:{type(exc).__name__}")
         return None
 
     async def try_mistral(proxy: bool) -> str | None:

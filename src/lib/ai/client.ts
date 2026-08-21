@@ -39,11 +39,14 @@ function visibleMessage(raw: unknown): string {
 export async function sendManagerMessage(input: {
   data: { messages: ChatTurn[]; context?: string; images?: ChatImage[] };
 }): Promise<ManagerReply> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 180_000);
   try {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...input.data, sessionId: sessionId() }),
+      signal: ctrl.signal,
     });
     const raw = (await res.json()) as ManagerReply;
     if (!res.ok || !raw || typeof raw !== "object") {
@@ -70,6 +73,8 @@ export async function sendManagerMessage(input: {
     };
   } catch {
     return { ok: false, error: "Нет связи с менеджером" };
+  } finally {
+    clearTimeout(timer);
   }
 }
 

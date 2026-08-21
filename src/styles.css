@@ -32,6 +32,10 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
   }
 
   html,
@@ -44,6 +48,21 @@
 
   body {
     font-family: var(--font-sans);
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1,

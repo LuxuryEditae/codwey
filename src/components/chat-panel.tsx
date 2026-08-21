@@ -71,6 +71,7 @@ export function ChatPanel({
   const [images, setImages] = useState<{ preview: string; payload: ChatImage }[]>([]);
   const [hostingOpen, setHostingOpen] = useState(false);
   const queued = useRef<string | null>(null);
+  const lastSend = useRef<{ text: string; imgs: ChatImage[] } | null>(null);
   const consent = useConsent((s) => s.agreed);
   const scroller = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -96,7 +97,7 @@ export function ChatPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, seed, consent]);
 
-  async function submit(text: string, imgs?: ChatImage[]) {
+  async function submit(text: string, imgs?: ChatImage[], retry = false) {
     const content = text.trim();
     const shot = imgs ?? images.map((i) => i.payload);
     if ((!content && shot.length === 0) || pending) return;
@@ -109,7 +110,7 @@ export function ChatPanel({
       content,
     );
     const freshOrder = content.startsWith("Заявка с сайта");
-    if (alreadyIn && !correcting && !freshOrder && shot.length === 0) {
+    if (!retry && alreadyIn && !correcting && !freshOrder && shot.length === 0) {
       push({ role: "user", content });
       push({
         role: "assistant",
@@ -138,11 +139,14 @@ export function ChatPanel({
     setError(null);
     setDraft("");
     setImages([]);
-    push({
-      role: "user",
-      content: content || "Фото к задаче",
-      image: shot[0] ? `data:${shot[0].mime};base64,${shot[0].data}` : undefined,
-    });
+    lastSend.current = { text: content || "Фото к задаче", imgs: shot };
+    if (!retry) {
+      push({
+        role: "user",
+        content: content || "Фото к задаче",
+        image: shot[0] ? `data:${shot[0].mime};base64,${shot[0].data}` : undefined,
+      });
+    }
     setPending(true);
 
     const cart = resolveCart(lines);
@@ -232,7 +236,7 @@ export function ChatPanel({
         </button>
       </div>
 
-      <div ref={scroller} className="min-h-0 flex-1 space-y-6 overflow-y-auto py-4">
+      <div ref={scroller} className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain py-4">
         {visible.length === 0 && !pending ? (
           <div className="space-y-4">
             <p className="max-w-md text-sm leading-relaxed text-muted">
@@ -302,7 +306,20 @@ export function ChatPanel({
         ) : null}
 
         {error ? (
-          <p className="rounded-md bg-elevated px-3 py-2 text-sm text-danger">{error}</p>
+          <div className="space-y-2 rounded-md bg-elevated px-3 py-3">
+            <p className="text-sm text-danger">{error}</p>
+            <button
+              type="button"
+              className="rounded-md bg-accent px-3 py-2 text-sm text-accent-fg"
+              onClick={() => {
+                const last = lastSend.current;
+                if (!last) return;
+                void submit(last.text, last.imgs, true);
+              }}
+            >
+              Отправить заново
+            </button>
+          </div>
         ) : null}
 
         {lastAssistant?.questions &&
@@ -415,7 +432,7 @@ export function ChatPanel({
             }}
             rows={2}
             placeholder="Текст или фото референса…"
-            className="min-h-11 max-h-32 flex-1 resize-none rounded-md bg-surface px-3.5 py-2.5 text-sm text-fg shadow-[var(--shadow-border)] outline-none placeholder:text-subtle focus-visible:ring-2 focus-visible:ring-accent/50"
+            className="min-h-11 max-h-32 flex-1 resize-none rounded-md bg-surface px-3.5 py-2.5 text-base text-fg shadow-[var(--shadow-border)] outline-none placeholder:text-subtle focus-visible:ring-2 focus-visible:ring-accent/50 md:text-sm"
           />
           <Button
             type="submit"

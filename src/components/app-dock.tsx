@@ -106,7 +106,7 @@ export function AppDock() {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="fab-pulse relative grid size-14 place-items-center rounded-full bg-accent text-accent-fg transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            className="fab-pulse relative grid size-14 place-items-center rounded-full bg-accent text-accent-fg"
             aria-label="Открыть чат с менеджером"
           >
             <MessageSquare className="size-5" />
