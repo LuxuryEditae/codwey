@@ -21,7 +21,8 @@ function OrderPage() {
   const consent = useConsent((s) => s.agreed) && hydrated;
   const [error, setError] = useState<string | null>(null);
   const [hostingOpen, setHostingOpen] = useState(false);
-  const showArrow = useManagerUi((s) => s.showArrow);
+  const [sent, setSent] = useState(false);
+  const queueOrder = useManagerUi((s) => s.queueOrder);
 
   function sendToManager() {
     if (!consent) {
@@ -33,13 +34,36 @@ function OrderPage() {
       return;
     }
     const cat = CATEGORIES.find((c) => c.id === category);
-    const intent = [
-      `Заявка с формы. Категория: ${cat?.label ?? category}.`,
-      task.trim() || "Описание пока короткое — доспроси.",
-      contact.trim() ? `Контакт: ${contact.trim()}` : "Контакт ещё не дал.",
-      "Спроси, всё ли указал или хочет что-то добавить. Потом спроси: всё ок, отправляем заявку в работу?",
+    const seed = [
+      `Заявка с сайта.`,
+      `Категория: ${cat?.label ?? category}.`,
+      `Задача: ${task.trim() || "пока коротко"}.`,
+      `Контакт: ${contact.trim() || "не указан"}.`,
+    ].join("\n");
+    const context = [
+      "Это заявка с формы «на заказ».",
+      "Если категория, задача и контакт уже есть — сразу прими заказ: submit=true, напиши «Ваш заказ принят» и краткую сводку.",
+      "Если дырки — один короткий вопрос, submit=false.",
+      "Если потом клиент просит исправить — replace=true и обнови заявку.",
     ].join(" ");
-    showArrow(intent);
+    queueOrder(seed, context);
+    setSent(true);
+  }
+
+  if (sent) {
+    return (
+      <main className="mx-auto w-full max-w-2xl px-4 py-12">
+        <p className="font-mono text-xs text-muted">на заказ</p>
+        <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Заявка у менеджера</h1>
+        <p className="mt-4 text-muted">
+          Форма закрыта. Нажмите на большую стрелку или кнопку «Менеджер» справа снизу — там ваша
+          заявка.
+        </p>
+        <Button className="mt-8" variant="secondary" onClick={() => setSent(false)}>
+          Новая заявка
+        </Button>
+      </main>
+    );
   }
 
   return (
@@ -54,7 +78,8 @@ function OrderPage() {
       <p className="font-mono text-xs text-muted">на заказ</p>
       <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Опишите задачу</h1>
       <p className="mt-3 text-muted">
-        Категория, контакт и что нужно. Дальше менеджер доспросит и отправит заявку в работу.
+        Категория, контакт и что нужно. Если всё ясно — заказ сразу принят. Если нет — менеджер
+        доспросит.
       </p>
       <HostingNote className="mt-4 max-w-xl text-sm text-muted" />
 

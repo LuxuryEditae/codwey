@@ -53,6 +53,7 @@ export function ChatPanel({
   const push = useChat((s) => s.push);
   const reset = useChat((s) => s.reset);
   const lines = useCart((s) => s.lines);
+  const extraCtx = useRef<string>("");
   const consumeSeed = useManagerUi((s) => s.consumeSeed);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
@@ -71,7 +72,8 @@ export function ChatPanel({
 
   useEffect(() => {
     const extra = consumeSeed();
-    const next = extra || seed;
+    const next = extra.seed || seed;
+    if (extra.context) extraCtx.current = extra.context;
     if (!hydrated || !next || !consent || usedSeeds.has(next)) return;
     if (useChat.getState().messages.some((m) => m.content === next)) {
       usedSeeds.add(next);
@@ -120,7 +122,7 @@ export function ChatPanel({
     const result = await sendManagerMessage({
       data: {
         messages: history,
-        context: [context, cartText].filter(Boolean).join("\n"),
+        context: [context, extraCtx.current, cartText].filter(Boolean).join("\n"),
         images: shot,
       },
     });
@@ -229,11 +231,14 @@ export function ChatPanel({
 
         {lastAssistant?.questions && lastAssistant.questions.length > 0 && !pending ? (
           <div className="flex flex-wrap gap-2">
-            {lastAssistant.questions.map((q) => (
+            {lastAssistant.questions
+              .filter((q) => q.trim().length > 0 && q.trim().length <= 36)
+              .slice(0, 3)
+              .map((q) => (
               <button
                 key={q}
                 type="button"
-                className="rounded-md bg-surface px-3 py-2 text-left text-sm text-accent shadow-[var(--shadow-border)]"
+                className="rounded-md bg-surface px-3 py-2 text-left text-sm text-fg shadow-[var(--shadow-border)]"
                 onClick={() => void submit(q)}
               >
                 {q}

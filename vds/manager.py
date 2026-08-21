@@ -21,33 +21,36 @@ router = APIRouter()
 
 SYSTEM_PROMPT = """Ты — Вей, ИИ-менеджер студии Codwey (codwey.su).
 Говоришь по-русски, коротко, по делу, без канцелярита и без эмодзи. На «ты».
-Ты ИИ. Если спросят — да, ИИ-менеджер Codwey.
+Ты ИИ.
 
-Мы делаем ТОЛЬКО сайт, бота, приложение или игру. Хостинг, домен, сервер, SSL, токены — на клиенте. Это не обсуждается.
+Мы делаем ТОЛЬКО сайт, бота, приложение или игру. Хостинг, домен, сервер, SSL, токены — на клиенте.
 
-Цены НИЖЕ Авито. Не завышай. Можно чуть уступить (до 8%) через урезание объёма, не «просто скидку».
+Цены НИЖЕ Авито. Не завышай. Можно чуть уступить (до 8%) за счёт объёма.
 
 Готовое:
 PulseShop 1490, TicketGate 1290, QuizPulse 990, SitePulse 2490, FolioKit 1990, ShopPeek 3490, PWA Kit 3990, ObbyStart 1290, TycoonLite 2490.
 
-На заказ ориентиры ₽:
+На заказ ₽:
 Telegram-бот база 990, магазин +400–800, оплата +400, админка +300.
 Лендинг 1990–3490. Витрина 3490–5990. Портфолио 1990–2990.
 PWA от 3990. Roblox обби от 1290, тайкун от 2490. Парсер от 790.
-Не обещай App Store / Google Play.
 
-Если прислали фото — опиши что видишь и оцени, сколько сделать похожее.
+Если прислали фото — опиши что видишь и оцени похожее.
 
-Диалог:
-- Дырявый бриф — 1–2 вопроса.
-- Нужны: категория (сайт/бот/приложение/Roblox), для кого, функции, контакт Telegram.
-- После формы или когда данных хватает спроси: «Хотите что-то добавить или всё?»
-- Если человек говорит что всё / да / ок / отправляй — поставь submit=true и заполни lead.
+Заявки:
+- Если с формы уже есть категория + задача + контакт — сразу submit=true. В message напиши «Ваш заказ принят.» и короткую сводку. Не доспрашивай ради доспрашивания.
+- Если дырки — ОДИН короткий вопрос в message. submit=false.
+- Если клиент пишет «стойте / исправьте / подождите / не то / забудьте» — учти правку, submit=true, replace=true (старую заявку перезаписываем).
+- Не создавай вторую заявку на ту же сессию без правки.
+
+questions — это КОРОТКИЕ кнопки-ответы для клиента, 2–5 слов, не твои вопросы.
+Примеры: «Да, всё ок», «Хочу дешевле», «Добавить оплату», «Контакт позже».
+Свои вопросы пиши только в message. Если кнопки не нужны — []. Максимум 3.
 
 ФОРМАТ — строго JSON без markdown:
 {
   "message": "текст клиенту",
-  "questions": ["вопрос"],
+  "questions": ["Да, всё ок"],
   "quote": null или {
     "title": "заголовок",
     "items": [{"name": "блок", "detail": "зачем", "price": 1490}],
@@ -56,6 +59,7 @@ PWA от 3990. Roblox обби от 1290, тайкун от 2490. Парсер �
     "notes": "хостинг на клиенте"
   },
   "submit": false,
+  "replace": false,
   "lead": null или {
     "category": "Боты",
     "contact": "@name",
@@ -64,7 +68,6 @@ PWA от 3990. Roblox обби от 1290, тайкун от 2490. Парсер �
     "timeline": "5–7 дней"
   }
 }
-submit=true только когда клиент явно подтвердил заявку.
 """
 
 
@@ -113,11 +116,16 @@ def parse_manager(text: str) -> dict[str, Any]:
             "questions": [],
             "quote": None,
             "submit": False,
+            "replace": False,
             "lead": None,
         }
     message = data.get("message")
     message = message.strip() if isinstance(message, str) and message.strip() else text.strip()
-    questions = [q for q in data.get("questions", []) if isinstance(q, str) and q.strip()]
+    questions = [
+        q.strip()
+        for q in data.get("questions", [])
+        if isinstance(q, str) and 1 < len(q.strip()) <= 36
+    ][:3]
     quote = data.get("quote")
     if not isinstance(quote, dict):
         quote = None
@@ -155,6 +163,7 @@ def parse_manager(text: str) -> dict[str, Any]:
         "questions": questions,
         "quote": quote,
         "submit": bool(data.get("submit")),
+        "replace": bool(data.get("replace")),
         "lead": lead,
     }
 
@@ -252,22 +261,48 @@ async def save_ticket(parsed: dict[str, Any], history: list[dict[str, str]], ses
     lead = parsed.get("lead") if isinstance(parsed.get("lead"), dict) else {}
     quote = parsed.get("quote")
     conversation = "\n".join(f"{m['role']}: {m['content']}" for m in history[-20:])
-    ticket_id = uuid.uuid4().hex[:16]
     amount = 0
     if isinstance(lead.get("amount"), (int, float)):
         amount = int(lead["amount"])
     elif isinstance(quote, dict) and isinstance(quote.get("total"), (int, float)):
         amount = int(quote["total"])
+    category = str(lead.get("category") or "")[:40]
+    contact = str(lead.get("contact") or "")[:160]
+    description = str(lead.get("description") or parsed.get("message") or "")[:4000]
+    timeline = str(lead.get("timeline") or (quote or {}).get("timeline") or "")[:80]
+    quote_json = json.dumps(quote, ensure_ascii=False) if quote else ""
     async with SessionLocal() as db:
+        existing = None
+        if session_id:
+            result = await db.execute(
+                select(Ticket)
+                .where(Ticket.session_id == session_id)
+                .where(Ticket.status.in_(("new", "updated")))
+                .order_by(Ticket.created_at.desc())
+            )
+            existing = result.scalars().first()
+        if existing:
+            existing.category = category or existing.category
+            existing.contact = contact or existing.contact
+            existing.description = description
+            if amount:
+                existing.amount = amount
+            existing.timeline = timeline or existing.timeline
+            existing.quote_json = quote_json or existing.quote_json
+            existing.conversation = conversation[:8000]
+            existing.status = "updated"
+            await db.commit()
+            return existing.id
+        ticket_id = uuid.uuid4().hex[:16]
         db.add(
             Ticket(
                 id=ticket_id,
-                category=str(lead.get("category") or "")[:40],
-                contact=str(lead.get("contact") or "")[:160],
-                description=str(lead.get("description") or parsed.get("message") or "")[:4000],
+                category=category,
+                contact=contact,
+                description=description,
                 amount=amount,
-                timeline=str(lead.get("timeline") or (quote or {}).get("timeline") or "")[:80],
-                quote_json=json.dumps(quote, ensure_ascii=False) if quote else "",
+                timeline=timeline,
+                quote_json=quote_json,
                 conversation=conversation[:8000],
                 status="new",
                 source="chat",
@@ -276,7 +311,25 @@ async def save_ticket(parsed: dict[str, Any], history: list[dict[str, str]], ses
             )
         )
         await db.commit()
-    return ticket_id
+        return ticket_id
+
+
+def _should_submit(parsed: dict[str, Any], last: str, context: str | None) -> bool:
+    msg = (parsed.get("message") or "").lower()
+    user = last.lower()
+    if parsed.get("submit") or parsed.get("replace"):
+        return True
+    if "заказ принят" in msg:
+        return True
+    if any(w in user for w in ("исправ", "стойте", "подожд", "не то", "забудьте", "передел")):
+        parsed["replace"] = True
+        return True
+    if context and "заявка с формы" in context.lower():
+        missing = "не указан" in last or "пока коротко" in last
+        asking = any(w in msg for w in ("уточн", "напиши", "какой", "какая"))
+        if not missing and not asking:
+            return True
+    return False
 
 
 @router.post("")
@@ -302,7 +355,18 @@ async def manager(payload: Payload) -> dict[str, Any]:
     try:
         text = await complete(messages)
         parsed = parse_manager(text)
-        if parsed.get("submit"):
+        if not parsed.get("lead"):
+            cat = re.search(r"Категория:\s*(.+)", last)
+            task = re.search(r"Задача:\s*(.+)", last, re.S)
+            contact = re.search(r"Контакт:\s*(.+)", last)
+            if cat or contact:
+                parsed["lead"] = {
+                    "category": (cat.group(1).strip(" .") if cat else "")[:40],
+                    "contact": (contact.group(1).strip(" .") if contact else "")[:160],
+                    "description": (task.group(1).strip(" .") if task else last)[:4000],
+                }
+        if _should_submit(parsed, last, payload.context):
+            parsed["submit"] = True
             parsed["ticketId"] = await save_ticket(parsed, trimmed, payload.sessionId)
         return parsed
     except Exception:

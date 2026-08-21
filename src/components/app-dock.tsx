@@ -20,6 +20,27 @@ export function AppDock() {
     return () => window.removeEventListener("keydown", onKey);
   }, [setOpen]);
 
+  useEffect(() => {
+    if (!open) return;
+    const y = window.scrollY;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflow;
+    const prevBody = body.style.cssText;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${y}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    return () => {
+      html.style.overflow = prevHtml;
+      body.style.cssText = prevBody;
+      window.scrollTo(0, y);
+    };
+  }, [open]);
+
   if (pathname.startsWith("/admin")) return null;
 
   const readyActive = pathname.startsWith("/catalog") && search.kind === "ready" && !search.cat;
@@ -30,8 +51,9 @@ export function AppDock() {
       {open ? (
         <div
           className={cn(
-            "dock-enter fixed z-50 flex flex-col overflow-hidden border border-border bg-surface",
-            "inset-x-3 bottom-20 top-16 md:inset-auto md:bottom-24 md:right-4 md:top-auto md:h-[min(72vh,36rem)] md:w-96",
+            "dock-enter fixed inset-x-0 top-0 z-50 flex flex-col overflow-hidden border-border bg-surface",
+            "h-[calc(100svh-3.5rem)] max-h-[calc(100svh-3.5rem)]",
+            "md:inset-auto md:bottom-24 md:right-4 md:top-auto md:h-[min(36rem,calc(100svh-7rem))] md:w-96 md:border",
           )}
         >
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-2">
