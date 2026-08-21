@@ -18,7 +18,7 @@ function LegalPage() {
       <section className="mt-10 space-y-3">
         <h2 className="font-display text-2xl font-semibold tracking-tight">Кто обрабатывает</h2>
         <p className="text-sm leading-relaxed text-muted">
-          Оператор — владелец сайта Codwey (домен codwey.su). Связь: Telegram{" "}
+          Оператор — владелец сайта Codwey (домен codway.su). Связь: Telegram{" "}
           <a href="https://t.me/codwey" className="underline underline-offset-2">
             @codwey
           </a>

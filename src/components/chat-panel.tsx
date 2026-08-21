@@ -5,7 +5,7 @@ import { ConsentCheck } from "@/components/consent-check";
 import { HostingNote } from "@/components/hosting-note";
 import { QuoteFrame } from "@/components/quote-frame";
 import { Button } from "@/components/ui/button";
-import { sendManagerMessage } from "@/lib/ai/manager";
+import { sendManagerMessage } from "@/lib/ai/client";
 import { resolveCart, useCart } from "@/lib/cart";
 import { useChat } from "@/lib/chat-store";
 import { useConsent } from "@/lib/consent";

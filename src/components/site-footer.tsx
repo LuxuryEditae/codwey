@@ -52,7 +52,7 @@ export function SiteFooter() {
                 Telegram @codwey
               </a>
             </li>
-            <li>codwey.su</li>
+            <li>codway.su</li>
           </ul>
         </div>
       </div>

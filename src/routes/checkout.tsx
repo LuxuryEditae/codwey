@@ -5,7 +5,7 @@ import { HostingNote } from "@/components/hosting-note";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { resolveCart, useCart } from "@/lib/cart";
-import { createPayment } from "@/lib/payments/create";
+import { createPayment } from "@/lib/payments/client";
 import {
   PAYMENT_METHODS,
   PAYMENT_SNAPSHOT_KEY,
@@ -61,10 +61,6 @@ function CheckoutPage() {
         mode: result.mode,
       };
       sessionStorage.setItem(PAYMENT_SNAPSHOT_KEY, JSON.stringify(snapshot));
-      if (result.mode === "live" && result.redirect) {
-        window.location.assign(result.redirect);
-        return;
-      }
       await navigate({ to: "/pay/demo" });
     } catch {
       setError("Не получилось создать платёж");
