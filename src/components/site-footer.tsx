@@ -8,8 +8,7 @@ export function SiteFooter() {
         <div>
           <p className="font-display text-2xl font-semibold tracking-tight">Codwey</p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
-            Готовые сайты, Telegram-боты, приложения и Roblox-игры. И то же самое на заказ — со
-            сметой в чате.
+            Готовые и на заказ: сайты, боты, приложения, Roblox. Смета в чате с менеджером.
           </p>
         </div>
         <div>

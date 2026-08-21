@@ -16,6 +16,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 md:h-16">
         <Link to="/" className="flex items-baseline gap-2">
           <span className="font-display text-xl font-semibold tracking-tight md:text-2xl">Codwey</span>
+          <span className="hidden text-sm text-muted md:inline">готовое и на заказ</span>
         </Link>
 
         <nav className="hidden items-center gap-5 md:flex">

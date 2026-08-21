@@ -18,7 +18,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Codwey — готовые сайты, Telegram-боты, приложения и Roblox-игры. На заказ со сметой от ИИ-менеджера Вей.",
+          "Codwey — готовые и на заказ сайты, боты, приложения и Roblox-игры.",
       },
       { name: "theme-color", content: "#050505" },
     ],

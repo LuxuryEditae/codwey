@@ -10,12 +10,12 @@ function Home() {
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-16 lg:py-20">
           <p className="reveal font-mono text-xs tracking-wide text-muted">Codwey</p>
-          <h1 className="reveal reveal-2 mt-4 max-w-3xl font-display text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
-            Выберите раздел. Готовое и заказ лежат отдельно.
+          <h1 className="reveal reveal-2 mt-4 max-w-4xl font-display text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+            Готовые и на заказ: сайты, боты, приложения
           </h1>
           <p className="reveal reveal-3 mt-5 max-w-lg text-base leading-relaxed text-muted">
-            Нажмите «Готовые сайты» — откроются только сайты. Боты, приложения и Roblox — в своих
-            разделах.
+            Готовое — берёте из каталога и оплачиваете. На заказ — описываете задачу, менеджер считает
+            смету. Roblox-игры тоже есть.
           </p>
         </div>
       </section>
