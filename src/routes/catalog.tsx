@@ -1,13 +1,8 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-
-type CatalogSearch = {
-  cat?: string;
-};
+import { parseCatalogSearch } from "@/data/catalog";
 
 export const Route = createFileRoute("/catalog")({
-  validateSearch: (search: Record<string, unknown>): CatalogSearch => ({
-    cat: typeof search.cat === "string" ? search.cat : undefined,
-  }),
+  validateSearch: parseCatalogSearch,
   component: CatalogLayout,
 });
 

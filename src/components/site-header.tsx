@@ -1,21 +1,17 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
+import { CATEGORIES } from "@/data/catalog";
 import { cartCount, useCart } from "@/lib/cart";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
-
-const NAV = [
-  { to: "/catalog", label: "Каталог" },
-  { to: "/order", label: "На заказ" },
-  { to: "/faq", label: "FAQ" },
-] as const;
 
 export function SiteHeader() {
   const lines = useCart((s) => s.lines);
   const hydrated = useHydrated();
   const count = hydrated ? cartCount(lines) : 0;
   const [open, setOpen] = useState(false);
+  const search = useSearch({ strict: false }) as { cat?: string };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg">
@@ -24,17 +20,24 @@ export function SiteHeader() {
           <span className="font-display text-2xl font-semibold tracking-tight">Codwey</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
-          {NAV.map((item) => (
+        <nav className="hidden items-center gap-5 lg:flex">
+          {CATEGORIES.filter((c) => c.id !== "other").map((c) => (
             <Link
-              key={item.to}
-              to={item.to}
-              className="nav-link text-sm text-muted hover:text-fg"
-              activeProps={{ className: "text-fg" }}
+              key={c.id}
+              to="/catalog"
+              search={{ cat: c.id }}
+              className={cn("nav-link text-sm hover:text-fg", search.cat === c.id ? "text-fg" : "text-muted")}
             >
-              {item.label}
+              {c.label}
             </Link>
           ))}
+          <Link
+            to="/order"
+            className="nav-link text-sm text-muted hover:text-fg"
+            activeProps={{ className: "text-fg" }}
+          >
+            На заказ
+          </Link>
         </nav>
 
         <div className="flex items-center gap-1">
@@ -52,7 +55,7 @@ export function SiteHeader() {
           </Link>
           <button
             type="button"
-            className="grid size-11 place-items-center rounded-md md:hidden hover:bg-elevated"
+            className="grid size-11 place-items-center rounded-md lg:hidden hover:bg-elevated"
             aria-label={open ? "Закрыть меню" : "Открыть меню"}
             onClick={() => setOpen((v) => !v)}
           >
@@ -61,18 +64,22 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <div className={cn("border-t border-border md:hidden", open ? "block" : "hidden")}>
+      <div className={cn("border-t border-border lg:hidden", open ? "block" : "hidden")}>
         <nav className="mx-auto flex max-w-6xl flex-col px-4 py-3">
-          {NAV.map((item) => (
+          {CATEGORIES.map((c) => (
             <Link
-              key={item.to}
-              to={item.to}
+              key={c.id}
+              to="/catalog"
+              search={{ cat: c.id }}
               className="rounded-md px-3 py-3 text-base text-fg"
               onClick={() => setOpen(false)}
             >
-              {item.label}
+              {c.label}
             </Link>
           ))}
+          <Link to="/order" className="rounded-md px-3 py-3 text-base text-fg" onClick={() => setOpen(false)}>
+            На заказ
+          </Link>
         </nav>
       </div>
     </header>

@@ -17,6 +17,9 @@ export function ProductCard({ product }: { product: Product }) {
       <ProductCover product={product} className="aspect-[16/10]" />
       <div className="flex flex-1 flex-col px-2 pb-2 pt-3">
         <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs text-subtle">
+            {product.kind === "ready" ? "готовое" : "на заказ"}
+          </span>
           {product.popular ? <Badge className="text-accent">хит</Badge> : null}
           {product.isNew ? <Badge>новое</Badge> : null}
           {product.kind === "ready" && product.oldPrice ? (

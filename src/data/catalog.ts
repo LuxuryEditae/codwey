@@ -7,6 +7,8 @@ export type Category = {
   label: string;
   short: string;
   blurb: string;
+  readyTitle: string;
+  customTitle: string;
 };
 
 export const CATEGORIES: Category[] = [
@@ -14,33 +16,58 @@ export const CATEGORIES: Category[] = [
     id: "sites",
     label: "Сайты",
     short: "Сайты",
-    blurb: "Лендинги, магазины, портфолио — готовые и на заказ.",
+    blurb: "Лендинги, магазины, портфолио.",
+    readyTitle: "Готовые сайты",
+    customTitle: "Сайт на заказ",
   },
   {
     id: "bots",
-    label: "Telegram-боты",
+    label: "Боты",
     short: "Боты",
-    blurb: "Магазины, билеты, квизы, поддержка — запускаются за день.",
+    blurb: "Магазины, билеты, квизы, поддержка.",
+    readyTitle: "Готовые Telegram-боты",
+    customTitle: "Бот на заказ",
   },
   {
     id: "apps",
     label: "Приложения",
     short: "Приложения",
-    blurb: "PWA и веб-сервисы: привычки, счета, смены.",
+    blurb: "PWA и веб-сервисы.",
+    readyTitle: "Готовые приложения",
+    customTitle: "Приложение на заказ",
   },
   {
     id: "roblox",
     label: "Roblox",
     short: "Roblox",
-    blurb: "Обби, тайкуны, гонки и симуляторы под ключ.",
+    blurb: "Обби, тайкуны, гонки, симуляторы.",
+    readyTitle: "Готовые Roblox-игры",
+    customTitle: "Roblox на заказ",
   },
   {
     id: "other",
     label: "Другое",
     short: "Другое",
-    blurb: "Парсеры, мини-CRM, автоматизация и странные идеи.",
+    blurb: "Парсеры, мини-CRM, автоматизация.",
+    readyTitle: "Готовое — другое",
+    customTitle: "Другое на заказ",
   },
 ];
+
+export function getCategory(id: string | undefined) {
+  return CATEGORIES.find((c) => c.id === id);
+}
+
+export function parseCatalogSearch(search: Record<string, unknown>): {
+  cat?: CategoryId;
+  kind?: ProductKind;
+} {
+  const cat = CATEGORIES.some((c) => c.id === search.cat)
+    ? (search.cat as CategoryId)
+    : undefined;
+  const kind = search.kind === "ready" || search.kind === "custom" ? search.kind : undefined;
+  return { cat, kind };
+}
 
 export type Product = {
   slug: string;
@@ -716,6 +743,19 @@ export function readyProducts() {
 
 export function customProducts() {
   return PRODUCTS.filter((p) => p.kind === "custom");
+}
+
+export function filterProducts(cat?: CategoryId, kind?: ProductKind) {
+  return PRODUCTS.filter((p) => {
+    if (cat && p.category !== cat) return false;
+    if (kind && p.kind !== kind) return false;
+    return true;
+  });
+}
+
+export function minPriceOf(list: { price: number }[]) {
+  if (list.length === 0) return 0;
+  return Math.min(...list.map((p) => p.price));
 }
 
 export function catalogSummaryForPrompt() {

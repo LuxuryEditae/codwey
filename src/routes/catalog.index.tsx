@@ -1,114 +1,139 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { CategoryGrid } from "@/components/category-card";
 import { ProductCard } from "@/components/product-card";
-import { Input } from "@/components/ui/input";
-import { CATEGORIES, PRODUCTS, type CategoryId } from "@/data/catalog";
+import {
+  CATEGORIES,
+  filterProducts,
+  getCategory,
+  parseCatalogSearch,
+  type CategoryId,
+  type ProductKind,
+} from "@/data/catalog";
 import { cn } from "@/lib/utils";
 
-type CatalogSearch = {
-  cat?: string;
-};
-
 export const Route = createFileRoute("/catalog/")({
-  validateSearch: (search: Record<string, unknown>): CatalogSearch => ({
-    cat: typeof search.cat === "string" ? search.cat : undefined,
-  }),
+  validateSearch: parseCatalogSearch,
   component: CatalogPage,
 });
 
 function CatalogPage() {
-  const { cat } = Route.useSearch();
-  const active = (CATEGORIES.some((c) => c.id === cat) ? cat : "all") as CategoryId | "all";
-  const [query, setQuery] = useState("");
-  const [kind, setKind] = useState<"all" | "ready" | "custom">("all");
+  const { cat, kind } = Route.useSearch();
+  const category = getCategory(cat);
 
-  const list = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return PRODUCTS.filter((p) => {
-      if (active !== "all" && p.category !== active) return false;
-      if (kind !== "all" && p.kind !== kind) return false;
-      if (!q) return true;
-      return `${p.name} ${p.tagline} ${p.description}`.toLowerCase().includes(q);
-    });
-  }, [active, kind, query]);
+  if (!category) {
+    return (
+      <main className="mx-auto w-full max-w-6xl px-4 py-10">
+        <p className="font-mono text-xs text-muted">каталог</p>
+        <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Разделы</h1>
+        <p className="mt-3 max-w-xl text-muted">Сначала выберите, что нужно. Внутри раздела — отдельно готовое и заказ.</p>
+
+        <h2 className="mt-12 font-display text-2xl font-semibold tracking-tight">Готовое</h2>
+        <div className="mt-6">
+          <CategoryGrid kind="ready" />
+        </div>
+
+        <h2 className="mt-14 font-display text-2xl font-semibold tracking-tight">На заказ</h2>
+        <div className="mt-6">
+          <CategoryGrid kind="custom" />
+        </div>
+      </main>
+    );
+  }
+
+  const ready = filterProducts(category.id, "ready");
+  const custom = filterProducts(category.id, "custom");
+  const showReady = !kind || kind === "ready";
+  const showCustom = !kind || kind === "custom";
+  const title =
+    kind === "ready" ? category.readyTitle : kind === "custom" ? category.customTitle : category.label;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10">
-      <p className="font-mono text-xs text-muted">каталог</p>
-      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Готовое и на заказ</h1>
-      <p className="mt-3 max-w-2xl text-muted">
-        Цены ниже типичных объявлений на Авито. Готовое отдаём сразу, кастом считаем сметой в чате.
-      </p>
+      <Link
+        to="/catalog"
+        search={{}}
+        className="inline-flex h-11 items-center gap-2 text-sm text-muted hover:text-fg"
+      >
+        <ArrowLeft className="size-4" />
+        Все разделы
+      </Link>
+
+      <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight">{title}</h1>
+      <p className="mt-3 max-w-xl text-muted">{category.blurb}</p>
 
       <div className="mt-8 flex flex-wrap gap-2">
-        <Chip to="/catalog" search={{}} active={active === "all"}>
-          Все
-        </Chip>
         {CATEGORIES.map((c) => (
-          <Chip key={c.id} to="/catalog" search={{ cat: c.id }} active={active === c.id}>
+          <Link
+            key={c.id}
+            to="/catalog"
+            search={{ cat: c.id, kind }}
+            className={cn(
+              "inline-flex h-11 items-center rounded-md px-4 text-sm",
+              c.id === category.id ? "bg-accent text-accent-fg" : "bg-elevated text-muted hover:text-fg",
+            )}
+          >
             {c.label}
-          </Chip>
+          </Link>
         ))}
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Поиск: бот, лендинг, обби…"
-          className="max-w-md"
-        />
-        <div className="flex gap-2">
-          {(["all", "ready", "custom"] as const).map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setKind(k)}
-              className={cn(
-                "h-11 rounded-md px-3 text-sm",
-                kind === k ? "bg-accent text-accent-fg" : "bg-elevated text-muted",
-              )}
-            >
-              {k === "all" ? "Все типы" : k === "ready" ? "Готовое" : "На заказ"}
-            </button>
-          ))}
-        </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <KindChip cat={category.id} active={!kind} label="Всё в разделе" />
+        {ready.length > 0 ? (
+          <KindChip cat={category.id} kind="ready" active={kind === "ready"} label="Только готовое" />
+        ) : null}
+        {custom.length > 0 ? (
+          <KindChip cat={category.id} kind="custom" active={kind === "custom"} label="Только заказ" />
+        ) : null}
       </div>
 
-      {list.length === 0 ? (
-        <p className="mt-12 text-muted">Ничего не нашлось. Попробуйте другой запрос или напишите Вей.</p>
-      ) : (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((p) => (
-            <ProductCard key={p.slug} product={p} />
-          ))}
-        </div>
-      )}
+      {showReady && ready.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">Готовое</h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {ready.map((p) => (
+              <ProductCard key={p.slug} product={p} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {showCustom && custom.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">На заказ</h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {custom.map((p) => (
+              <ProductCard key={p.slug} product={p} />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
 
-function Chip({
-  children,
-  to,
-  search,
+function KindChip({
+  cat,
+  kind,
   active,
+  label,
 }: {
-  children: string;
-  to: "/catalog";
-  search: CatalogSearch;
+  cat: CategoryId;
+  kind?: ProductKind;
   active: boolean;
+  label: string;
 }) {
   return (
     <Link
-      to={to}
-      search={search}
+      to="/catalog"
+      search={kind ? { cat, kind } : { cat }}
       className={cn(
         "inline-flex h-11 items-center rounded-md px-4 text-sm",
-        active ? "bg-accent text-accent-fg" : "bg-elevated text-muted hover:text-fg",
+        active ? "bg-accent text-accent-fg" : "border border-border text-muted hover:text-fg",
       )}
     >
-      {children}
+      {label}
     </Link>
   );
 }
