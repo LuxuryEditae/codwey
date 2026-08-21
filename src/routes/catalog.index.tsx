@@ -7,8 +7,6 @@ import {
   filterProducts,
   getCategory,
   parseCatalogSearch,
-  type CategoryId,
-  type ProductKind,
 } from "@/data/catalog";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +36,17 @@ function CatalogPage() {
               : "Сначала выберите, что нужно. Внутри раздела — отдельно готовое и заказ."}
         </p>
 
-        {onlyCustom ? null : (
+        {onlyCustom ? (
+          <div className="mt-10 max-w-xl">
+            <p className="text-muted">Опишите задачу — менеджер доспросит и даст смету.</p>
+            <Link
+              to="/order"
+              className="mt-6 inline-flex h-12 items-center rounded-md bg-accent px-5 text-base font-medium text-accent-fg"
+            >
+              Описать задачу
+            </Link>
+          </div>
+        ) : (
           <>
             {onlyReady ? null : (
               <h2 className="mt-12 font-display text-2xl font-semibold tracking-tight">Готовое</h2>
@@ -46,17 +54,18 @@ function CatalogPage() {
             <div className={onlyReady ? "mt-8" : "mt-6"}>
               <CategoryGrid kind="ready" />
             </div>
-          </>
-        )}
-
-        {onlyReady ? null : (
-          <>
-            {onlyCustom ? null : (
-              <h2 className="mt-14 font-display text-2xl font-semibold tracking-tight">На заказ</h2>
+            {onlyReady ? null : (
+              <div className="mt-14 max-w-xl">
+                <h2 className="font-display text-2xl font-semibold tracking-tight">На заказ</h2>
+                <p className="mt-3 text-muted">Нет готового — одна форма, без пяти карточек.</p>
+                <Link
+                  to="/order"
+                  className="mt-6 inline-flex h-12 items-center rounded-md bg-accent px-5 text-base font-medium text-accent-fg"
+                >
+                  Описать задачу
+                </Link>
+              </div>
             )}
-            <div className={onlyCustom ? "mt-8" : "mt-6"}>
-              <CategoryGrid kind="custom" />
-            </div>
           </>
         )}
       </main>
@@ -64,17 +73,13 @@ function CatalogPage() {
   }
 
   const ready = filterProducts(category.id, "ready");
-  const custom = filterProducts(category.id, "custom");
-  const showReady = !kind || kind === "ready";
-  const showCustom = !kind || kind === "custom";
-  const title =
-    kind === "ready" ? category.readyTitle : kind === "custom" ? category.customTitle : category.label;
+  const title = kind === "ready" ? category.readyTitle : category.label;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10">
       <Link
         to="/catalog"
-        search={{}}
+        search={{ kind: "ready" }}
         className="inline-flex h-11 items-center gap-2 text-sm text-muted hover:text-fg"
       >
         <ArrowLeft className="size-4" />
@@ -85,11 +90,11 @@ function CatalogPage() {
       <p className="mt-3 max-w-xl text-muted">{category.blurb}</p>
 
       <div className="mt-8 flex flex-wrap gap-2">
-        {CATEGORIES.map((c) => (
+        {CATEGORIES.filter((c) => c.id !== "other").map((c) => (
           <Link
             key={c.id}
             to="/catalog"
-            search={{ cat: c.id, kind }}
+            search={{ cat: c.id, kind: "ready" }}
             className={cn(
               "inline-flex h-11 items-center rounded-md px-4 text-sm",
               c.id === category.id ? "bg-accent text-accent-fg" : "bg-elevated text-muted hover:text-fg",
@@ -100,17 +105,7 @@ function CatalogPage() {
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <KindChip cat={category.id} active={!kind} label="Всё в разделе" />
-        {ready.length > 0 ? (
-          <KindChip cat={category.id} kind="ready" active={kind === "ready"} label="Только готовое" />
-        ) : null}
-        {custom.length > 0 ? (
-          <KindChip cat={category.id} kind="custom" active={kind === "custom"} label="Только заказ" />
-        ) : null}
-      </div>
-
-      {showReady && ready.length > 0 ? (
+      {ready.length > 0 ? (
         <section className="mt-12">
           <h2 className="font-display text-2xl font-semibold tracking-tight">Готовое</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -121,41 +116,16 @@ function CatalogPage() {
         </section>
       ) : null}
 
-      {showCustom && custom.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="font-display text-2xl font-semibold tracking-tight">На заказ</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {custom.map((p) => (
-              <ProductCard key={p.slug} product={p} />
-            ))}
-          </div>
-        </section>
-      ) : null}
+      <section className="mt-12 max-w-xl">
+        <h2 className="font-display text-2xl font-semibold tracking-tight">На заказ</h2>
+        <p className="mt-3 text-muted">Нужен {category.label.toLowerCase()} не из списка — опишите задачу.</p>
+        <Link
+          to="/order"
+          className="mt-6 inline-flex h-12 items-center rounded-md bg-accent px-5 text-base font-medium text-accent-fg"
+        >
+          Описать задачу
+        </Link>
+      </section>
     </main>
-  );
-}
-
-function KindChip({
-  cat,
-  kind,
-  active,
-  label,
-}: {
-  cat: CategoryId;
-  kind?: ProductKind;
-  active: boolean;
-  label: string;
-}) {
-  return (
-    <Link
-      to="/catalog"
-      search={kind ? { cat, kind } : { cat }}
-      className={cn(
-        "inline-flex h-11 items-center rounded-md px-4 text-sm",
-        active ? "bg-accent text-accent-fg" : "border border-border text-muted hover:text-fg",
-      )}
-    >
-      {label}
-    </Link>
   );
 }

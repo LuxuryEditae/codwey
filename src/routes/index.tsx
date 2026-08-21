@@ -30,16 +30,15 @@ function Home() {
 
       <section className="border-t border-border bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-16">
-          <h2 className="font-display text-3xl font-semibold tracking-tight">На заказ</h2>
-          <p className="mt-2 max-w-xl text-sm text-muted">
-            Нет готового — Вей доспрашивает и считает смету.
-          </p>
-          <div className="mt-8">
-            <CategoryGrid kind="custom" />
+          <div className="max-w-xl">
+            <h2 className="font-display text-3xl font-semibold tracking-tight">На заказ</h2>
+            <p className="mt-3 text-muted">
+              Нет готового — опишите задачу. Менеджер доспросит и соберёт смету.
+            </p>
+            <Button asChild className="mt-8" size="lg">
+              <Link to="/order">Описать задачу</Link>
+            </Button>
           </div>
-          <Button asChild className="mt-8">
-            <Link to="/order">Описать задачу</Link>
-          </Button>
         </div>
       </section>
 
@@ -47,9 +46,9 @@ function Home() {
         <h2 className="font-display text-3xl font-semibold tracking-tight">Как это работает</h2>
         <ol className="mt-8 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { n: "01", t: "Раздел", d: "Сайты, боты, приложения или Roblox — не всё сразу." },
-            { n: "02", t: "Готовое или заказ", d: "Готовое берёте из списка. Заказ — в чат с Вей." },
-            { n: "03", t: "Смета", d: "Если заказ — Вей доспрашивает и даёт сумму в рамке." },
+            { n: "01", t: "Готовое", d: "Сайты, боты, приложения, Roblox — берёте из каталога." },
+            { n: "02", t: "На заказ", d: "Нет готового — одна кнопка, описываете задачу." },
+            { n: "03", t: "Смета", d: "Менеджер доспрашивает и даёт сумму в рамке." },
             { n: "04", t: "Сдача", d: "Исходники, инструкция, запуск." },
           ].map((s) => (
             <li key={s.n} className="bg-bg p-5">
