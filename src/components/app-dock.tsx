@@ -3,6 +3,7 @@ import { Home, MessageSquare, PenLine, X } from "lucide-react";
 import { useEffect } from "react";
 import { ChatPanel } from "@/components/chat-panel";
 import { ContinueArrow } from "@/components/continue-arrow";
+import { useChat } from "@/lib/chat-store";
 import { useManagerUi } from "@/lib/manager-ui";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,7 @@ export function AppDock() {
   const open = useManagerUi((s) => s.open);
   const arrow = useManagerUi((s) => s.arrow);
   const setOpen = useManagerUi((s) => s.setOpen);
+  const busy = useChat((s) => s.busy);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
 
@@ -43,19 +45,19 @@ export function AppDock() {
 
   return (
     <>
-      {open ? (
-        <div
-          className={cn(
-            "dock-enter fixed inset-x-0 top-0 z-40 flex flex-col overflow-hidden border-border bg-surface",
-            "md:inset-auto md:bottom-24 md:right-4 md:top-auto md:h-[min(36rem,calc(100svh-7rem))] md:w-96 md:border",
-          )}
-          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
-        >
-          <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-2">
-            <ChatPanel />
-          </div>
+      <div
+        className={cn(
+          "fixed inset-x-0 top-0 z-40 overflow-hidden border-border bg-surface",
+          "md:inset-auto md:bottom-24 md:right-4 md:top-auto md:h-[min(36rem,calc(100svh-7rem))] md:w-96 md:border",
+          open ? "dock-enter flex flex-col" : "hidden",
+        )}
+        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+        aria-hidden={!open}
+      >
+        <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-2">
+          <ChatPanel />
         </div>
-      ) : null}
+      </div>
 
       <ContinueArrow />
 
@@ -88,7 +90,7 @@ export function AppDock() {
               type="button"
               onClick={() => setOpen(!open)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 text-xs",
+                "relative flex flex-col items-center justify-center gap-1 text-xs",
                 open ? "text-fg" : "text-muted",
               )}
               aria-label={open ? "Закрыть чат с менеджером" : "Открыть чат с менеджером"}
@@ -96,6 +98,9 @@ export function AppDock() {
             >
               {open ? <X className="size-5" /> : <MessageSquare className="size-5" />}
               Менеджер
+              {busy && !open ? (
+                <span className="absolute right-6 top-1 size-1.5 rounded-full bg-fg" />
+              ) : null}
             </button>
           </div>
         </nav>

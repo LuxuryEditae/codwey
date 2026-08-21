@@ -65,9 +65,12 @@ export function ChatPanel({
   const lines = useCart((s) => s.lines);
   const extraCtx = useRef<string>("");
   const takeOrder = useManagerUi((s) => s.takeOrder);
+  const chatOpen = useManagerUi((s) => s.open);
   const [draft, setDraft] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const pending = useChat((s) => s.busy);
+  const error = useChat((s) => s.fail);
+  const setPending = useChat((s) => s.setBusy);
+  const setError = useChat((s) => s.setFail);
   const [images, setImages] = useState<{ preview: string; payload: ChatImage }[]>([]);
   const [hostingOpen, setHostingOpen] = useState(false);
   const queued = useRef<string | null>(null);
@@ -82,7 +85,8 @@ export function ChatPanel({
   }, [visible, pending]);
 
   useEffect(() => {
-    if (!hydrated || !consent) return;
+    if (!hydrated || !consent || !chatOpen) return;
+    if (useChat.getState().busy) return;
     const extra = takeOrder();
     const next = extra.seed || seed;
     if (extra.seed) usedSeeds.clear();
@@ -95,7 +99,7 @@ export function ChatPanel({
     usedSeeds.add(next);
     void submit(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, seed, consent]);
+  }, [hydrated, seed, consent, chatOpen]);
 
   async function submit(text: string, imgs?: ChatImage[], retry = false) {
     const content = text.trim();
@@ -148,6 +152,7 @@ export function ChatPanel({
       });
     }
     setPending(true);
+    const epoch = useChat.getState().epoch;
 
     const cart = resolveCart(lines);
     const cartText =
@@ -181,6 +186,7 @@ export function ChatPanel({
       },
     });
 
+    if (useChat.getState().epoch !== epoch) return;
     setPending(false);
     if (!result.ok) {
       setError(result.error);
