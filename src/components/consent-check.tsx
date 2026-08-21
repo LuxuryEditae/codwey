@@ -18,9 +18,9 @@ export function ConsentCheck() {
         required
       />
       <span>
-        Соглашаюсь на обработку персональных данных. Без галочки заявку не примем.{" "}
+        Соглашаюсь на обработку персональных данных.{" "}
         <Link to="/legal" className="underline underline-offset-2 hover:text-fg">
-          Закон 152-ФЗ
+          152-ФЗ
         </Link>
       </span>
     </label>

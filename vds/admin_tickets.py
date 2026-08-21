@@ -79,6 +79,7 @@ async def list_tickets(_: str = Depends(admin_user), db: AsyncSession = Depends(
         out.append(
             {
                 "id": t.id,
+                "number": 0,
                 "category": t.category,
                 "contact": t.contact,
                 "description": t.description,
@@ -91,4 +92,31 @@ async def list_tickets(_: str = Depends(admin_user), db: AsyncSession = Depends(
                 "created_at": created,
             }
         )
+    numbered = sorted(out, key=lambda x: x["created_at"] or "")
+    index = {row["id"]: i + 1 for i, row in enumerate(numbered)}
+    for row in out:
+        row["number"] = index.get(row["id"], 0)
     return out
+
+
+class StatusIn(BaseModel):
+    status: str
+
+
+@router.patch("/tickets/{ticket_id}")
+async def patch_ticket(
+    ticket_id: str,
+    data: StatusIn,
+    _: str = Depends(admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Ticket).where(Ticket.id == ticket_id))
+    ticket = result.scalar_one_or_none()
+    if not ticket:
+        raise HTTPException(404, "Нет заявки")
+    status = data.status.strip()[:30] or ticket.status
+    if status not in ("new", "updated", "closed"):
+        raise HTTPException(400, "Неверный статус")
+    ticket.status = status
+    await db.commit()
+    return {"ok": True, "id": ticket.id, "status": ticket.status}

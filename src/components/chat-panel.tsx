@@ -54,7 +54,7 @@ export function ChatPanel({
   const reset = useChat((s) => s.reset);
   const lines = useCart((s) => s.lines);
   const extraCtx = useRef<string>("");
-  const consumeSeed = useManagerUi((s) => s.consumeSeed);
+  const takeOrder = useManagerUi((s) => s.takeOrder);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,10 +71,11 @@ export function ChatPanel({
   }, [visible, pending]);
 
   useEffect(() => {
-    const extra = consumeSeed();
+    if (!hydrated || !consent) return;
+    const extra = takeOrder();
     const next = extra.seed || seed;
     if (extra.context) extraCtx.current = extra.context;
-    if (!hydrated || !next || !consent || usedSeeds.has(next)) return;
+    if (!next || usedSeeds.has(next)) return;
     if (useChat.getState().messages.some((m) => m.content === next)) {
       usedSeeds.add(next);
       return;
@@ -89,13 +90,24 @@ export function ChatPanel({
     const shot = imgs ?? images.map((i) => i.payload);
     if ((!content && shot.length === 0) || pending) return;
     if (!consent) {
-      setError("Поставьте галочку: без согласия на 152-ФЗ чат не отправит заявку.");
+      setError("Отметьте согласие на обработку данных.");
       return;
     }
     if (needsHostingAck()) {
       queued.current = content || "Смотри фото.";
       setHostingOpen(true);
       return;
+    }
+    const lastQ = [...useChat.getState().messages]
+      .reverse()
+      .find((m) => m.role === "assistant")?.questions;
+    if (lastQ?.includes(content)) {
+      extraCtx.current = [
+        extraCtx.current,
+        `Клиент нажал кнопку «${content}». Это ответ. Если согласился со скидкой или правкой — сразу пересчитай смету с новыми цифрами. Не повторяй предыдущее сообщение.`,
+      ]
+        .filter(Boolean)
+        .join("\n");
     }
     setError(null);
     setDraft("");

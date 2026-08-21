@@ -13,10 +13,19 @@ import { useHydrated } from "@/lib/use-hydrated";
 
 export const Route = createFileRoute("/order")({ component: OrderPage });
 
+const DEADLINES = [
+  { id: "rush", label: "1–2 дня", hint: "+25% к смете" },
+  { id: "fast", label: "3–5 дней", hint: "+10%" },
+  { id: "week", label: "Неделя", hint: "базовая цена" },
+  { id: "two", label: "2 недели", hint: "−5%" },
+  { id: "any", label: "Без срока", hint: "базовая цена" },
+] as const;
+
 function OrderPage() {
   const [category, setCategory] = useState<CategoryId>("bots");
   const [task, setTask] = useState("");
   const [contact, setContact] = useState("");
+  const [deadline, setDeadline] = useState<(typeof DEADLINES)[number]["id"]>("week");
   const hydrated = useHydrated();
   const consent = useConsent((s) => s.agreed) && hydrated;
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +35,7 @@ function OrderPage() {
 
   function sendToManager() {
     if (!consent) {
-      setError("Поставьте галочку: без согласия на 152-ФЗ заявку не примем.");
+      setError("Отметьте согласие на обработку данных.");
       return;
     }
     if (needsHostingAck()) {
@@ -34,17 +43,22 @@ function OrderPage() {
       return;
     }
     const cat = CATEGORIES.find((c) => c.id === category);
+    const due = DEADLINES.find((d) => d.id === deadline);
     const seed = [
       `Заявка с сайта.`,
       `Категория: ${cat?.label ?? category}.`,
       `Задача: ${task.trim() || "пока коротко"}.`,
+      `Срок: ${due?.label ?? "неделя"} (${due?.hint}).`,
       `Контакт: ${contact.trim() || "не указан"}.`,
     ].join("\n");
     const context = [
       "Это заявка с формы «на заказ».",
-      "Если категория, задача и контакт уже есть — сразу прими заказ: submit=true, напиши «Ваш заказ принят» и краткую сводку.",
-      "Если дырки — один короткий вопрос, submit=false.",
-      "Если потом клиент просит исправить — replace=true и обнови заявку.",
+      "Срок влияет на цену: 1–2 дня +25%, 3–5 дней +10%, неделя база, 2 недели −5%.",
+      "Сразу посчитай смету по блокам (что за что) и верни quote.",
+      "Если категория, задача и контакт есть — submit=true, «Ваш заказ принят» и смета.",
+      "Если дырки — один короткий вопрос, но смету-прикидку всё равно дай.",
+      "Готовое тоже можно менять и делать скидку — пересчитывай quote.",
+      "Если клиент просит исправить — replace=true, обнови ту же заявку.",
     ].join(" ");
     queueOrder(seed, context);
     setSent(true);
@@ -56,8 +70,7 @@ function OrderPage() {
         <p className="font-mono text-xs text-muted">на заказ</p>
         <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Заявка у менеджера</h1>
         <p className="mt-4 text-muted">
-          Форма закрыта. Нажмите на большую стрелку или кнопку «Менеджер» справа снизу — там ваша
-          заявка.
+          Форма закрыта. Нажмите на большую стрелку — заявка уйдёт менеджеру, он посчитает смету.
         </p>
         <Button className="mt-8" variant="secondary" onClick={() => setSent(false)}>
           Новая заявка
@@ -78,8 +91,7 @@ function OrderPage() {
       <p className="font-mono text-xs text-muted">на заказ</p>
       <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Опишите задачу</h1>
       <p className="mt-3 text-muted">
-        Категория, контакт и что нужно. Если всё ясно — заказ сразу принят. Если нет — менеджер
-        доспросит.
+        Категория, срок, контакт и что нужно. Срок меняет цену. Менеджер соберёт смету.
       </p>
       <HostingNote className="mt-4 max-w-xl text-sm text-muted" />
 
@@ -115,6 +127,24 @@ function OrderPage() {
             placeholder="Например: бот записи на две услуги, напоминание за час…"
           />
         </label>
+        <fieldset>
+          <legend className="mb-2 text-sm text-muted">Срок</legend>
+          <div className="flex flex-wrap gap-2">
+            {DEADLINES.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setDeadline(d.id)}
+                className={`h-11 rounded-md px-4 text-sm ${
+                  deadline === d.id ? "bg-accent text-accent-fg" : "bg-elevated text-muted"
+                }`}
+              >
+                {d.label}
+                <span className="ml-2 text-xs opacity-70">{d.hint}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
         <label className="block">
           <span className="mb-2 block text-sm text-muted">Telegram или почта</span>
           <Input

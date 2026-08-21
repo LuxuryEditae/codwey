@@ -34,7 +34,7 @@ function CheckoutPage() {
 
   async function pay() {
     if (!consent) {
-      setError("Поставьте галочку: без согласия на 152-ФЗ оплату не откроем.");
+      setError("Отметьте согласие на обработку данных.");
       return;
     }
     setError(null);
