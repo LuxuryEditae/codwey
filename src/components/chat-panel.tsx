@@ -6,7 +6,6 @@ import { HostingModal, needsHostingAck } from "@/components/hosting-modal";
 import { HostingNote } from "@/components/hosting-note";
 import { QuoteFrame } from "@/components/quote-frame";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { sendManagerMessage } from "@/lib/ai/client";
 import type { ChatImage } from "@/lib/ai/types";
 import { resolveCart, useCart } from "@/lib/cart";
@@ -27,7 +26,7 @@ const usedSeeds = new Set<string>();
 
 async function fileToImage(file: File): Promise<ChatImage> {
   const bitmap = await createImageBitmap(file);
-  const max = 1024;
+  const max = 768;
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
   const w = Math.max(1, Math.round(bitmap.width * scale));
   const h = Math.max(1, Math.round(bitmap.height * scale));
@@ -38,7 +37,7 @@ async function fileToImage(file: File): Promise<ChatImage> {
   if (!ctx) throw new Error("canvas");
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
-  const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.55);
   return { mime: "image/jpeg", data: dataUrl.slice(dataUrl.indexOf(",") + 1) };
 }
 
@@ -60,7 +59,6 @@ export function ChatPanel({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<{ preview: string; payload: ChatImage }[]>([]);
-  const [fileLinks, setFileLinks] = useState("");
   const [hostingOpen, setHostingOpen] = useState(false);
   const queued = useRef<string | null>(null);
   const consent = useConsent((s) => s.agreed);
@@ -90,20 +88,19 @@ export function ChatPanel({
 
   async function submit(text: string, imgs?: ChatImage[]) {
     const content = text.trim();
-    const links = fileLinks.trim();
-    const payloadText =
-      links && content && !content.includes(links) ? `${content}\nФайлы: ${links}` : content;
     const shot = imgs ?? images.map((i) => i.payload);
-    if ((!payloadText && shot.length === 0) || pending) return;
+    if ((!content && shot.length === 0) || pending) return;
     if (!consent) {
       setError("Отметьте согласие на обработку данных.");
       return;
     }
     const alreadyIn = useChat.getState().messages.some((m) => m.submitted);
-    const correcting = /исправ|измен|добав|убер|передел|другое|скидк|дешев/i.test(content);
+    const correcting = /исправ|измен|добав|убер|передел|другое|скидк|дешев|поправ|замен|файл|ссылк|срок|цен|контакт/i.test(
+      content,
+    );
     const freshOrder = content.startsWith("Заявка с сайта");
     if (alreadyIn && !correcting && !freshOrder && shot.length === 0) {
-      push({ role: "user", content: payloadText });
+      push({ role: "user", content });
       push({
         role: "assistant",
         content: "Заявка уже принята. Напишите, что поправить — изменю.",
@@ -113,7 +110,7 @@ export function ChatPanel({
       return;
     }
     if (needsHostingAck()) {
-      queued.current = payloadText || "Смотри фото.";
+      queued.current = content || "Смотри фото.";
       setHostingOpen(true);
       return;
     }
@@ -130,11 +127,10 @@ export function ChatPanel({
     }
     setError(null);
     setDraft("");
-    setFileLinks("");
     setImages([]);
     push({
       role: "user",
-      content: payloadText || "Фото к задаче",
+      content: content || "Фото к задаче",
       image: shot[0] ? `data:${shot[0].mime};base64,${shot[0].data}` : undefined,
     });
     setPending(true);
@@ -334,12 +330,6 @@ export function ChatPanel({
             ))}
           </div>
         ) : null}
-        <Input
-          className="mt-2"
-          value={fileLinks}
-          onChange={(e) => setFileLinks(e.target.value)}
-          placeholder="Файлы: ссылка на Яндекс Диск / Google Drive"
-        />
         <form
           className="mt-3 flex items-end gap-2"
           onSubmit={(e) => {
@@ -359,7 +349,7 @@ export function ChatPanel({
               try {
                 const payload = await fileToImage(file);
                 setImages((prev) =>
-                  [...prev, { preview: URL.createObjectURL(file), payload }].slice(-2),
+                  [...prev, { preview: URL.createObjectURL(file), payload }].slice(-1),
                 );
               } catch {
                 setError("Не получилось прочитать фото");

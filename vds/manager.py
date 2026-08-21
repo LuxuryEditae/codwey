@@ -63,15 +63,14 @@ SYSTEM_PROMPT = """Ты — Вей, ИИ-менеджер студии Codwey.
 Смету присылай когда детали ясны ИЛИ клиент спросил «сколько». Не дублируй ту же смету в каждом сообщении.
 
 ПРИНЯТИЕ ЗАЯВКИ
-Когда поля, куда слать, логотип и оплата ясны — спроси один раз: «Принять заявку?»
+Пока клиент не ответил по делу на уточнения — submit=false. Шутки, «бурмалда», одно слово не по теме — не принимай, попроси ответить на вопросы.
+В сообщении с вопросами НЕ пиши «принять заявку». Сначала ответы, потом смета, потом один раз: «Принять заявку?»
 Кнопки тогда: «Принять заявку», «Ещё поправить».
-Если клиент принял:
-submit=true
-questions=[]
-message: «Заявка принята!» и 3–5 строк сводки: что делаем, блоки сметы коротко, сумма, срок, контакт.
-quote: финальная подробная смета.
-Дальше не продавай и не спрашивай «всё ок?». Если пишет ещё без правок: «Заявка уже в работе. Напишите, что поправить.»
-replace=true только при правке уже принятой заявки.
+Принимай ТОЛЬКО если клиент явно написал «принять заявку» / «принимаю» (или «да» на вопрос ТОЛЬКО про принятие, без списка уточнений).
+Тогда submit=true, questions=[], message начинается с «Заявка принята!», quote по блокам, lead заполнен.
+Если просит изменить уже принятую: replace=true, submit=true, обнови lead и quote, напиши «Заявку обновил.»
+Ссылка на диск/файлы в тексте — сохрани в lead.description.
+Дальше не продавай. Если пишет без правок: «Заявка уже в работе. Напишите, что поправить.»
 
 ФОРМАТ — только JSON:
 {"message":"...","questions":[],"quote":null,"submit":false,"replace":false,"lead":null}
@@ -190,22 +189,28 @@ def _user_content(text: str, images: list[ImageIn]) -> Any:
         parts.append(
             {
                 "type": "image_url",
-                "image_url": {"url": f"data:{mime};base64,{img.data[:350_000]}"},
+                "image_url": {"url": f"data:{mime};base64,{img.data}"},
             }
         )
     return parts
 
 
-async def _post(url: str, key: str, body: dict[str, Any], extra: dict[str, str] | None = None) -> str:
+async def _post(
+    url: str,
+    key: str,
+    body: dict[str, Any],
+    extra: dict[str, str] | None = None,
+    use_proxy: bool = True,
+) -> str:
     headers = {
         "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
         **(extra or {}),
     }
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(70.0, connect=12.0),
-        proxy="socks5://127.0.0.1:9050",
-    ) as client:
+    kwargs: dict[str, Any] = {"timeout": httpx.Timeout(55.0, connect=10.0)}
+    if use_proxy:
+        kwargs["proxy"] = "socks5://127.0.0.1:9050"
+    async with httpx.AsyncClient(**kwargs) as client:
         response = await client.post(url, headers=headers, json=body)
         response.raise_for_status()
         data = response.json()
@@ -219,7 +224,21 @@ async def _post(url: str, key: str, body: dict[str, Any], extra: dict[str, str] 
         return str(text)
 
 
-async def complete(messages: list[dict[str, Any]]) -> str:
+def _strip_images(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    out = []
+    for m in messages:
+        content = m.get("content")
+        if isinstance(content, list):
+            text = " ".join(
+                p.get("text", "") for p in content if isinstance(p, dict) and p.get("type") == "text"
+            ).strip() or "Клиент приложил фото."
+            out.append({**m, "content": text + "\n[фото не прочиталось — попроси описать или кинуть ссылку на диск]"})
+        else:
+            out.append(m)
+    return out
+
+
+async def complete(messages: list[dict[str, Any]], _text_retry: bool = False) -> str:
     nim_keys = _csv("NIM_KEYS")
     mistral_keys = _csv("MISTRAL_KEYS")
     nim_model = os.environ.get("NIM_MODEL") or "google/gemma-3-4b-it"
@@ -227,29 +246,45 @@ async def complete(messages: list[dict[str, Any]]) -> str:
     mistral_model = os.environ.get("MISTRAL_MODEL") or "pixtral-12b-2409"
     openrouter_model = getattr(settings, "openrouter_model", None) or "qwen/qwen3.7-flash"
     openrouter_key = os.environ.get("OPENROUTER_API_KEY") or settings.openrouter_api_key
-
     errors: list[str] = []
+    has_vision = any(isinstance(m.get("content"), list) for m in messages)
 
-    for key in nim_keys:
-        for model in (nim_model, nim_model_2):
+    async def try_nim(proxy: bool) -> str | None:
+        for key in nim_keys:
+            for model in (nim_model, nim_model_2):
+                try:
+                    return await _post(
+                        "https://integrate.api.nvidia.com/v1/chat/completions",
+                        key,
+                        {"model": model, "messages": messages, "max_tokens": 1200, "temperature": 0.35},
+                        use_proxy=proxy,
+                    )
+                except Exception as exc:
+                    errors.append(f"nim:{model.split('/')[-1]}:{type(exc).__name__}")
+        return None
+
+    async def try_mistral(proxy: bool) -> str | None:
+        for key in mistral_keys:
             try:
                 return await _post(
-                    "https://integrate.api.nvidia.com/v1/chat/completions",
+                    "https://api.mistral.ai/v1/chat/completions",
                     key,
-                    {"model": model, "messages": messages, "max_tokens": 1200, "temperature": 0.4},
+                    {"model": mistral_model, "messages": messages, "max_tokens": 1200, "temperature": 0.35},
+                    use_proxy=proxy,
                 )
             except Exception as exc:
-                errors.append(f"nim:{type(exc).__name__}")
+                errors.append(f"mistral:{type(exc).__name__}")
+        return None
 
-    for key in mistral_keys:
-        try:
-            return await _post(
-                "https://api.mistral.ai/v1/chat/completions",
-                key,
-                {"model": mistral_model, "messages": messages, "max_tokens": 1200, "temperature": 0.4},
-            )
-        except Exception as exc:
-            errors.append(f"mistral:{type(exc).__name__}")
+    for fn in (
+        lambda: try_nim(False),
+        lambda: try_mistral(False),
+        lambda: try_nim(True),
+        lambda: try_mistral(True),
+    ):
+        got = await fn()
+        if got:
+            return got
 
     if openrouter_key:
         try:
@@ -260,14 +295,29 @@ async def complete(messages: list[dict[str, Any]]) -> str:
                     "model": openrouter_model,
                     "messages": messages,
                     "max_tokens": 1200,
-                    "temperature": 0.4,
+                    "temperature": 0.35,
                 },
                 extra={"HTTP-Referer": "https://codwey.su", "X-Title": "Codwey"},
+                use_proxy=True,
             )
         except Exception as exc:
             errors.append(f"or:{type(exc).__name__}")
 
-    raise RuntimeError(";".join(errors[-6:]) or "no providers")
+    if has_vision and not _text_retry:
+        return await complete(_strip_images(messages), True)
+
+    raise RuntimeError(";".join(errors[-8:]) or "no providers")
+
+
+def _file_links(history: list[dict[str, str]]) -> list[str]:
+    found: list[str] = []
+    for m in history:
+        found.extend(re.findall(r"https?://[^\s)<>\"']+", m.get("content") or ""))
+    out: list[str] = []
+    for u in found:
+        if u not in out:
+            out.append(u)
+    return out[:8]
 
 
 async def save_ticket(parsed: dict[str, Any], history: list[dict[str, str]], session_id: str | None) -> str | None:
@@ -282,6 +332,9 @@ async def save_ticket(parsed: dict[str, Any], history: list[dict[str, str]], ses
     category = str(lead.get("category") or "")[:40]
     contact = str(lead.get("contact") or "")[:160]
     description = str(lead.get("description") or parsed.get("message") or "")[:4000]
+    links = _file_links(history)
+    if links and "http" not in description.lower():
+        description = (description + "\nФайлы: " + " ".join(links))[:4000]
     timeline = str(lead.get("timeline") or (quote or {}).get("timeline") or "")[:80]
     quote_json = json.dumps(quote, ensure_ascii=False) if quote else ""
     async with SessionLocal() as db:
@@ -376,18 +429,40 @@ def _filter_questions(questions: list[str], submitting: bool) -> list[str]:
     return out[:3]
 
 
+ACCEPT_PHRASES = {
+    "принять заявку",
+    "принимаю",
+    "принимаем",
+    "оформляем",
+    "оформить",
+    "да, принять",
+    "да принять",
+}
+
+
+def _is_accept(text: str) -> bool:
+    t = re.sub(r"[.!?]+$", "", text.lower().strip())
+    return t in ACCEPT_PHRASES or t.startswith("принять заявк")
+
+
+def _prev_is_accept_only(prev: str) -> bool:
+    p = prev.lower()
+    if "принять заявк" not in p and "принять заказ" not in p:
+        return False
+    if any(w in p for w in ("логотип", "уточн", "какие поля", "куда пад", "страниц", "оплат?", "нужна оплат")):
+        return False
+    return True
+
+
 def _should_submit(parsed: dict[str, Any], last: str, trimmed: list[dict[str, str]]) -> bool:
-    user = last.lower().strip()
-    prev = trimmed[-2]["content"].lower() if len(trimmed) > 1 else ""
     if parsed.get("replace"):
         return True
-    asked = "принять заявк" in prev or "принять заказ" in prev
-    yes = user in ("да", "да.", "ок", "хорошо", "ага", "принимаем", "принимаю", "принять заявку")
-    if not asked and not user.startswith("принять заявк"):
-        return False
-    if not _brief_ready(trimmed) and len([m for m in trimmed if m["role"] == "user"]) < 3:
-        return False
-    return bool(asked and yes) or user.startswith("принять заявк")
+    prev = trimmed[-2]["content"] if len(trimmed) > 1 else ""
+    if _is_accept(last) and _brief_ready(trimmed):
+        return True
+    if last.lower().strip() in ("да", "да.", "ок") and _prev_is_accept_only(prev) and _brief_ready(trimmed):
+        return True
+    return False
 
 
 @router.post("")
@@ -415,7 +490,8 @@ async def manager(payload: Payload) -> dict[str, Any]:
         if m["role"] == "assistant"
     )
     if already and not any(
-        w in last.lower() for w in ("исправ", "измен", "добав", "передел", "убер", "другое")
+        w in last.lower()
+        for w in ("исправ", "измен", "добав", "передел", "убер", "другое", "поправ", "замен", "файл", "ссылк", "срок", "цен", "скидк", "контакт")
     ):
         return {
             "ok": True,
@@ -424,7 +500,6 @@ async def manager(payload: Payload) -> dict[str, Any]:
             "quote": None,
             "submit": False,
         }
-
     system = SYSTEM_PROMPT
     if payload.context:
         system += "\n\nКонтекст:\n" + payload.context[:2500]
@@ -434,6 +509,11 @@ async def manager(payload: Payload) -> dict[str, Any]:
             "\n\nТвой прошлый ответ:\n"
             + last_assistant[:900]
             + "\nНе повторяй его. Смету не дублируй, если цифры не изменились."
+        )
+    if already:
+        system += (
+            "\nКлиент меняет уже принятую заявку. replace=true, обнови lead и quote. "
+            "Напиши «Заявку обновил.» и новую смету по строкам."
         )
     if not _asked_discount(trimmed):
         system += "\nКлиент скидку не просил — не предлагай скидку и не пиши про 8%."
@@ -475,14 +555,23 @@ async def manager(payload: Payload) -> dict[str, Any]:
                     "timeline": (due.group(1).strip(" .") if due else "")[:80],
                 }
         ready = _brief_ready(trimmed)
-        if parsed.get("submit") and not ready and not parsed.get("replace"):
+        if already:
+            parsed["replace"] = True
+            parsed["submit"] = True
+            parsed["questions"] = []
+            parsed["ticketId"] = await save_ticket(parsed, trimmed, payload.sessionId)
+            if "заявку обновил" not in (parsed.get("message") or "").lower():
+                parsed["message"] = "Заявку обновил.\n" + (parsed.get("message") or "")
+            return parsed
+        if parsed.get("submit") and not ready:
             parsed["submit"] = False
-            if "принять заявк" not in (parsed.get("message") or "").lower():
-                parsed["message"] = (
-                    (parsed.get("message") or "").strip()
-                    + "\n\nЕщё уточню: есть логотип и цвета? Нужна оплата в боте — ЮKassa, СБП или без оплаты? Куда слать заявки — вам в личку или в группу?"
-                ).strip()
-        submitting = _should_submit(parsed, last, trimmed)
+        submitting = _should_submit(parsed, last, trimmed) and ready
+        if not ready:
+            parsed["questions"] = [
+                q
+                for q in (parsed.get("questions") or [])
+                if "принять" not in q.lower()
+            ]
         parsed["questions"] = _filter_questions(parsed.get("questions") or [], submitting)
         if submitting:
             parsed["submit"] = True
@@ -501,6 +590,12 @@ async def manager(payload: Payload) -> dict[str, Any]:
             parsed["ticketId"] = await save_ticket(parsed, trimmed, payload.sessionId)
         else:
             parsed["submit"] = False
+            msg = parsed.get("message") or ""
+            if "заявка принята" in msg.lower():
+                parsed["message"] = (
+                    "Пока рано принимать. Ответьте по пунктам: логотип, оплата, куда слать заявки, какие страницы/поля. "
+                    "Когда всё ясно — напишите «принять заявку»."
+                )
         return parsed
     except Exception:
         return {"ok": False, "error": "Не удалось ответить. Напишите ещё раз."}
