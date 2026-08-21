@@ -26,6 +26,7 @@ function OrderPage() {
   const [task, setTask] = useState("");
   const [contact, setContact] = useState("");
   const [budget, setBudget] = useState("");
+  const [files, setFiles] = useState("");
   const [deadline, setDeadline] = useState<(typeof DEADLINES)[number]["id"]>("week");
   const hydrated = useHydrated();
   const consent = useConsent((s) => s.agreed) && hydrated;
@@ -51,6 +52,7 @@ function OrderPage() {
       `Задача: ${task.trim() || "пока коротко"}.`,
       `Срок: ${due?.label ?? "неделя"} (${due?.hint}).`,
       budget.trim() ? `Бюджет клиента примерно: ${budget.trim()} ₽.` : "Бюджет не указан.",
+      files.trim() ? `Файлы клиента: ${files.trim()}` : "Файлы не приложены.",
       `Контакт: ${contact.trim() || "не указан"}.`,
     ].join("\n");
     const context = [
@@ -161,6 +163,17 @@ function OrderPage() {
             onChange={(e) => setContact(e.target.value)}
             placeholder="@username"
           />
+        </label>
+        <label className="block">
+          <span className="mb-2 block text-sm text-muted">Файлы — ссылка на обменник</span>
+          <Input
+            value={files}
+            onChange={(e) => setFiles(e.target.value)}
+            placeholder="Яндекс Диск, Google Drive, Dropbox…"
+          />
+          <span className="mt-1 block text-xs text-muted">
+            Залейте макеты или бриф на диск и вставьте ссылку.
+          </span>
         </label>
         <ConsentCheck />
         {error ? <p className="text-sm text-danger">{error}</p> : null}

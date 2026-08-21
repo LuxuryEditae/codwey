@@ -1,3 +1,4 @@
+import { ArrowDown } from "lucide-react";
 import { useManagerUi } from "@/lib/manager-ui";
 
 export function ContinueArrow() {
@@ -16,7 +17,7 @@ export function ContinueArrow() {
     <button
       type="button"
       onClick={go}
-      className="fixed inset-0 z-[70] flex h-[100svh] w-full flex-col items-center justify-center bg-bg px-6 text-fg"
+      className="fixed inset-0 z-[90] flex h-[100svh] w-full flex-col items-center justify-center bg-bg px-6 text-fg"
       aria-label="Открыть менеджера"
     >
       <p className="font-display text-center text-4xl font-semibold tracking-tight sm:text-6xl">
@@ -25,7 +26,8 @@ export function ContinueArrow() {
       <p className="mt-4 max-w-md text-center text-base text-muted sm:text-lg">
         Нажмите — заявка уйдёт менеджеру. Он расспросит детали и посчитает смету.
       </p>
-      <span className="mt-10 rounded-md bg-accent px-8 py-4 text-base font-medium text-accent-fg">
+      <ArrowDown className="mt-10 size-28 animate-bounce sm:size-36" />
+      <span className="mt-8 rounded-md bg-accent px-8 py-4 text-base font-medium text-accent-fg">
         Открыть менеджера
       </span>
     </button>

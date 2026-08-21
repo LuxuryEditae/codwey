@@ -9,3 +9,10 @@ export function sessionId(): string {
   }
   return id;
 }
+
+export function newSession(): string {
+  if (typeof window === "undefined") return "";
+  const id = crypto.randomUUID();
+  localStorage.setItem(KEY, id);
+  return id;
+}

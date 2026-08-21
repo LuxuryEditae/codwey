@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { useChat } from "@/lib/chat-store";
+import { newSession } from "@/lib/session";
 
 const PENDING_KEY = "codwey-pending-order";
 
@@ -48,6 +50,8 @@ export const useManagerUi = create<ManagerUi>((set, get) => ({
       arrow: open ? false : get().arrow,
     }),
   queueOrder: (seed, context) => {
+    useChat.getState().reset();
+    newSession();
     writePending(seed, context ?? null);
     set({
       open: false,
