@@ -86,7 +86,6 @@ async def list_tickets(_: str = Depends(admin_user), db: AsyncSession = Depends(
                 "amount": t.amount,
                 "timeline": t.timeline,
                 "quote_json": t.quote_json,
-                "conversation": t.conversation,
                 "status": t.status,
                 "source": t.source,
                 "created_at": created,

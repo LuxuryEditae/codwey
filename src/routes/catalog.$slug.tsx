@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { MessageSquare, ShoppingBag } from "lucide-react";
+import { MessageSquare, PenLine, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { QuizBotDemo } from "@/components/demos/quiz-bot";
 import { ShopBotDemo } from "@/components/demos/shop-bot";
@@ -10,6 +10,7 @@ import { ProductCover } from "@/components/product-cover";
 import { Button } from "@/components/ui/button";
 import { CATEGORIES, PRODUCTS, getProduct, type Product } from "@/data/catalog";
 import { useCart } from "@/lib/cart";
+import { useManagerUi } from "@/lib/manager-ui";
 
 export const Route = createFileRoute("/catalog/$slug")({
   component: ProductPage,
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/catalog/$slug")({
 function BuyBox({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
   const navigate = useNavigate();
+  const queueOrder = useManagerUi((s) => s.queueOrder);
   return (
     <>
       <PriceTag product={product} />
@@ -43,6 +45,19 @@ function BuyBox({ product }: { product: Product }) {
               }}
             >
               В корзину
+            </Button>
+            <Button
+              size="lg"
+              variant="ghost"
+              onClick={() => {
+                queueOrder(
+                  `Хочу доработать готовое «${product.name}» (${product.price} ₽): добавить своё.`,
+                  "Клиент хочет доработку готового. Расспроси что добавить и посчитай доплату по блокам. Скидку сам не предлагай.",
+                );
+              }}
+            >
+              <PenLine />
+              Доработать / добавить своё
             </Button>
           </>
         ) : null}

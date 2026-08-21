@@ -167,9 +167,20 @@ export function ChatPanel({
         }}
       />
       <div className="flex items-center justify-between gap-3 border-b border-border px-1 pb-3">
-        <div>
-          <p className="font-display text-lg font-semibold">Вей</p>
-          <p className="text-xs text-muted">Менеджер Codwey · смета в чате · можно фото</p>
+        <div className="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex h-11 items-center gap-2 rounded-md bg-elevated px-3 text-sm text-fg"
+            onClick={() => useManagerUi.getState().setOpen(false)}
+            aria-label="Закрыть чат"
+          >
+            <X className="size-4" />
+            Закрыть
+          </button>
+          <div>
+            <p className="font-display text-lg font-semibold">Вей</p>
+            <p className="text-xs text-muted">ИИ-менеджер Codwey</p>
+          </div>
         </div>
         <button
           type="button"
@@ -184,7 +195,7 @@ export function ChatPanel({
         </button>
       </div>
 
-      <div ref={scroller} className="min-h-0 flex-1 space-y-4 overflow-y-auto py-4">
+      <div ref={scroller} className="min-h-0 flex-1 space-y-6 overflow-y-auto py-4">
         {visible.length === 0 && !pending ? (
           <div className="space-y-4">
             <p className="max-w-md text-sm leading-relaxed text-muted">
@@ -207,15 +218,28 @@ export function ChatPanel({
           </div>
         ) : null}
 
-        {visible.map((m) => (
+        {visible.map((m, i) => {
+          const prevQuote = [...visible]
+            .slice(0, i)
+            .reverse()
+            .find((x) => x.quote)?.quote;
+          const showQuote =
+            Boolean(m.quote) &&
+            (m.submitted ||
+              ((m.quote?.items.length ?? 0) >= 2 &&
+                JSON.stringify(m.quote) !== JSON.stringify(prevQuote)));
+          return (
           <article
             key={m.id}
             className={cn("max-w-[40rem]", m.role === "user" ? "ml-auto" : "mr-auto")}
           >
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-wide text-subtle">
+              {m.role === "user" ? "вы" : "вей"}
+            </p>
             <div
               className={cn(
                 "rounded-md px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
-                m.role === "user" ? "bg-accent text-accent-fg" : "bg-elevated text-fg",
+                m.role === "user" ? "bg-accent text-accent-fg" : "border border-border bg-elevated text-fg",
               )}
             >
               {m.image ? (
@@ -223,12 +247,15 @@ export function ChatPanel({
               ) : null}
               {m.content}
             </div>
-            {m.quote ? <QuoteFrame quote={m.quote} /> : null}
+            {showQuote && m.quote ? <QuoteFrame quote={m.quote} /> : null}
             {m.submitted ? (
-              <p className="mt-2 text-xs text-muted">Заявка ушла в админ-панель.</p>
+              <p className="mt-3 border border-accent bg-surface px-4 py-3 text-sm font-medium">
+                Заявка принята!
+              </p>
             ) : null}
           </article>
-        ))}
+          );
+        })}
 
         {pending ? (
           <p className="flex items-center gap-2 text-sm text-muted">
@@ -241,10 +268,19 @@ export function ChatPanel({
           <p className="rounded-md bg-elevated px-3 py-2 text-sm text-danger">{error}</p>
         ) : null}
 
-        {lastAssistant?.questions && lastAssistant.questions.length > 0 && !pending ? (
+        {lastAssistant?.questions &&
+        lastAssistant.questions.length > 0 &&
+        !pending &&
+        !lastAssistant.submitted &&
+        !visible.some((m) => m.submitted) ? (
           <div className="flex flex-wrap gap-2">
             {lastAssistant.questions
               .filter((q) => q.trim().length > 0 && q.trim().length <= 36)
+              .filter((q) => {
+                const confirm = /да|всё ок|все ок|нормально|принять/i.test(q);
+                const waiting = /принять заявк|принять заказ/i.test(lastAssistant.content);
+                return waiting || !confirm;
+              })
               .slice(0, 3)
               .map((q) => (
               <button

@@ -25,6 +25,7 @@ function OrderPage() {
   const [category, setCategory] = useState<CategoryId>("bots");
   const [task, setTask] = useState("");
   const [contact, setContact] = useState("");
+  const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState<(typeof DEADLINES)[number]["id"]>("week");
   const hydrated = useHydrated();
   const consent = useConsent((s) => s.agreed) && hydrated;
@@ -49,15 +50,14 @@ function OrderPage() {
       `Категория: ${cat?.label ?? category}.`,
       `Задача: ${task.trim() || "пока коротко"}.`,
       `Срок: ${due?.label ?? "неделя"} (${due?.hint}).`,
+      budget.trim() ? `Бюджет клиента примерно: ${budget.trim()} ₽.` : "Бюджет не указан.",
       `Контакт: ${contact.trim() || "не указан"}.`,
     ].join("\n");
     const context = [
       "Это заявка с формы «на заказ».",
       "Срок влияет на цену: 1–2 дня +25%, 3–5 дней +10%, неделя база, 2 недели −5%.",
-      "Сразу посчитай смету по блокам (что за что) и верни quote.",
-      "Если категория, задача и контакт есть — submit=true, «Ваш заказ принят» и смета.",
-      "Если дырки — один короткий вопрос, но смету-прикидку всё равно дай.",
-      "Готовое тоже можно менять и делать скидку — пересчитывай quote.",
+      "Бюджет клиента — ориентир, можно чуть выше или ниже с объяснением.",
+      "Не принимай заявку сразу. Расспроси: логотип, поля, куда падают заявки, оплата.",
       "Если клиент просит исправить — replace=true, обнови ту же заявку.",
     ].join(" ");
     queueOrder(seed, context);
@@ -145,6 +145,15 @@ function OrderPage() {
             ))}
           </div>
         </fieldset>
+        <label className="block">
+          <span className="mb-2 block text-sm text-muted">Бюджет примерно, ₽</span>
+          <Input
+            inputMode="numeric"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value.replace(/[^\d]/g, ""))}
+            placeholder="например 3000"
+          />
+        </label>
         <label className="block">
           <span className="mb-2 block text-sm text-muted">Telegram или почта</span>
           <Input

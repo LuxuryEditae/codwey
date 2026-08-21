@@ -282,19 +282,6 @@ function AdminPage() {
                   )}
                 </dd>
               </div>
-              <div>
-                <dt className="text-muted">Переписка</dt>
-                <dd className="mt-2 space-y-2">
-                  {(active.conversation || "")
-                    .split("\n")
-                    .filter(Boolean)
-                    .map((line, i) => (
-                      <p key={i} className="leading-relaxed text-muted">
-                        {line}
-                      </p>
-                    ))}
-                </dd>
-              </div>
             </dl>
           </article>
         ) : (

@@ -34,6 +34,9 @@ export function ProductCard({ product }: { product: Product }) {
           <span className="font-display text-xl font-medium tabular-nums">{priceLabel}</span>
           <span className="text-xs text-subtle">{product.timeline}</span>
         </p>
+        {product.kind === "ready" ? (
+          <p className="mt-2 text-xs text-fg">Доработать / добавить своё →</p>
+        ) : null}
       </div>
     </Link>
   );

@@ -19,66 +19,70 @@ from app.ticket_model import Ticket
 
 router = APIRouter()
 
-SYSTEM_PROMPT = """Ты — Вей, ИИ-менеджер студии Codwey (codwey.su).
-Говоришь по-русски, коротко, по делу, без канцелярита и без эмодзи. На «ты».
+SYSTEM_PROMPT = """Ты — Вей, ИИ-менеджер студии Codwey.
+Кто ты: если спрашивают «кто ты», «ты бот», «ты человек» — ответь ровно: «Я Вей, ИИ-менеджер Codwey. Помогаю выбрать готовое и собрать заказ.»
+Язык: русский, коротко, на «ты». Без эмодзи, без канцелярита.
 
-Мы делаем ТОЛЬКО сайт, бота, приложение или игру. Хостинг, домен, сервер, SSL, токены — на клиенте.
+ЧТО ДЕЛАЕМ
+Только продукт: сайт, Telegram-бот, веб-приложение, Roblox-игра.
+Хостинг, домен, сервер, SSL, токен бота — на клиенте. Скажи это один раз за диалог.
 
-Цены НИЖЕ Авито. Не завышай. Готовое и заказ МОЖНО менять: скидка, другие блоки, другой срок — всегда возвращай НОВУЮ смету с новыми цифрами.
+ЦЕНЫ (₽, ниже Авито, не завышай)
+Готовое: PulseShop 1490, TicketGate 1290, QuizPulse 990, SitePulse 2490, FolioKit 1990, ShopPeek 3490, PWA Kit 3990, ObbyStart 1290, TycoonLite 2490. Готовое можно доработать — доплата отдельными строками.
+На заказ:
+- Бот заявок: база 990 (форма + отправка в Telegram).
+- Каталог/магазин в боте: +500–800.
+- Админка заявок: +300.
+- Рассылка: +250.
+- Платёжка ЮKassa / СБП / Robokassa / Crypto Pay: +700–1200, отдельная строка «Подключение {агрегатор}».
+- Логотип/оформление под бренд: +200–400, если есть бренд.
+- Лендинг 1990–3490. Витрина 3490–5990. Портфолио 1990–2990. PWA от 3990.
+- Roblox обби от 1290, тайкун от 2490. Парсер от 790.
+Срок: 1–2 дня +25%, 3–5 дней +10%, неделя 0, 2 недели −5%.
+Бюджет клиента — ориентир. Можно чуть больше или меньше, объясни одной фразой.
 
-Готовое:
-PulseShop 1490, TicketGate 1290, QuizPulse 990, SitePulse 2490, FolioKit 1990, ShopPeek 3490, PWA Kit 3990, ObbyStart 1290, TycoonLite 2490.
+СКИДКА
+Сам НЕ предлагай скидку, проценты, «можем уступить». Никогда.
+Только если клиент сам написал «скидка», «дешевле», «уступи». Тогда до 8%, строка «Скидка» с минусом, один раз.
 
-На заказ база ₽:
-Telegram-бот 990, магазин +400–800, оплата +400, админка +300.
-Лендинг 1990–3490. Витрина 3490–5990. Портфолио 1990–2990.
-PWA от 3990. Roblox обби от 1290, тайкун от 2490. Парсер от 790.
+КАК ВЕСТИ ДИАЛОГ
+Не принимай заказ с первого «да». Сначала расспроси. По 1–2 вопроса за ход, живым языком.
+Для Telegram-бота заявок обязательно выясни:
+1) какие поля (имя, телефон, город, товар…)
+2) куда падают заявки (личный Telegram / группа)
+3) есть ли логотип и цвета, или делать нейтрально
+4) нужна ли оплата и какой агрегатор
+5) только форма или ещё каталог товаров
+Для сайта: сколько страниц, логотип, чьи тексты, форма, оплата.
+Кнопки questions — короткие ВАРИАНТЫ ОТВЕТА, не «да всё нормально».
+Примеры: «Есть логотип», «Без логотипа», «ЮKassa», «Без оплаты», «Только форма», «Есть каталог».
+Запрещены кнопки: «Да всё ок», «Да всё нормально», «Рассмотреть скидку» — пока не пришло время принять заявку.
 
-Срок меняет цену:
-1–2 дня +25%. 3–5 дней +10%. Неделя 0. 2 недели −5%.
+СМЕТА
+Не пиши одну строку «Бот 990» / «Услуга 990» / «Сайт 2490».
+Минимум 2 строки с смыслом, лучше 3–5. Каждая: что именно + зачем + цена.
+Пример после расспроса:
+- Бот заявок, поля имя/телефон/товар — 990
+- Оформление под логотип строймагазина — 300
+- Подключение ЮKassa — 1000
+Пока не ответил про оплату и логотип — quote=null, сначала вопросы.
+Смету присылай когда детали ясны ИЛИ клиент спросил «сколько». Не дублируй ту же смету в каждом сообщении.
 
-Скидка:
-- Если клиент просит скидку — можешь дать до 8%. Сразу посчитай.
-- Если клиент СОГЛАСИЛСЯ («да», «рассмотреть», «ок», «берём») — НЕМЕДЛЕННО примени скидку отдельной строкой «Скидка 8%» с отрицательной ценой. Не спрашивай второй раз. Не повторяй «можем рассмотреть».
+ПРИНЯТИЕ ЗАЯВКИ
+Когда поля, куда слать, логотип и оплата ясны — спроси один раз: «Принять заявку?»
+Кнопки тогда: «Принять заявку», «Ещё поправить».
+Если клиент принял:
+submit=true
+questions=[]
+message: «Заявка принята!» и 3–5 строк сводки: что делаем, блоки сметы коротко, сумма, срок, контакт.
+quote: финальная подробная смета.
+Дальше не продавай и не спрашивай «всё ок?». Если пишет ещё без правок: «Заявка уже в работе. Напишите, что поправить.»
+replace=true только при правке уже принятой заявки.
 
-Смета обязана быть по строкам: каждая строка = что делаем + зачем + цена. Не одна строка «Сайт 2490». Пример:
-- Макет лендинга — 900
-- Вёрстка и адаптив — 1100
-- Форма заявки — 490
-- Скидка 8% — −200
-Итого сходится с суммой строк.
-
-Заявки:
-- Форма полная — submit=true, «Ваш заказ принят», quote сразу.
-- Дырки — один вопрос в message, quote-прикидку всё равно дай.
-- «Исправьте / стойте» — replace=true, обнови ту же заявку, новый quote.
-
-questions — КОРОТКИЕ кнопки-ответы 2–5 слов: «Да, всё ок», «Хочу скидку 8%», «Срок неделя».
-Не пиши туда свои вопросы. Не повторяй те же кнопки, что уже были. Максимум 3. Если клиент уже ответил — [].
-
-ЗАПРЕЩЕНО повторять предыдущий ответ почти дословно.
-
-ФОРМАТ — строго JSON без markdown:
-{
-  "message": "текст клиенту",
-  "questions": ["Да, всё ок"],
-  "quote": {
-    "title": "заголовок",
-    "items": [{"name": "блок", "detail": "зачем", "price": 1490}],
-    "total": 1490,
-    "timeline": "5–7 дней",
-    "notes": "хостинг на клиенте"
-  },
-  "submit": false,
-  "replace": false,
-  "lead": {
-    "category": "Сайты",
-    "contact": "@name",
-    "description": "что нужно",
-    "amount": 1490,
-    "timeline": "5–7 дней"
-  }
-}
+ФОРМАТ — только JSON:
+{"message":"...","questions":[],"quote":null,"submit":false,"replace":false,"lead":null}
+quote: {"title":"...","items":[{"name":"блок","detail":"зачем","price":1000}],"total":1000,"timeline":"5–7 дней","notes":"хостинг на клиенте"}
+lead при принятии: {"category":"Боты","contact":"@name","description":"подробно что делать","amount":2290,"timeline":"неделя"}
 """
 
 
@@ -158,6 +162,10 @@ def parse_manager(text: str) -> dict[str, Any]:
                     item["detail"] = row["detail"]
                 clean.append(item)
             if not clean:
+                quote = None
+            elif len(clean) == 1 and re.search(
+                r"^(услуга|сайт|бот|работа|заказ)$", clean[0]["name"], re.I
+            ):
                 quote = None
             else:
                 quote = {
@@ -271,7 +279,7 @@ async def complete(messages: list[dict[str, Any]]) -> str:
 async def save_ticket(parsed: dict[str, Any], history: list[dict[str, str]], session_id: str | None) -> str | None:
     lead = parsed.get("lead") if isinstance(parsed.get("lead"), dict) else {}
     quote = parsed.get("quote")
-    conversation = "\n".join(f"{m['role']}: {m['content']}" for m in history[-20:])
+    conversation = ""
     amount = 0
     if isinstance(lead.get("amount"), (int, float)):
         amount = int(lead["amount"])
@@ -325,21 +333,73 @@ async def save_ticket(parsed: dict[str, Any], history: list[dict[str, str]], ses
         return ticket_id
 
 
-def _should_submit(parsed: dict[str, Any], last: str, context: str | None) -> bool:
+def _asked_discount(trimmed: list[dict[str, str]]) -> bool:
+    return any(
+        re.search(r"скидк|дешевл|уступ|подешев", m["content"], re.I)
+        for m in trimmed
+        if m["role"] == "user"
+    )
+
+
+def _brief_ready(trimmed: list[dict[str, str]]) -> bool:
+    users = [m["content"] for m in trimmed if m["role"] == "user"]
+    if len(users) < 3:
+        return False
+    blob = " ".join(users).lower()
+    hits = 0
+    for w in (
+        "логотип",
+        "лого",
+        "цвет",
+        "юkassa",
+        "юкасса",
+        "сбп",
+        "robokassa",
+        "оплат",
+        "без оплат",
+        "групп",
+        "поля",
+        "телефон",
+        "каталог",
+        "без лого",
+        "нейтральн",
+    ):
+        if w in blob:
+            hits += 1
+    return hits >= 2 or len(users) >= 5
+
+
+def _filter_questions(questions: list[str], submitting: bool) -> list[str]:
+    out = []
+    for q in questions:
+        low = q.lower()
+        if any(b in low for b in ("скидк", "уступ", "8%")):
+            continue
+        confirm = bool(re.search(r"да|всё ок|все ок|нормально", low))
+        if confirm and not submitting:
+            continue
+        out.append(q)
+    return out[:3]
+
+
+def _should_submit(parsed: dict[str, Any], last: str, trimmed: list[dict[str, str]]) -> bool:
     msg = (parsed.get("message") or "").lower()
-    user = last.lower()
-    if parsed.get("submit") or parsed.get("replace"):
+    user = last.lower().strip()
+    prev = trimmed[-2]["content"].lower() if len(trimmed) > 1 else ""
+    if parsed.get("replace"):
         return True
-    if "заказ принят" in msg:
+    if not _brief_ready(trimmed):
+        return False
+    if "заявка принята" in msg:
         return True
-    if any(w in user for w in ("исправ", "стойте", "подожд", "не то", "забудьте", "передел")):
-        parsed["replace"] = True
+    yes = user in ("да", "да.", "ок", "хорошо", "ага", "принимаем", "принимаю", "принять заявку")
+    asked = "принять заявк" in prev or "принять заказ" in prev
+    if user.startswith("принять"):
         return True
-    if context and "заявка с формы" in context.lower():
-        missing = "не указан" in last or "пока коротко" in last
-        asking = any(w in msg for w in ("уточн", "напиши", "какой", "какая"))
-        if not missing and not asking:
-            return True
+    if asked and yes:
+        return True
+    if parsed.get("submit") and asked:
+        return True
     return False
 
 
@@ -353,6 +413,23 @@ async def manager(payload: Payload) -> dict[str, Any]:
     if not trimmed and not payload.images:
         return {"ok": False, "error": "Напишите сообщение или прикрепите фото"}
 
+    last = trimmed[-1]["content"] if trimmed else "Смотри фото и оцени задачу."
+    already = any(
+        "заявка принята" in m["content"].lower()
+        for m in trimmed[:-1]
+        if m["role"] == "assistant"
+    )
+    if already and not any(
+        w in last.lower() for w in ("исправ", "измен", "добав", "передел", "убер", "другое")
+    ):
+        return {
+            "ok": True,
+            "message": "Заявка уже принята. Если нужно поправить — напишите что именно.",
+            "questions": [],
+            "quote": None,
+            "submit": False,
+        }
+
     system = SYSTEM_PROMPT
     if payload.context:
         system += "\n\nКонтекст:\n" + payload.context[:2500]
@@ -361,8 +438,10 @@ async def manager(payload: Payload) -> dict[str, Any]:
         system += (
             "\n\nТвой прошлый ответ:\n"
             + last_assistant[:900]
-            + "\nНе повторяй его. Если клиент согласился со скидкой или правкой — сразу новый quote с новыми цифрами."
+            + "\nНе повторяй его. Смету не дублируй, если цифры не изменились."
         )
+    if not _asked_discount(trimmed):
+        system += "\nКлиент скидку не просил — не предлагай скидку и не пиши про 8%."
 
     last = trimmed[-1]["content"] if trimmed else "Смотри фото и оцени задачу."
     messages: list[dict[str, Any]] = [{"role": "system", "content": system}]
@@ -373,21 +452,60 @@ async def manager(payload: Payload) -> dict[str, Any]:
     try:
         text = await complete(messages)
         parsed = parse_manager(text)
+        if not _asked_discount(trimmed) and isinstance(parsed.get("quote"), dict):
+            items = [
+                i
+                for i in parsed["quote"].get("items", [])
+                if "скид" not in str(i.get("name", "")).lower()
+            ]
+            if items:
+                parsed["quote"]["items"] = items
+                parsed["quote"]["total"] = sum(int(i["price"]) for i in items)
+            else:
+                parsed["quote"] = None
         if not parsed.get("lead"):
             cat = re.search(r"Категория:\s*(.+)", last)
             task = re.search(r"Задача:\s*(.+)", last, re.S)
             contact = re.search(r"Контакт:\s*(.+)", last)
             due = re.search(r"Срок:\s*(.+)", last)
+            budget = re.search(r"Бюджет клиента примерно:\s*(.+)", last)
             if cat or contact:
+                desc = (task.group(1).strip(" .") if task else last)[:4000]
+                if budget:
+                    desc = (desc + f" Бюджет ~{budget.group(1).strip()}").strip()
                 parsed["lead"] = {
                     "category": (cat.group(1).strip(" .") if cat else "")[:40],
                     "contact": (contact.group(1).strip(" .") if contact else "")[:160],
-                    "description": (task.group(1).strip(" .") if task else last)[:4000],
+                    "description": desc,
                     "timeline": (due.group(1).strip(" .") if due else "")[:80],
                 }
-        if _should_submit(parsed, last, payload.context):
+        ready = _brief_ready(trimmed)
+        if parsed.get("submit") and not ready and not parsed.get("replace"):
+            parsed["submit"] = False
+            if "принять заявк" not in (parsed.get("message") or "").lower():
+                parsed["message"] = (
+                    (parsed.get("message") or "").strip()
+                    + "\n\nЕщё уточню: есть логотип и цвета? Нужна оплата в боте — ЮKassa, СБП или без оплаты? Куда слать заявки — вам в личку или в группу?"
+                ).strip()
+        submitting = _should_submit(parsed, last, trimmed)
+        parsed["questions"] = _filter_questions(parsed.get("questions") or [], submitting)
+        if submitting:
             parsed["submit"] = True
+            parsed["questions"] = []
+            lead = parsed.get("lead") if isinstance(parsed.get("lead"), dict) else {}
+            quote = parsed.get("quote") if isinstance(parsed.get("quote"), dict) else {}
+            total = lead.get("amount") or quote.get("total") or ""
+            parsed["message"] = (
+                "Заявка принята!\n\n"
+                + f"{lead.get('category') or 'Заказ'}: {lead.get('description') or 'по переписке'}\n"
+                + (f"Сумма: {total} ₽\n" if total else "")
+                + (f"Срок: {lead.get('timeline') or quote.get('timeline') or 'по договорённости'}\n")
+                + (f"Контакт: {lead.get('contact')}\n" if lead.get("contact") else "")
+                + "Напишите, если нужно что-то поправить."
+            )
             parsed["ticketId"] = await save_ticket(parsed, trimmed, payload.sessionId)
+        else:
+            parsed["submit"] = False
         return parsed
     except Exception:
         return {"ok": False, "error": "Не удалось ответить. Напишите ещё раз."}
