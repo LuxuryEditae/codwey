@@ -50,7 +50,10 @@ SYSTEM_PROMPT = """Ты — Вей, ИИ-менеджер студии Codwey.
 Задай 3–4 уточнения ОДНИМ сообщением списком, не по одному за ход.
 Для бота заявок в одном сообщении спроси: куда падают (личка/канал/группа), какие поля, логотип, оплата (ЮKassa / СБП / без).
 Для сайта в одном сообщении: страницы, логотип, чьи тексты, форма, оплата.
-Кнопки questions — варианты: «В канал», «В личку», «ЮKassa», «Без оплаты», «Есть логотип». Не «да всё ок».
+Кнопки questions — короткие ВАРИАНТЫ ОТВЕТА, не названия полей.
+Плохо: «Тип бота», «Оплата», «Поля в форме».
+Хорошо: «Бот заявок», «ЮKassa», «В личку», «Без логотипа».
+Клиенту показывай обычный текст. Никогда не пиши в message JSON, ключи quote/submit/lead или блоки ```json.
 
 СМЕТА
 Не пиши одну строку «Бот 990» / «Услуга 990» / «Сайт 2490».
@@ -101,18 +104,82 @@ def _csv(name: str) -> list[str]:
     return [x.strip() for x in raw.split(",") if x.strip()]
 
 
+def _escape_newlines_in_strings(blob: str) -> str:
+    out: list[str] = []
+    in_str = False
+    esc = False
+    for ch in blob:
+        if in_str:
+            if esc:
+                out.append(ch)
+                esc = False
+            elif ch == "\\":
+                out.append(ch)
+                esc = True
+            elif ch == '"':
+                out.append(ch)
+                in_str = False
+            elif ch == "\n":
+                out.append("\\n")
+            elif ch == "\r":
+                continue
+            else:
+                out.append(ch)
+        else:
+            if ch == '"':
+                in_str = True
+            out.append(ch)
+    return "".join(out)
+
+
+def _loose_message(blob: str) -> str | None:
+    m = re.search(r'"message"\s*:\s*"(.*)"\s*,\s*"questions"', blob, re.S)
+    if not m:
+        m = re.search(r'"message"\s*:\s*"(.*?)"', blob, re.S)
+    if not m:
+        return None
+    return m.group(1).replace("\\n", "\n").replace('\\"', '"').strip()
+
+
 def _extract_json(text: str) -> dict[str, Any] | None:
-    fenced = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
-    raw = (fenced.group(1) if fenced else text).strip()
-    start = raw.find("{")
-    end = raw.rfind("}")
+    t = text.strip()
+    fenced = re.search(r"```(?:json)?\s*([\s\S]*?)```", t)
+    if fenced:
+        t = fenced.group(1).strip()
+    start, end = t.find("{"), t.rfind("}")
     if start < 0 or end <= start:
         return None
-    try:
-        data = json.loads(raw[start : end + 1])
-    except json.JSONDecodeError:
+    blob = t[start : end + 1]
+    for candidate in (blob, _escape_newlines_in_strings(blob)):
+        cleaned = re.sub(r",(\s*[}\]])", r"\1", candidate)
+        try:
+            data = json.loads(cleaned)
+            if isinstance(data, dict) and ("message" in data or "questions" in data or "quote" in data):
+                return data
+        except json.JSONDecodeError:
+            continue
+    msg = _loose_message(blob)
+    if not msg:
         return None
-    return data if isinstance(data, dict) else None
+    qs_raw = re.search(r'"questions"\s*:\s*\[(.*?)\]', blob, re.S)
+    questions = re.findall(r'"([^"]{2,40})"', qs_raw.group(1)) if qs_raw else []
+    return {"message": msg, "questions": questions, "quote": None, "submit": False, "replace": False, "lead": None}
+
+
+def _visible_text(message: str) -> str:
+    t = message.strip()
+    t = re.sub(r"^```(?:json)?\s*", "", t)
+    t = re.sub(r"\s*```$", "", t).strip()
+    if t.startswith("{") and '"message"' in t:
+        data = _extract_json(t)
+        if data and isinstance(data.get("message"), str) and data["message"].strip():
+            inner = data["message"].strip()
+            if not inner.startswith("{"):
+                return inner
+        loose = _loose_message(t)
+        if loose:
+            return loose
+    return t
 
 
 def parse_manager(text: str) -> dict[str, Any]:
@@ -120,19 +187,25 @@ def parse_manager(text: str) -> dict[str, Any]:
     if not data:
         return {
             "ok": True,
-            "message": text.strip(),
+            "message": _visible_text(text),
             "questions": [],
             "quote": None,
             "submit": False,
             "replace": False,
             "lead": None,
         }
-    message = data.get("message")
-    message = message.strip() if isinstance(message, str) and message.strip() else text.strip()
+    raw_message = data.get("message")
+    if isinstance(raw_message, str) and raw_message.strip():
+        message = _visible_text(raw_message)
+    else:
+        message = _visible_text(text)
     questions = [
         q.strip()
         for q in data.get("questions", [])
-        if isinstance(q, str) and 1 < len(q.strip()) <= 36
+        if isinstance(q, str)
+        and 1 < len(q.strip()) <= 36
+        and not re.search(r"^(тип|место|поля|логотип|оплат|категори|срок|контакт)\b", q.strip(), re.I)
+        and "?" not in q
     ][:3]
     quote = data.get("quote")
     if not isinstance(quote, dict):

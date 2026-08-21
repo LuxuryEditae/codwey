@@ -40,6 +40,14 @@ function OrderPage() {
       setError("Отметьте согласие на обработку данных.");
       return;
     }
+    if (task.trim().length < 8) {
+      setError("Опишите задачу — без текста заявку не отправим.");
+      return;
+    }
+    if (!contact.trim()) {
+      setError("Укажите Telegram или почту.");
+      return;
+    }
     if (needsHostingAck()) {
       setHostingOpen(true);
       return;
@@ -49,11 +57,11 @@ function OrderPage() {
     const seed = [
       `Заявка с сайта.`,
       `Категория: ${cat?.label ?? category}.`,
-      `Задача: ${task.trim() || "пока коротко"}.`,
+      `Задача: ${task.trim()}.`,
       `Срок: ${due?.label ?? "неделя"} (${due?.hint}).`,
       budget.trim() ? `Бюджет клиента примерно: ${budget.trim()} ₽.` : "Бюджет не указан.",
       files.trim() ? `Файлы клиента: ${files.trim()}` : "Файлы не приложены.",
-      `Контакт: ${contact.trim() || "не указан"}.`,
+      `Контакт: ${contact.trim()}.`,
     ].join("\n");
     const context = [
       "Это заявка с формы «на заказ».",
@@ -177,7 +185,7 @@ function OrderPage() {
         </label>
         <ConsentCheck />
         {error ? <p className="text-sm text-danger">{error}</p> : null}
-        <Button type="submit" size="lg" disabled={!consent}>
+        <Button type="submit" size="lg" disabled={!consent || task.trim().length < 8 || !contact.trim()}>
           Отправить менеджеру
         </Button>
       </form>

@@ -17,6 +17,22 @@ function isQuote(value: unknown): value is Quote {
   });
 }
 
+function visibleMessage(raw: unknown): string {
+  if (typeof raw !== "string") return "";
+  let t = raw.trim();
+  t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  if (t.startsWith("{") && t.includes('"message"')) {
+    try {
+      const data = JSON.parse(t) as { message?: unknown };
+      if (typeof data.message === "string" && data.message.trim()) return data.message.trim();
+    } catch {
+      const m = t.match(/"message"\s*:\s*"([\s\S]*?)"\s*,\s*"questions"/);
+      if (m?.[1]) return m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+    }
+  }
+  return t;
+}
+
 export async function sendManagerMessage(input: {
   data: { messages: ChatTurn[]; context?: string; images?: ChatImage[] };
 }): Promise<ManagerReply> {
@@ -34,7 +50,7 @@ export async function sendManagerMessage(input: {
     const quote = isQuote(raw.quote) ? raw.quote : null;
     return {
       ok: true,
-      message: raw.message,
+      message: visibleMessage(raw.message),
       questions: Array.isArray(raw.questions) ? raw.questions : [],
       quote,
       submit: Boolean(raw.submit),
