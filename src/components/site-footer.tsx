@@ -6,7 +6,7 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-3">
         <div>
-          <p className="font-display text-2xl font-medium italic">Codwey</p>
+          <p className="font-display text-2xl font-semibold tracking-tight">Codwey</p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
             Готовые сайты, Telegram-боты, приложения и Roblox-игры. И то же самое на заказ — со
             сметой в чате.

@@ -28,7 +28,7 @@ function Home() {
           <div>
             <p className="reveal font-mono text-xs tracking-wide text-muted">студия цифровых вещей</p>
             <h1 className="reveal reveal-2 mt-5 font-display text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
-              <span className="italic">Готовое</span> и на заказ: сайты, боты, Roblox.
+              Готовое и на заказ: сайты, боты, Roblox.
             </h1>
             <p className="reveal reveal-3 mt-6 max-w-md text-base leading-relaxed text-muted">
               {readyCount} продуктов от {formatRub(minReady)}. Менеджер Вей доспрашивает и собирает
@@ -72,7 +72,7 @@ function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="font-display text-3xl font-medium italic">Категории</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight">Категории</h2>
         <div className="mt-8 divide-y divide-border border-y border-border">
           {CATEGORIES.map((c) => {
             const Icon = ICONS[c.id];
@@ -97,7 +97,7 @@ function Home() {
       <section className="border-y border-border bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-16">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="font-display text-3xl font-medium italic">Хиты</h2>
+            <h2 className="font-display text-3xl font-semibold tracking-tight">Хиты</h2>
             <Link to="/catalog" className="text-sm text-muted hover:text-fg">
               Весь каталог
             </Link>
@@ -111,7 +111,7 @@ function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="font-display text-3xl font-medium italic">Как это работает</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight">Как это работает</h2>
         <ol className="mt-8 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
           {[
             { n: "01", t: "Выбираете", d: "Готовый продукт из каталога или описываете задачу." },
@@ -130,7 +130,7 @@ function Home() {
 
       <section className="border-t border-border">
         <div className="mx-auto max-w-6xl px-4 py-16">
-          <h2 className="font-display text-3xl font-medium italic">На заказ</h2>
+          <h2 className="font-display text-3xl font-semibold tracking-tight">На заказ</h2>
           <p className="mt-2 max-w-xl text-sm text-muted">
             Не нашли готовое — соберём. Цены стартуют ниже рынка, смета появляется в чате.
           </p>

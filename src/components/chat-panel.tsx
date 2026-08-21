@@ -97,7 +97,7 @@ export function ChatPanel({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between gap-3 border-b border-border px-1 pb-3">
         <div>
-          <p className="font-display text-lg font-medium italic">Вей</p>
+          <p className="font-display text-lg font-semibold">Вей</p>
           <p className="text-xs text-muted">Менеджер Codwey · смета в чате</p>
         </div>
         <button

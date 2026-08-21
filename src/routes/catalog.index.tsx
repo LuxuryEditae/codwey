@@ -35,7 +35,7 @@ function CatalogPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10">
       <p className="font-mono text-xs text-muted">каталог</p>
-      <h1 className="mt-3 font-display text-4xl font-medium italic">Готовое и на заказ</h1>
+      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Готовое и на заказ</h1>
       <p className="mt-3 max-w-2xl text-muted">
         Цены ниже типичных объявлений на Авито. Готовое отдаём сразу, кастом считаем сметой в чате.
       </p>

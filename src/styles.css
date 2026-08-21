@@ -2,8 +2,8 @@
 @import "tw-animate-css";
 
 @theme {
-  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --color-bg: #050505;
@@ -51,6 +51,8 @@
   h3 {
     text-wrap: balance;
     font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.03em;
   }
 
   p {

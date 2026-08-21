@@ -7,7 +7,7 @@ function AboutPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
       <p className="font-mono text-xs text-muted">студия</p>
-      <h1 className="mt-3 font-display text-4xl font-medium italic">Codwey</h1>
+      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Codwey</h1>
       <div className="mt-6 space-y-4 text-base leading-relaxed text-muted">
         <p>
           Codwey продаёт готовые цифровые продукты и делает небольшие заказы: сайты, Telegram-боты,

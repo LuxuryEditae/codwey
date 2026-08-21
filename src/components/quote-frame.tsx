@@ -10,7 +10,7 @@ export function QuoteFrame({ quote }: { quote: Quote }) {
       <Corner className="bottom-1 right-1 rotate-180" />
 
       <figcaption className="flex items-center justify-between gap-3">
-        <span className="font-display text-sm italic text-accent">Смета</span>
+        <span className="font-mono text-xs tracking-wide text-muted">Смета</span>
         <span className="font-mono text-xs text-muted">{quote.timeline}</span>
       </figcaption>
       <h3 className="mt-2 font-display text-lg font-medium leading-snug">{quote.title}</h3>

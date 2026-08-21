@@ -17,7 +17,7 @@ function CartPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-12">
-      <h1 className="font-display text-4xl font-medium italic">Корзина</h1>
+      <h1 className="font-display text-4xl font-semibold tracking-tight">Корзина</h1>
       {items.length === 0 ? (
         <div className="mt-8">
           <p className="text-muted">Пока пусто. Готовое лежит в каталоге.</p>

@@ -21,7 +21,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-bg">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-4">
         <Link to="/" className="flex items-baseline gap-2" onClick={() => setOpen(false)}>
-          <span className="font-display text-2xl font-medium italic tracking-tight">Codwey</span>
+          <span className="font-display text-2xl font-semibold tracking-tight">Codwey</span>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

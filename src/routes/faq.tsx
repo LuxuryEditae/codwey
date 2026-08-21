@@ -36,7 +36,7 @@ export const Route = createFileRoute("/faq")({ component: FaqPage });
 function FaqPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <h1 className="font-display text-4xl font-medium italic">Вопросы</h1>
+      <h1 className="font-display text-4xl font-semibold tracking-tight">Вопросы</h1>
       <dl className="mt-8 divide-y divide-border border-y border-border">
         {FAQ.map((item) => (
           <div key={item.q} className="py-5">

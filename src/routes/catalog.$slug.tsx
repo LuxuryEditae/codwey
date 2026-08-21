@@ -90,7 +90,7 @@ function ProductPage() {
             {product.longDescription}
           </p>
 
-          <h2 className="mt-10 font-display text-2xl font-medium italic">Что входит</h2>
+          <h2 className="mt-10 font-display text-2xl font-semibold tracking-tight">Что входит</h2>
           <ul className="mt-4 space-y-2 text-sm text-fg">
             {product.features.map((f) => (
               <li key={f} className="flex gap-3">
@@ -113,7 +113,7 @@ function ProductPage() {
 
           {product.demo ? (
             <div className="mt-10">
-              <h2 className="font-display text-2xl font-medium italic">Живое демо</h2>
+              <h2 className="font-display text-2xl font-semibold tracking-tight">Живое демо</h2>
               <p className="mt-2 text-sm text-muted">Упрощённый сценарий — как это выглядит у клиента.</p>
               <div className="mt-5">
                 {product.demo === "shop-bot" ? <ShopBotDemo /> : null}
@@ -131,7 +131,7 @@ function ProductPage() {
 
       {related.length > 0 ? (
         <section className="mt-16">
-          <h2 className="font-display text-2xl font-medium italic">Рядом в категории</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight">Рядом в категории</h2>
           <div className="mt-5 grid gap-px bg-border sm:grid-cols-3">
             {related.map((p) => (
               <Link

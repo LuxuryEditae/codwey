@@ -16,7 +16,7 @@ function OrderPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
       <p className="font-mono text-xs text-muted">на заказ</p>
-      <h1 className="mt-3 font-display text-4xl font-medium italic">Опишите задачу</h1>
+      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Опишите задачу</h1>
       <p className="mt-3 text-muted">
         Не обязательно писать идеально. Вей доспросит пробелы и соберёт смету. Можно сразу открыть
         чат, если проще текстом.
