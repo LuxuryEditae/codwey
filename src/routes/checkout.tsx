@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { ConsentCheck } from "@/components/consent-check";
+import { HostingNote } from "@/components/hosting-note";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { resolveCart, useCart } from "@/lib/cart";
@@ -10,6 +12,7 @@ import {
   type PaymentMethodId,
   type PaymentSnapshot,
 } from "@/lib/payments/methods";
+import { useConsent } from "@/lib/consent";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn, formatRub } from "@/lib/utils";
 
@@ -24,11 +27,16 @@ function CheckoutPage() {
 
   const [contact, setContact] = useState("");
   const [method, setMethod] = useState<PaymentMethodId>(2);
+  const consent = useConsent((s) => s.agreed);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   async function pay() {
+    if (!consent) {
+      setError("Поставьте галочку: без согласия на 152-ФЗ оплату не откроем.");
+      return;
+    }
     setError(null);
     setPending(true);
     try {
@@ -70,8 +78,9 @@ function CheckoutPage() {
       <p className="font-mono text-xs text-muted">оплата</p>
       <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Оформить</h1>
       <p className="mt-3 max-w-xl text-sm text-muted">
-        СБП, карта, SberPay, крипта — через Platega. Пока ключи не стоят, откроется демо-оплата.
+        СБП, карта, SberPay, крипта — через Platega.
       </p>
+      <HostingNote className="mt-3 max-w-xl text-sm text-muted" />
 
       {ready.length === 0 ? (
         <div className="mt-10">
@@ -138,7 +147,11 @@ function CheckoutPage() {
 
             {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
 
-            <Button className="mt-5 w-full" size="lg" disabled={pending} onClick={() => void pay()}>
+            <div className="mt-5">
+              <ConsentCheck />
+            </div>
+
+            <Button className="mt-5 w-full" size="lg" disabled={pending || !consent} onClick={() => void pay()}>
               {pending ? "Создаём платёж…" : `Оплатить ${formatRub(amount)}`}
             </Button>
             <p className="mt-3 text-xs leading-relaxed text-subtle">

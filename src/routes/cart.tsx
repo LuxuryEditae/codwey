@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
+import { HostingNote } from "@/components/hosting-note";
 import { Button } from "@/components/ui/button";
 import { cartCount, resolveCart, useCart } from "@/lib/cart";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -75,6 +76,7 @@ function CartPage() {
               <Link to="/checkout">Оплатить</Link>
             </Button>
           </div>
+          <HostingNote className="mt-4" />
         </>
       )}
     </main>

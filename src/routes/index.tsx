@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CategoryGrid } from "@/components/category-card";
+import { HostingNote } from "@/components/hosting-note";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -35,6 +36,7 @@ function Home() {
             <p className="mt-3 text-muted">
               Нет готового — опишите задачу. Менеджер доспросит и соберёт смету.
             </p>
+            <HostingNote className="mt-3 text-sm text-muted" />
             <Button asChild className="mt-8" size="lg">
               <Link to="/order">Описать задачу</Link>
             </Button>

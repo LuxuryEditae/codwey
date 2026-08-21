@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { CategoryGrid } from "@/components/category-card";
+import { HostingNote } from "@/components/hosting-note";
 import { ProductCard } from "@/components/product-card";
 import {
   CATEGORIES,
@@ -119,6 +120,7 @@ function CatalogPage() {
       <section className="mt-12 max-w-xl">
         <h2 className="font-display text-2xl font-semibold tracking-tight">На заказ</h2>
         <p className="mt-3 text-muted">Нужен {category.label.toLowerCase()} не из списка — опишите задачу.</p>
+        <HostingNote className="mt-3" />
         <Link
           to="/order"
           className="mt-6 inline-flex h-12 items-center rounded-md bg-accent px-5 text-base font-medium text-accent-fg"

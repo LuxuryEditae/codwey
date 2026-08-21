@@ -1,11 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { LoaderCircle, Send, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { ConsentCheck } from "@/components/consent-check";
+import { HostingNote } from "@/components/hosting-note";
 import { QuoteFrame } from "@/components/quote-frame";
 import { Button } from "@/components/ui/button";
 import { sendManagerMessage } from "@/lib/ai/manager";
 import { resolveCart, useCart } from "@/lib/cart";
 import { useChat } from "@/lib/chat-store";
+import { useConsent } from "@/lib/consent";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +36,7 @@ export function ChatPanel({
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const consent = useConsent((s) => s.agreed);
   const scroller = useRef<HTMLDivElement>(null);
   const visible = hydrated ? messages : [];
 
@@ -41,7 +45,7 @@ export function ChatPanel({
   }, [visible, pending]);
 
   useEffect(() => {
-    if (!hydrated || !seed || usedSeeds.has(seed)) return;
+    if (!hydrated || !seed || !consent || usedSeeds.has(seed)) return;
     if (useChat.getState().messages.some((m) => m.content === seed)) {
       usedSeeds.add(seed);
       return;
@@ -49,11 +53,15 @@ export function ChatPanel({
     usedSeeds.add(seed);
     void submit(seed);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, seed]);
+  }, [hydrated, seed, consent]);
 
   async function submit(text: string) {
     const content = text.trim();
     if (!content || pending) return;
+    if (!consent) {
+      setError("Поставьте галочку: без согласия на 152-ФЗ чат не отправит заявку.");
+      return;
+    }
     setError(null);
     setDraft("");
     push({ role: "user", content });
@@ -118,8 +126,9 @@ export function ChatPanel({
           <div className="space-y-4">
             <p className="max-w-md text-sm leading-relaxed text-muted">
               Напишите, что нужно: готовый продукт или задача на заказ. Если чего-то не хватает —
-              я доспрошу и соберу смету в рамке.
+              доспрошу и соберу смету в рамке.
             </p>
+            <HostingNote />
             <div className="flex flex-wrap gap-2">
               {STARTERS.map((s) => (
                 <button
@@ -181,36 +190,40 @@ export function ChatPanel({
         ) : null}
       </div>
 
-      <form
-        className="flex items-end gap-2 border-t border-border pt-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void submit(draft);
-        }}
-      >
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              void submit(draft);
-            }
+      <div className="border-t border-border pt-3">
+        <ConsentCheck />
+        {error ? <p className="mt-2 text-xs text-danger">{error}</p> : null}
+        <form
+          className="mt-3 flex items-end gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit(draft);
           }}
-          rows={2}
-          placeholder="Опишите задачу или задайте вопрос…"
-          className="min-h-11 max-h-32 flex-1 resize-none rounded-md bg-surface px-3.5 py-2.5 text-sm text-fg shadow-[var(--shadow-border)] outline-none placeholder:text-subtle focus-visible:ring-2 focus-visible:ring-accent/50"
-        />
-        <Button type="submit" size="icon" disabled={pending || !draft.trim()} aria-label="Отправить">
-          <Send />
-        </Button>
-      </form>
+        >
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void submit(draft);
+              }
+            }}
+            rows={2}
+            placeholder="Опишите задачу или задайте вопрос…"
+            className="min-h-11 max-h-32 flex-1 resize-none rounded-md bg-surface px-3.5 py-2.5 text-sm text-fg shadow-[var(--shadow-border)] outline-none placeholder:text-subtle focus-visible:ring-2 focus-visible:ring-accent/50"
+          />
+          <Button type="submit" size="icon" disabled={pending || !draft.trim() || !consent} aria-label="Отправить">
+            <Send />
+          </Button>
+        </form>
+      </div>
       <p className="mt-2 text-xs text-subtle">
-        Готовое можно сразу положить{" "}
-        <Link to="/catalog" className="text-muted underline-offset-2 hover:text-fg hover:underline">
-          в каталог
+        Мы делаем только продукт. Хостинг лежит на вас. Оформление — здесь или в{" "}
+        <Link to="/checkout" className="underline-offset-2 hover:text-fg hover:underline">
+          оплате
         </Link>
-        . Оформление заказа — здесь, в чате.
+        .
       </p>
     </div>
   );

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { QuizBotDemo } from "@/components/demos/quiz-bot";
 import { ShopBotDemo } from "@/components/demos/shop-bot";
 import { TicketBotDemo } from "@/components/demos/ticket-bot";
+import { HostingNote } from "@/components/hosting-note";
 import { PriceTag } from "@/components/price-tag";
 import { ProductCover } from "@/components/product-cover";
 import { Button } from "@/components/ui/button";
@@ -52,9 +53,7 @@ function BuyBox({ product }: { product: Product }) {
           </Link>
         </Button>
       </div>
-      <p className="mt-4 text-xs leading-relaxed text-subtle">
-        Готовое — оплата через Platega. Кастом — смета в чате.
-      </p>
+      <HostingNote className="mt-4" />
     </>
   );
 }

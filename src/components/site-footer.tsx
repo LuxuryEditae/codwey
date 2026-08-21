@@ -8,7 +8,8 @@ export function SiteFooter() {
         <div>
           <p className="font-display text-2xl font-semibold tracking-tight">Codwey</p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
-            Готовые и на заказ: сайты, боты, приложения, Roblox. Смета в чате с менеджером.
+            Готовые и на заказ: сайты, боты, приложения, Roblox. Мы делаем только продукт. Хостинг и
+            всё остальное лежит на вас.
           </p>
         </div>
         <div>
@@ -42,6 +43,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link to="/legal" className="hover:text-fg">
+                152-ФЗ и условия
+              </Link>
+            </li>
+            <li>
               <a href="https://t.me/codwey" className="hover:text-fg">
                 Telegram @codwey
               </a>
@@ -52,7 +58,11 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border">
         <p className="mx-auto max-w-6xl px-4 py-4 text-xs text-subtle">
-          Цифровые товары и услуги. Смета в чате не является публичной офертой до подтверждения.
+          Мы делаем только сайт, бота, приложение или игру. Хостинг, домен, сервер и всё остальное
+          лежит на вас. Смета не оферта до подтверждения.{" "}
+          <Link to="/legal" className="hover:text-fg">
+            152-ФЗ
+          </Link>
         </p>
       </div>
     </footer>

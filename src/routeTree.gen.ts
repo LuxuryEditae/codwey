@@ -16,6 +16,7 @@ import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as LegalRouteImport } from './routes/legal'
 import { Route as OrderRouteImport } from './routes/order'
 import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
@@ -58,6 +59,11 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrderRoute = OrderRouteImport.update({
   id: '/order',
   path: '/order',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/checkout': typeof CheckoutRoute
   '/faq': typeof FaqRoute
+  '/legal': typeof LegalRoute
   '/order': typeof OrderRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/pay/demo': typeof PayDemoRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/checkout': typeof CheckoutRoute
   '/faq': typeof FaqRoute
+  '/legal': typeof LegalRoute
   '/order': typeof OrderRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/pay/demo': typeof PayDemoRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/checkout': typeof CheckoutRoute
   '/faq': typeof FaqRoute
+  '/legal': typeof LegalRoute
   '/order': typeof OrderRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/pay/demo': typeof PayDemoRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/checkout'
     | '/faq'
+    | '/legal'
     | '/order'
     | '/catalog/$slug'
     | '/pay/demo'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/checkout'
     | '/faq'
+    | '/legal'
     | '/order'
     | '/catalog/$slug'
     | '/pay/demo'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/checkout'
     | '/faq'
+    | '/legal'
     | '/order'
     | '/catalog/$slug'
     | '/pay/demo'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   CheckoutRoute: typeof CheckoutRoute
   FaqRoute: typeof FaqRoute
+  LegalRoute: typeof LegalRoute
   OrderRoute: typeof OrderRoute
   PayDemoRoute: typeof PayDemoRoute
   PayFailRoute: typeof PayFailRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/order': {
@@ -312,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   CheckoutRoute: CheckoutRoute,
   FaqRoute: FaqRoute,
+  LegalRoute: LegalRoute,
   OrderRoute: OrderRoute,
   PayDemoRoute: PayDemoRoute,
   PayFailRoute: PayFailRoute,
