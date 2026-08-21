@@ -20,7 +20,7 @@ from app.ticket_model import Ticket
 router = APIRouter()
 
 SYSTEM_PROMPT = """Ты — Вей, ИИ-менеджер студии Codwey.
-Кто ты: если спрашивают «кто ты», «ты бот», «ты человек» — ответь ровно: «Я Вей, ИИ-менеджер Codwey. Помогаю выбрать готовое и собрать заказ.»
+Кто ты: если спрашивают «кто ты», «ты бот», «ты человек» — ответь дословно: «Я менеджер Вей.»
 Язык: русский, коротко, на «ты». Без эмодзи, без канцелярита.
 
 ЧТО ДЕЛАЕМ
@@ -46,17 +46,11 @@ SYSTEM_PROMPT = """Ты — Вей, ИИ-менеджер студии Codwey.
 Только если клиент сам написал «скидка», «дешевле», «уступи». Тогда до 8%, строка «Скидка» с минусом, один раз.
 
 КАК ВЕСТИ ДИАЛОГ
-Не принимай заказ с первого «да». Сначала расспроси. По 1–2 вопроса за ход, живым языком.
-Для Telegram-бота заявок обязательно выясни:
-1) какие поля (имя, телефон, город, товар…)
-2) куда падают заявки (личный Telegram / группа)
-3) есть ли логотип и цвета, или делать нейтрально
-4) нужна ли оплата и какой агрегатор
-5) только форма или ещё каталог товаров
-Для сайта: сколько страниц, логотип, чьи тексты, форма, оплата.
-Кнопки questions — короткие ВАРИАНТЫ ОТВЕТА, не «да всё нормально».
-Примеры: «Есть логотип», «Без логотипа», «ЮKassa», «Без оплаты», «Только форма», «Есть каталог».
-Запрещены кнопки: «Да всё ок», «Да всё нормально», «Рассмотреть скидку» — пока не пришло время принять заявку.
+Не принимай заказ с первого «да». Если мало деталей — НЕ принимай.
+Задай 3–4 уточнения ОДНИМ сообщением списком, не по одному за ход.
+Для бота заявок в одном сообщении спроси: куда падают (личка/канал/группа), какие поля, логотип, оплата (ЮKassa / СБП / без).
+Для сайта в одном сообщении: страницы, логотип, чьи тексты, форма, оплата.
+Кнопки questions — варианты: «В канал», «В личку», «ЮKassa», «Без оплаты», «Есть логотип». Не «да всё ок».
 
 СМЕТА
 Не пиши одну строку «Бот 990» / «Услуга 990» / «Сайт 2490».
@@ -383,24 +377,17 @@ def _filter_questions(questions: list[str], submitting: bool) -> list[str]:
 
 
 def _should_submit(parsed: dict[str, Any], last: str, trimmed: list[dict[str, str]]) -> bool:
-    msg = (parsed.get("message") or "").lower()
     user = last.lower().strip()
     prev = trimmed[-2]["content"].lower() if len(trimmed) > 1 else ""
     if parsed.get("replace"):
         return True
-    if not _brief_ready(trimmed):
-        return False
-    if "заявка принята" in msg:
-        return True
-    yes = user in ("да", "да.", "ок", "хорошо", "ага", "принимаем", "принимаю", "принять заявку")
     asked = "принять заявк" in prev or "принять заказ" in prev
-    if user.startswith("принять"):
-        return True
-    if asked and yes:
-        return True
-    if parsed.get("submit") and asked:
-        return True
-    return False
+    yes = user in ("да", "да.", "ок", "хорошо", "ага", "принимаем", "принимаю", "принять заявку")
+    if not asked and not user.startswith("принять заявк"):
+        return False
+    if not _brief_ready(trimmed) and len([m for m in trimmed if m["role"] == "user"]) < 3:
+        return False
+    return bool(asked and yes) or user.startswith("принять заявк")
 
 
 @router.post("")
@@ -414,6 +401,14 @@ async def manager(payload: Payload) -> dict[str, Any]:
         return {"ok": False, "error": "Напишите сообщение или прикрепите фото"}
 
     last = trimmed[-1]["content"] if trimmed else "Смотри фото и оцени задачу."
+    if re.search(r"кто ты|ты кто|ты бот|ты человек|ты ии|ты нейрон", last, re.I) and len(last) < 80:
+        return {
+            "ok": True,
+            "message": "Я менеджер Вей.",
+            "questions": [],
+            "quote": None,
+            "submit": False,
+        }
     already = any(
         "заявка принята" in m["content"].lower()
         for m in trimmed[:-1]

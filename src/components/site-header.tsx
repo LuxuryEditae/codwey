@@ -3,6 +3,7 @@ import { ShoppingBag } from "lucide-react";
 import { CATEGORIES } from "@/data/catalog";
 import { cartCount, useCart } from "@/lib/cart";
 import { useHydrated } from "@/lib/use-hydrated";
+import { useManagerUi } from "@/lib/manager-ui";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
@@ -10,11 +11,12 @@ export function SiteHeader() {
   const hydrated = useHydrated();
   const count = hydrated ? cartCount(lines) : 0;
   const search = useSearch({ strict: false }) as { cat?: string };
+  const setOpen = useManagerUi((s) => s.setOpen);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 md:h-16">
-        <Link to="/" className="flex items-baseline gap-2">
+        <Link to="/" className="flex items-baseline gap-2" onClick={() => setOpen(false)}>
           <span className="font-display text-xl font-semibold tracking-tight md:text-2xl">Codwey</span>
           <span className="hidden text-sm text-muted md:inline">готовое и на заказ</span>
         </Link>

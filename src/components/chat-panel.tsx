@@ -93,6 +93,18 @@ export function ChatPanel({
       setError("Отметьте согласие на обработку данных.");
       return;
     }
+    const alreadyIn = useChat.getState().messages.some((m) => m.submitted);
+    const correcting = /исправ|измен|добав|убер|передел|другое|скидк|дешев/i.test(content);
+    if (alreadyIn && !correcting && shot.length === 0) {
+      push({ role: "user", content });
+      push({
+        role: "assistant",
+        content: "Заявка уже принята. Напишите, что поправить — изменю.",
+        questions: [],
+      });
+      setDraft("");
+      return;
+    }
     if (needsHostingAck()) {
       queued.current = content || "Смотри фото.";
       setHostingOpen(true);
@@ -170,12 +182,11 @@ export function ChatPanel({
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
-            className="inline-flex h-11 items-center gap-2 rounded-md bg-elevated px-3 text-sm text-fg"
+            className="grid size-11 shrink-0 place-items-center rounded-md bg-accent text-accent-fg"
             onClick={() => useManagerUi.getState().setOpen(false)}
-            aria-label="Закрыть чат"
+            aria-label="Закрыть"
           >
-            <X className="size-4" />
-            Закрыть
+            <X className="size-5" />
           </button>
           <div>
             <p className="font-display text-lg font-semibold">Вей</p>
