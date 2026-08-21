@@ -1,7 +1,7 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
-import { ManagerDock } from "@/components/manager-dock";
+import { AppDock } from "@/components/app-dock";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "sonner";
@@ -47,15 +47,15 @@ function RootLayout() {
       <body className="bg-bg text-fg">
         <PreviewHostBridge />
         <AuthProvider>
-          <div className="flex min-h-dvh flex-col pb-24">
+          <div className="flex min-h-dvh flex-col pb-24 md:pb-8">
             <SiteHeader />
             <Outlet />
             <SiteFooter />
           </div>
-          <ManagerDock />
+          <AppDock />
           <Toaster
             theme="dark"
-            position="bottom-center"
+            position="top-center"
             toastOptions={{
               className: "bg-surface text-fg border-border",
             }}

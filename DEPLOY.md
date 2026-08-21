@@ -16,7 +16,7 @@
 Pages умеет **статику**. Если включить Pages с ветки `main` / папки `/docs` или `gh-pages`:
 
 - Откроются каталог, карточки, корзина в браузере.
-- Кнопка оператора слева снизу останется.
+- Кнопка менеджера справа снизу. На телефоне — панель: Готовое / На заказ / Менеджер.
 - Запросы к ИИ должны идти **на VDS**, иначе чат не ответит.
 
 Чтобы чат с Pages ходил на VDS, на прокси должен быть CORS с `https://<user>.github.io` и `https://codwey.su`.
@@ -65,5 +65,22 @@ Nginx на VDS может:
 | `OPENROUTER_API_KEY` | только VDS, не в GitHub |
 | `TOR_SOCKS_PROXY` | VDS, обычно `127.0.0.1:9050` |
 | `ALLOW_ORIGIN` | VDS, `https://codwey.su` |
+| `PLATEGA_MERCHANT_ID` | VDS / хост сайта, из кабинета Platega |
+| `PLATEGA_SECRET` | VDS / хост сайта, заголовок `X-Secret` |
+| `SITE_URL` | `https://codwey.su` — return/fail URL оплаты |
 
 Ключи в репозиторий не класть.
+
+## 6. Platega
+
+Пока ключей нет, оплата работает как демо-страница (способ → сумма → «Оплатить»).
+
+Когда получите доступ в [platega.io](https://platega.io):
+
+```bash
+export PLATEGA_MERCHANT_ID=uuid-из-кабинета
+export PLATEGA_SECRET=секрет-из-настроек
+export SITE_URL=https://codwey.su
+```
+
+Сайт шлёт `POST https://app.platega.io/transaction/process` с заголовками `X-MerchantId` и `X-Secret`. Callback URL в кабинете Platega: `https://codwey.su/pay/success` пока не обязателен — success/fail задаются в `return` и `failedUrl`.

@@ -14,10 +14,14 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as OrderRouteImport } from './routes/order'
 import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
+import { Route as PayDemoRouteImport } from './routes/pay.demo'
+import { Route as PayFailRouteImport } from './routes/pay.fail'
+import { Route as PaySuccessRouteImport } from './routes/pay.success'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -44,6 +48,11 @@ const ChatRoute = ChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -64,6 +73,21 @@ const CatalogSlugRoute = CatalogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => CatalogRoute,
 } as any)
+const PayDemoRoute = PayDemoRouteImport.update({
+  id: '/pay/demo',
+  path: '/pay/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayFailRoute = PayFailRouteImport.update({
+  id: '/pay/fail',
+  path: '/pay/fail',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaySuccessRoute = PaySuccessRouteImport.update({
+  id: '/pay/success',
+  path: '/pay/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -71,9 +95,13 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
   '/chat': typeof ChatRoute
+  '/checkout': typeof CheckoutRoute
   '/faq': typeof FaqRoute
   '/order': typeof OrderRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/pay/demo': typeof PayDemoRoute
+  '/pay/fail': typeof PayFailRoute
+  '/pay/success': typeof PaySuccessRoute
   '/catalog/': typeof CatalogIndexRoute
 }
 export interface FileRoutesByTo {
@@ -81,9 +109,13 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/cart': typeof CartRoute
   '/chat': typeof ChatRoute
+  '/checkout': typeof CheckoutRoute
   '/faq': typeof FaqRoute
   '/order': typeof OrderRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/pay/demo': typeof PayDemoRoute
+  '/pay/fail': typeof PayFailRoute
+  '/pay/success': typeof PaySuccessRoute
   '/catalog': typeof CatalogIndexRoute
 }
 export interface FileRoutesById {
@@ -93,9 +125,13 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
   '/chat': typeof ChatRoute
+  '/checkout': typeof CheckoutRoute
   '/faq': typeof FaqRoute
   '/order': typeof OrderRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/pay/demo': typeof PayDemoRoute
+  '/pay/fail': typeof PayFailRoute
+  '/pay/success': typeof PaySuccessRoute
   '/catalog/': typeof CatalogIndexRoute
 }
 export interface FileRouteTypes {
@@ -106,9 +142,13 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/chat'
+    | '/checkout'
     | '/faq'
     | '/order'
     | '/catalog/$slug'
+    | '/pay/demo'
+    | '/pay/fail'
+    | '/pay/success'
     | '/catalog/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,9 +156,13 @@ export interface FileRouteTypes {
     | '/about'
     | '/cart'
     | '/chat'
+    | '/checkout'
     | '/faq'
     | '/order'
     | '/catalog/$slug'
+    | '/pay/demo'
+    | '/pay/fail'
+    | '/pay/success'
     | '/catalog'
   id:
     | '__root__'
@@ -127,9 +171,13 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/chat'
+    | '/checkout'
     | '/faq'
     | '/order'
     | '/catalog/$slug'
+    | '/pay/demo'
+    | '/pay/fail'
+    | '/pay/success'
     | '/catalog/'
   fileRoutesById: FileRoutesById
 }
@@ -139,8 +187,12 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRouteWithChildren
   ChatRoute: typeof ChatRoute
+  CheckoutRoute: typeof CheckoutRoute
   FaqRoute: typeof FaqRoute
   OrderRoute: typeof OrderRoute
+  PayDemoRoute: typeof PayDemoRoute
+  PayFailRoute: typeof PayFailRoute
+  PaySuccessRoute: typeof PaySuccessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -180,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faq': {
       id: '/faq'
       path: '/faq'
@@ -208,6 +267,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogSlugRouteImport
       parentRoute: typeof CatalogRoute
     }
+    '/pay/demo': {
+      id: '/pay/demo'
+      path: '/pay/demo'
+      fullPath: '/pay/demo'
+      preLoaderRoute: typeof PayDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pay/fail': {
+      id: '/pay/fail'
+      path: '/pay/fail'
+      fullPath: '/pay/fail'
+      preLoaderRoute: typeof PayFailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pay/success': {
+      id: '/pay/success'
+      path: '/pay/success'
+      fullPath: '/pay/success'
+      preLoaderRoute: typeof PaySuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -230,8 +310,12 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CatalogRoute: CatalogRouteWithChildren,
   ChatRoute: ChatRoute,
+  CheckoutRoute: CheckoutRoute,
   FaqRoute: FaqRoute,
   OrderRoute: OrderRoute,
+  PayDemoRoute: PayDemoRoute,
+  PayFailRoute: PayFailRoute,
+  PaySuccessRoute: PaySuccessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

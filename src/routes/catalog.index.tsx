@@ -22,21 +22,43 @@ function CatalogPage() {
   const category = getCategory(cat);
 
   if (!category) {
+    const onlyReady = kind === "ready";
+    const onlyCustom = kind === "custom";
     return (
-      <main className="mx-auto w-full max-w-6xl px-4 py-10">
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 md:py-10">
         <p className="font-mono text-xs text-muted">каталог</p>
-        <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Разделы</h1>
-        <p className="mt-3 max-w-xl text-muted">Сначала выберите, что нужно. Внутри раздела — отдельно готовое и заказ.</p>
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          {onlyReady ? "Готовое" : onlyCustom ? "На заказ" : "Разделы"}
+        </h1>
+        <p className="mt-3 max-w-xl text-muted">
+          {onlyReady
+            ? "Выберите тип — внутри только готовые сборки."
+            : onlyCustom
+              ? "Выберите тип — внутри только заказы."
+              : "Сначала выберите, что нужно. Внутри раздела — отдельно готовое и заказ."}
+        </p>
 
-        <h2 className="mt-12 font-display text-2xl font-semibold tracking-tight">Готовое</h2>
-        <div className="mt-6">
-          <CategoryGrid kind="ready" />
-        </div>
+        {onlyCustom ? null : (
+          <>
+            {onlyReady ? null : (
+              <h2 className="mt-12 font-display text-2xl font-semibold tracking-tight">Готовое</h2>
+            )}
+            <div className={onlyReady ? "mt-8" : "mt-6"}>
+              <CategoryGrid kind="ready" />
+            </div>
+          </>
+        )}
 
-        <h2 className="mt-14 font-display text-2xl font-semibold tracking-tight">На заказ</h2>
-        <div className="mt-6">
-          <CategoryGrid kind="custom" />
-        </div>
+        {onlyReady ? null : (
+          <>
+            {onlyCustom ? null : (
+              <h2 className="mt-14 font-display text-2xl font-semibold tracking-tight">На заказ</h2>
+            )}
+            <div className={onlyCustom ? "mt-8" : "mt-6"}>
+              <CategoryGrid kind="custom" />
+            </div>
+          </>
+        )}
       </main>
     );
   }

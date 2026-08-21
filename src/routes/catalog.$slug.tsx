@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MessageSquare, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { QuizBotDemo } from "@/components/demos/quiz-bot";
@@ -16,23 +16,36 @@ export const Route = createFileRoute("/catalog/$slug")({
 
 function BuyBox({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
+  const navigate = useNavigate();
   return (
     <>
       <PriceTag product={product} />
       <div className="mt-4 flex flex-col gap-2">
         {product.kind === "ready" ? (
-          <Button
-            size="lg"
-            onClick={() => {
-              add(product.slug);
-              toast("В корзине", { description: product.name });
-            }}
-          >
-            <ShoppingBag />
-            В корзину
-          </Button>
+          <>
+            <Button
+              size="lg"
+              onClick={() => {
+                add(product.slug);
+                void navigate({ to: "/checkout" });
+              }}
+            >
+              <ShoppingBag />
+              Купить
+            </Button>
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={() => {
+                add(product.slug);
+                toast("В корзине", { description: product.name });
+              }}
+            >
+              В корзину
+            </Button>
+          </>
         ) : null}
-        <Button asChild size="lg" variant={product.kind === "ready" ? "secondary" : "primary"}>
+        <Button asChild size="lg" variant={product.kind === "ready" ? "ghost" : "primary"}>
           <Link to="/chat" search={{ product: product.slug }}>
             <MessageSquare />
             {product.kind === "custom" ? "Собрать смету" : "Обсудить с Вей"}
@@ -40,7 +53,7 @@ function BuyBox({ product }: { product: Product }) {
         </Button>
       </div>
       <p className="mt-4 text-xs leading-relaxed text-subtle">
-        Готовое отдаём после оплаты. Кастом — по смете из чата. Цены ниже рынка намеренно.
+        Готовое — оплата через Platega. Кастом — смета в чате.
       </p>
     </>
   );

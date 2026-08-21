@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cartCount, resolveCart, useCart } from "@/lib/cart";
@@ -12,7 +12,6 @@ function CartPage() {
   const lines = useCart((s) => s.lines);
   const remove = useCart((s) => s.remove);
   const setQty = useCart((s) => s.setQty);
-  const navigate = useNavigate();
   const { items, total } = resolveCart(hydrated ? lines : []);
 
   return (
@@ -72,16 +71,8 @@ function CartPage() {
               <p className="font-mono text-xs text-muted">{cartCount(lines)} поз.</p>
               <p className="font-display text-3xl font-medium tabular-nums">{formatRub(total)}</p>
             </div>
-            <Button
-              size="lg"
-              onClick={() => {
-                const intent = `Хочу оформить корзину: ${items
-                  .map((i) => `${i.product.name} ×${i.qty}`)
-                  .join(", ")}. Сумма ${total} ₽. Уточни связь и как оплатить.`;
-                void navigate({ to: "/chat", search: { intent } });
-              }}
-            >
-              Оформить через Вей
+            <Button asChild size="lg">
+              <Link to="/checkout">Оплатить</Link>
             </Button>
           </div>
         </>
