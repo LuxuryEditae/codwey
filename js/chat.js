@@ -14,6 +14,11 @@
   var form = document.getElementById('chatForm');
   var input = document.getElementById('chatInput');
   var sendBtn = form.querySelector('.c-send');
+  var fileInput = document.getElementById('chatFile');
+  var attachBtn = document.getElementById('chatAttach');
+  var attachPreview = document.getElementById('chatAttachPreview');
+
+  var pendingImage = null; // data:image/jpeg;base64,… уменьшенное фото, ждущее отправки
 
   var sessionId = null;
   try {
@@ -57,14 +62,26 @@
   }
 
   /* ---------- рендер ---------- */
-  function addBubble(text, who, estimate) {
+  function addBubble(text, who, estimate, imageUrl) {
     var div = document.createElement('div');
     div.className = 'msg msg-' + (who === 'user' ? 'user' : 'bot');
     div.setAttribute('role', who === 'user' ? 'log' : 'log');
+    if (imageUrl) {
+      var img = document.createElement('img');
+      img.className = 'msg-img';
+      img.src = imageUrl;
+      img.alt = 'Прикреплённое фото';
+      img.loading = 'lazy';
+      div.appendChild(img);
+    }
     if (who === 'user') {
-      div.textContent = text;
+      if (text) {
+        var span = document.createElement('span');
+        span.textContent = text;
+        div.appendChild(span);
+      }
     } else {
-      div.innerHTML = mdLite(escapeHtml(text));
+      div.insertAdjacentHTML('beforeend', mdLite(escapeHtml(text)));
     }
     if (estimate) {
       var est = document.createElement('div');
@@ -198,10 +215,83 @@
 
   function send(text) {
     text = (text || '').trim();
-    if (!text || pending) return;
-    addBubble(text, 'user');
+    var img = pendingImage;
+    if ((!text && !img) || pending) return;
+    addBubble(text, 'user', null, img);
     input.value = '';
-    apiSend({ message: text });
+    clearAttachment();
+    var payload = { message: text };
+    if (img) payload.image = img;
+    apiSend(payload);
+  }
+
+  /* ---------- прикрепление фото ---------- */
+  function clearAttachment() {
+    pendingImage = null;
+    if (fileInput) fileInput.value = '';
+    if (attachPreview) { attachPreview.hidden = true; attachPreview.innerHTML = ''; }
+  }
+
+  function renderAttachPreview() {
+    if (!attachPreview || !pendingImage) return;
+    attachPreview.innerHTML =
+      '<img src="' + pendingImage + '" alt="Предпросмотр">' +
+      '<button type="button" class="attach-x" aria-label="Убрать фото">&times;</button>';
+    attachPreview.hidden = false;
+    var x = attachPreview.querySelector('.attach-x');
+    if (x) x.addEventListener('click', clearAttachment);
+  }
+
+  function acceptImageFile(file) {
+    if (!file || !/^image\//.test(file.type)) return;
+    if (file.size > 12 * 1024 * 1024) {
+      showError('Фото слишком большое (до 12 МБ).');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var im = new Image();
+      im.onload = function () {
+        var max = 1280;
+        var w = im.width, h = im.height;
+        if (w > max || h > max) {
+          if (w >= h) { h = Math.round(h * max / w); w = max; }
+          else { w = Math.round(w * max / h); h = max; }
+        }
+        try {
+          var cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(im, 0, 0, w, h);
+          pendingImage = cv.toDataURL('image/jpeg', 0.82);
+        } catch (e) {
+          pendingImage = ev.target.result; // fallback: как есть
+        }
+        renderAttachPreview();
+        try { input.focus(); } catch (e) {}
+      };
+      im.onerror = function () { showError('Не удалось прочитать изображение.'); };
+      im.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (attachBtn && fileInput) {
+    attachBtn.addEventListener('click', function () { fileInput.click(); });
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files && fileInput.files[0]) acceptImageFile(fileInput.files[0]);
+    });
+  }
+  if (input) {
+    input.addEventListener('paste', function (e) {
+      var items = (e.clipboardData || {}).items || [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type && items[i].type.indexOf('image') === 0) {
+          acceptImageFile(items[i].getAsFile());
+          e.preventDefault();
+          break;
+        }
+      }
+    });
   }
 
   /* ---------- события ---------- */
