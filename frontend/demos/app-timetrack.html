@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>TimeTrack · Демо CodWay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--bg-2:#111;--panel:#141414;--panel-2:#1a1a1a;--line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.18);--text:#f5f5f5;--muted:#9a9a9a;--faint:#5a5a5a;--accent:#3b82f6;--accent-2:#60a5fa;--ok:#22c55e;--warn:#f59e0b;--err:#ef4444;--font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--accent);color:#fff}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#262626;border-radius:8px}
+button,input,select,textarea{font-family:inherit;outline:none;border:none;background:none;color:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:54px 1fr;height:100vh}
+.topbar{grid-column:1/3;display:flex;align-items:center;padding:0 18px;background:var(--bg-2);border-bottom:1px solid var(--line);gap:14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;min-width:220px}
+.logo .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.logo b em{color:var(--accent);font-style:normal}
+.logo span{color:var(--muted);font-weight:500;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;display:block;margin-top:1px}
+.spacer{flex:1}
+.topbar .btn{padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px}
+.topbar .btn:hover{border-color:var(--line-strong)}
+.topbar .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.tabs{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.tab{padding:6px 14px;font-size:11px;font-weight:600;color:var(--muted);border-radius:7px;text-transform:uppercase;letter-spacing:.5px}
+.tab.active{background:var(--accent);color:#fff}
+
+.sidebar{background:var(--bg-2);border-right:1px solid var(--line);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.main{overflow-y:auto;background:var(--bg);padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px;margin-bottom:12px}
+.sec h4{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+
+.proj{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--line);border-radius:7px;margin-bottom:5px;cursor:pointer;transition:.15s}
+.proj:hover{border-color:var(--line-strong)}
+.proj.active{border-color:var(--accent);background:rgba(59,130,246,.08)}
+.proj .dot{width:10px;height:10px;border-radius:50%}
+.proj .name{flex:1;font-size:12.5px;font-weight:600}
+.proj .ct{font-size:10px;color:var(--muted);font-family:var(--mono)}
+
+.timer-box{background:linear-gradient(135deg,rgba(59,130,246,.12),transparent);border:1px solid var(--accent);border-radius:12px;padding:16px;margin-bottom:14px}
+.timer-box .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px}
+.timer-box .big{font-family:var(--mono);font-size:36px;font-weight:700;color:var(--accent);line-height:1;letter-spacing:1px}
+.timer-box .info{font-size:11px;color:var(--muted);margin-top:6px}
+.timer-box .row{display:flex;gap:6px;margin-top:10px}
+.ctrl{padding:9px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px;flex:1;display:grid;place-items:center}
+.ctrl.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ctrl.danger{background:var(--err);color:#fff;border-color:var(--err)}
+
+.field{margin-bottom:8px}
+.field label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600}
+.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;font-size:12px;color:var(--text)}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px}
+.stat .v{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--accent)}
+.stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-top:4px}
+
+.bar-row{margin-bottom:10px}
+.bar-row .head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.bar-row .head b{font-weight:700}
+.bar-row .head span{font-family:var(--mono);color:var(--muted);font-size:11px}
+.bar{height:10px;background:var(--bg-2);border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.bar .fill{height:100%;border-radius:5px;transition:width .6s ease}
+
+.chart{height:120px;display:flex;gap:4px;align-items:flex-end;padding:8px 0}
+.chart .col{flex:1;background:linear-gradient(180deg,var(--accent),rgba(59,130,246,.2));border-radius:4px 4px 0 0;position:relative;min-height:2px}
+.chart .col .lbl{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--muted);font-family:var(--mono)}
+.chart .col .vl{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9.5px;color:var(--text);font-family:var(--mono);font-weight:700}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line-strong);padding:10px 18px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.5);opacity:0;transition:.3s}
+.toast.show{opacity:1}
+.toast.ok{border-color:var(--ok);color:var(--ok)}
+.toast.warn{border-color:var(--warn);color:var(--warn)}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-bg.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line-strong);border-radius:14px;padding:22px;width:400px;max-width:90vw}
+.modal h3{font-size:14px;font-weight:800;margin-bottom:12px}
+.modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+
+.list{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:6px 8px;max-height:300px;overflow-y:auto}
+.entry{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line);font-size:11.5px}
+.entry:last-child{border:none}
+.entry .dot{width:8px;height:8px;border-radius:50%}
+.entry .nm{flex:1;font-weight:600}
+.entry .ct{font-family:var(--mono);color:var(--muted);font-size:11px}
+.entry .del{color:var(--muted);font-size:13px;cursor:pointer;width:18px;height:18px;display:grid;place-items:center;border-radius:4px}
+.entry .del:hover{background:var(--err);color:#fff}
+
+.hint{font-size:11px;color:var(--muted);line-height:1.5;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 10px}
+
+/* DEMO BANNER */
+.demo-banner{position:fixed;top:0;left:0;right:0;z-index:2000;background:linear-gradient(90deg,#3b82f6,#60a5fa);color:#fff;padding:6px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,.4)}
+.demo-banner a{color:#fff;text-decoration:underline}
+.demo-banner .x{cursor:pointer;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.2)}
+.demo-banner .x:hover{background:rgba(255,255,255,.35)}
+.app{padding-top:34px}
+.demo-delivery.app-demo-delivery {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  animation: deliveryPulse 2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.demo-delivery.app-demo-delivery::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: deliveryDot 1.5s ease-in-out infinite;
+}
+@keyframes deliveryPulse {
+  0%, 100% { box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1); }
+  50% { box-shadow: 0 12px 40px rgba(59, 130, 246, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2); }
+}
+@keyframes deliveryDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+</style>
+</head>
+<body>
+<div class="demo-delivery app-demo-delivery" style="--ac:#3b82f6">✓ Выдача в течение 24 часов</div>
+
+<div class="demo-banner">
+  <div>🎮 <b>ДЕМО</b> — ты в браузерной версии. Установленный .exe TimeTrack умеет авто-категорию по активному окну, иконку в трее, глобальные хоткеи и экспорт в Excel. <a href="https://codway.su/#products">Узнать про .exe →</a></div>
+  <span class="x" onclick="this.parentElement.style.display='none'">✕</span>
+</div>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <span class="dot"></span>
+      <div><b>Time<em>Track</em></b><span>PROJECT TIMER</span></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <div class="tab active" data-period="today">Сегодня</div>
+      <div class="tab" data-period="week">Неделя</div>
+      <div class="tab" data-period="month">Месяц</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="btn-export">💾 Экспорт</button>
+  </div>
+
+  <div class="sidebar">
+    <div class="timer-box">
+      <div class="label" id="t-mode">Не запущено</div>
+      <div class="big" id="t-time">00:00:00</div>
+      <div class="info" id="t-info">Выбери проект и нажми «Старт»</div>
+      <div class="row" id="t-controls">
+        <button class="ctrl primary" id="btn-start">▶ Старт</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h4>Проекты <span class="h" id="proj-add" style="color:var(--accent);font-size:10px;cursor:pointer">+</span></h4>
+      <div id="projects"></div>
+    </div>
+
+    <div class="sec">
+      <h4>Категория</h4>
+      <select id="cat" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;font-size:12px">
+        <option>IDE</option><option>Браузер</option><option>Встреча</option>
+        <option>Код</option><option>Дизайн</option><option>Документация</option>
+        <option>Перерыв</option>
+      </select>
+    </div>
+
+    <div class="hint">
+      <b>В .exe версии:</b><br>
+      • Авто-категория по активному окну (IDE/браузер/встреча)<br>
+      • Уведомления о переработке<br>
+      • Иконка в трее + глобальные хоткеи<br>
+      • Синхронизация с Toggl/Clockify
+    </div>
+  </div>
+
+  <div class="main" id="main">
+    <div class="stat-row">
+      <div class="stat"><div class="v" id="s-hours">0.0</div><div class="l">Часов</div></div>
+      <div class="stat"><div class="v" id="s-entries">0</div><div class="l">Записей</div></div>
+      <div class="stat"><div class="v" id="s-earned">0₽</div><div class="l">Заработано</div></div>
+      <div class="stat"><div class="v" id="s-projs">0</div><div class="l">Проектов</div></div>
+    </div>
+
+    <div class="sec">
+      <h4>По проектам</h4>
+      <div id="proj-bars"></div>
+    </div>
+
+    <div class="sec">
+      <h4>Активность по дням</h4>
+      <div class="chart" id="chart"></div>
+    </div>
+
+    <div class="sec">
+      <h4>По категориям</h4>
+      <div id="cat-bars"></div>
+    </div>
+
+    <div class="sec">
+      <h4>Последние записи</h4>
+      <div class="list" id="entries"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="m-title">Новый проект</h3>
+    <div class="field"><label>Название</label><input id="m-name" placeholder="Проект" /></div>
+    <div class="field"><label>Цвет</label><input id="m-color" type="color" value="#3b82f6" style="height:36px;padding:3px" /></div>
+    <div class="field"><label>Ставка (₽/час)</label><input id="m-rate" type="number" min="0" value="0" /></div>
+    <div class="field"><label>Цель в неделю (часов)</label><input id="m-goal" type="number" min="0" value="0" /></div>
+    <div class="row">
+      <button class="ctrl" id="m-cancel">Отмена</button>
+      <button class="ctrl primary" id="m-save">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const $$=(s)=>document.querySelectorAll(s);
+const LS="timetrack_demo";
+let state={projects:[],entries:[],active:null};
+let period="today";
+let selectedProj=null;
+let tickHandle=null;
+
+function loadLS(){try{const s=localStorage.getItem(LS);if(s)return JSON.parse(s);}catch(e){}return null;}
+function saveLS(){try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}}
+
+function init(){
+  const loaded=loadLS();
+  if(loaded){
+    state=loaded;
+  } else {
+    // предзаполним демо-данными: записи за последние 5 дней
+    state.projects=[
+      {id:"p1",name:"Работа",color:"#3b82f6",hourly_rate:2500,goal_weekly_h:40},
+      {id:"p2",name:"Учёба",color:"#a855f7",hourly_rate:0,goal_weekly_h:20},
+      {id:"p3",name:"Личное",color:"#facc15",hourly_rate:0,goal_weekly_h:0},
+    ];
+    const now=Date.now()/1000;
+    const cats=["IDE","Браузер","Встреча","Код","Документация"];
+    const notes=["Фикс #142","Созвон с PM","Код-ревью PR#23","Деплой","Аналитика","Спринт-планирование"];
+    for(let d=4;d>=0;d--){
+      const entries=2+Math.floor(Math.random()*3);
+      for(let i=0;i<entries;i++){
+        const start=now-d*86400-Math.random()*8*3600;
+        const dur=900+Math.random()*3600*2.5;
+        state.entries.push({
+          id:"e"+Math.random().toString(36).slice(2,8),
+          project_id:state.projects[Math.floor(Math.random()*3)].id,
+          start:start,end:start+dur,
+          category:cats[Math.floor(Math.random()*cats.length)],
+          note:notes[Math.floor(Math.random()*notes.length)],
+        });
+      }
+    }
+    state.entries.sort((a,b)=>a.start-b.start);
+  }
+  if(!selectedProj && state.projects[0]) selectedProj=state.projects[0].id;
+  renderProjects(); renderTimer(); startTick();
+  refreshAnalytics(); bindAll();
+}
+
+function renderProjects(){
+  const el=$("#projects");
+  el.innerHTML="";
+  for(const p of state.projects){
+    const d=document.createElement("div");
+    d.className="proj"+(selectedProj===p.id?" active":"");
+    d.innerHTML=`<span class="dot" style="background:${p.color}"></span><span class="name">${esc(p.name)}</span><span class="ct" data-del="${p.id}" style="cursor:pointer">🗑</span>`;
+    d.onclick=(e)=>{
+      if(e.target.dataset.del){e.stopPropagation();if(!confirm(`Удалить «${p.name}»?`))return; state.projects=state.projects.filter(x=>x.id!==p.id); saveLS(); if(selectedProj===p.id) selectedProj=state.projects[0]?.id; renderProjects();}
+      else{selectedProj=p.id; renderProjects();}
+    };
+    el.appendChild(d);
+  }
+}
+
+function renderTimer(){
+  const a=state.active;
+  const proj=state.projects.find(p=>p.id===(a?a.project_id:selectedProj));
+  if(a){
+    $("#t-mode").textContent="⏱ Идёт · "+(proj?proj.name:"");
+    $("#t-time").textContent="00:00:00";
+    $("#t-info").textContent="Категория: "+(a.category||"IDE")+(a.note?" · "+a.note:"");
+    $("#t-controls").innerHTML=`<button class="ctrl" id="btn-discard">Отменить</button><button class="ctrl danger" id="btn-stop">■ Стоп</button>`;
+    bindTimerControls();
+  } else {
+    $("#t-mode").textContent="Не запущено";
+    $("#t-time").textContent="00:00:00";
+    $("#t-info").textContent="Проект: "+(proj?proj.name:"—");
+    $("#t-controls").innerHTML=`<button class="ctrl primary" id="btn-start">▶ Старт</button>`;
+    bindTimerControls();
+  }
+}
+
+function bindTimerControls(){
+  const s=$("#btn-start"); if(s) s.onclick=()=>{
+    if(!selectedProj){toast("Сначала создай проект","err");return;}
+    state.active={project_id:selectedProj,started_at:Date.now()/1000,category:$("#cat").value,note:""};
+    saveLS(); renderTimer();
+  };
+  const st=$("#btn-stop"); if(st) st.onclick=()=>{
+    if(state.active){
+      const e={id:"e"+Date.now().toString(36),project_id:state.active.project_id,start:state.active.started_at,end:Date.now()/1000,category:state.active.category,note:state.active.note||""};
+      state.entries.push(e);
+      state.active=null; saveLS(); renderTimer(); refreshAnalytics();
+    }
+  };
+  const d=$("#btn-discard"); if(d) d.onclick=()=>{
+    if(!confirm("Отменить без сохранения?"))return;
+    state.active=null; saveLS(); renderTimer();
+  };
+}
+
+function startTick(){
+  if(tickHandle) clearInterval(tickHandle);
+  tickHandle=setInterval(()=>{
+    if(state.active){
+      $("#t-time").textContent=fmt(Date.now()/1000 - state.active.started_at);
+    }
+  },500);
+}
+
+function analytics(){
+  const now=Date.now()/1000;
+  let start;
+  if(period==="today") start=now-86400;
+  else if(period==="week") start=now-7*86400;
+  else start=now-30*86400;
+  const filt=state.entries.filter(e=>e.end>=start);
+  const proj={},cats={},days={};
+  for(const e of filt){
+    const dur=Math.max(0,e.end-e.start);
+    proj[e.project_id]=(proj[e.project_id]||0)+dur;
+    cats[e.category||"IDE"]=(cats[e.category||"IDE"]||0)+dur;
+    const d=new Date(e.start*1000).toISOString().slice(0,10);
+    days[d]=(days[d]||0)+dur;
+  }
+  if(state.active && state.active.started_at>=start){
+    const dur=now-state.active.started_at;
+    proj[state.active.project_id]=(proj[state.active.project_id]||0)+dur;
+    cats[state.active.category||"IDE"]=(cats[state.active.category||"IDE"]||0)+dur;
+  }
+  const projects=state.projects.map(p=>{
+    const sec=proj[p.id]||0;
+    return {id:p.id,name:p.name,color:p.color,seconds:sec,hours:Math.round(sec/3600*100)/100,rate:p.hourly_rate||0,earned:Math.round(sec/3600*(p.hourly_rate||0)*100)/100,goal_weekly_h:p.goal_weekly_h||0};
+  });
+  const catsOut=Object.entries(cats).map(([k,v])=>({name:k,seconds:v,hours:Math.round(v/3600*100)/100})).sort((a,b)=>b.seconds-a.seconds);
+  const daysOut=Object.entries(days).map(([k,v])=>({day:k,seconds:v,hours:Math.round(v/3600*100)/100})).sort((a,b)=>a.day.localeCompare(b.day));
+  const totalH=projects.reduce((s,p)=>s+p.hours,0);
+  const totalE=projects.reduce((s,p)=>s+p.earned,0);
+  return {period,total_hours:Math.round(totalH*100)/100,total_earned:Math.round(totalE*100)/100,projects,categories:catsOut,days:daysOut};
+}
+
+function refreshAnalytics(){
+  const a=analytics();
+  $("#s-hours").textContent=a.total_hours;
+  $("#s-earned").textContent=a.total_earned+"₽";
+  $("#s-projs").textContent=a.projects.length;
+  $("#s-entries").textContent=state.entries.length;
+  const maxH=Math.max(1,...a.projects.map(p=>p.hours));
+  $("#proj-bars").innerHTML=a.projects.length
+    ? a.projects.map(p=>{
+        const pct=Math.min(100,p.hours/maxH*100);
+        const goalPct=p.goal_weekly_h>0?Math.min(100,p.hours/p.goal_weekly_h*100):0;
+        return `<div class="bar-row">
+          <div class="head"><b style="color:${p.color}">${esc(p.name)}</b>
+            <span>${p.hours}ч${p.goal_weekly_h?" / "+p.goal_weekly_h+"ч цель":""}${p.earned?" · "+p.earned+"₽":""}</span>
+          </div>
+          <div class="bar"><div class="fill" style="width:${pct}%;background:${p.color}"></div></div>
+          ${p.goal_weekly_h>0?`<div class="bar" style="height:4px;margin-top:2px"><div class="fill" style="width:${goalPct}%;background:repeating-linear-gradient(45deg,${p.color},${p.color} 4px,transparent 4px,transparent 8px)"></div></div>`:""}
+        </div>`;
+      }).join("")
+    : '<div class="hint">Нет проектов</div>';
+  $("#cat-bars").innerHTML=a.categories.length
+    ? a.categories.map(c=>{
+        const pct=c.hours/Math.max(1,...a.categories.map(x=>x.hours))*100;
+        return `<div class="bar-row"><div class="head"><b>${esc(c.name)}</b><span>${c.hours}ч</span></div><div class="bar"><div class="fill" style="width:${pct}%;background:var(--accent)"></div></div></div>`;
+      }).join("")
+    : '<div class="hint">Нет данных</div>';
+  const maxD=Math.max(1,...a.days.map(d=>d.hours));
+  $("#chart").innerHTML=a.days.map(d=>{
+    const h=Math.max(2,Math.round(d.hours/maxD*100));
+    const lbl=new Date(d.day+"T00:00").toLocaleDateString("ru-RU",{weekday:"short"}).slice(0,2);
+    return `<div class="col" style="height:${h}%" title="${d.day}: ${d.hours}ч"><span class="vl">${d.hours?d.hours:""}</span><span class="lbl">${lbl}</span></div>`;
+  }).join("");
+  const sorted=[...state.entries].sort((a,b)=>b.start-a.start).slice(0,15);
+  $("#entries").innerHTML=sorted.length
+    ? sorted.map(e=>{
+        const p=state.projects.find(x=>x.id===e.project_id);
+        const dur=Math.round((e.end-e.start)/60);
+        const t=new Date(e.start*1000);
+        return `<div class="entry">
+          <span class="dot" style="background:${p?p.color:"#888"}"></span>
+          <span class="nm">${esc(p?p.name:"?")} · ${esc(e.category||"")}${e.note?" · "+esc(e.note):""}</span>
+          <span class="ct">${dur}м · ${t.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}</span>
+          <span class="del" data-del="${e.id}">×</span>
+        </div>`;
+      }).join("")
+    : '<div class="hint">Пока записей нет</div>';
+  $("#entries").querySelectorAll("[data-del]").forEach(x=>{
+    x.onclick=()=>{state.entries=state.entries.filter(e=>e.id!==x.dataset.del); saveLS(); refreshAnalytics();};
+  });
+}
+
+function fmt(s){s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(sc).padStart(2,"0");}
+function toast(m,k="ok"){const t=$("#toast");t.textContent=m;t.className="toast show "+k;setTimeout(()=>t.classList.remove("show"),2200);}
+function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+
+function bindAll(){
+  $$(".tab").forEach(t=>t.onclick=()=>{
+    $$(".tab").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    period=t.dataset.period;
+    refreshAnalytics();
+  });
+  $("#proj-add").onclick=()=>{
+    const m=$("#modal");
+    m.classList.add("show");
+    $("#m-name").value="";
+    setTimeout(()=>$("#m-name").focus(),50);
+    $("#m-save").onclick=()=>{
+      const name=$("#m-name").value.trim(); if(!name){toast("Имя?","err");return;}
+      const p={id:"p"+Date.now().toString(36),name,color:$("#m-color").value,hourly_rate:parseFloat($("#m-rate").value)||0,goal_weekly_h:parseInt($("#m-goal").value)||0};
+      state.projects.push(p); saveLS(); m.classList.remove("show"); selectedProj=p.id; renderProjects();
+    };
+    $("#m-cancel").onclick=()=>m.classList.remove("show");
+  };
+  $("#cat").onchange=()=>{if(state.active){state.active.category=$("#cat").value; saveLS(); renderTimer();}};
+  $("#btn-export").onclick=()=>{
+    const a=analytics();
+    let csv="Период,"+period+",Всего часов,"+a.total_hours+"\n\nПроект,Часы,Ставка,Заработано\n";
+    for(const p of a.projects) csv+=`${p.name},${p.hours},${p.rate},${p.earned}\n`;
+    csv+="\nКатегория,Часы\n";
+    for(const c of a.categories) csv+=`${c.name},${c.hours}\n`;
+    csv+="\nДень,Часы\n";
+    for(const d of a.days) csv+=`${d.day},${d.hours}\n`;
+    const blob=new Blob(["\ufeff"+csv],{type:"text/csv"});
+    const a2=document.createElement("a");
+    a2.href=URL.createObjectURL(blob);
+    a2.download=`timetrack_${period}.csv`;
+    a2.click();
+    toast("CSV скачан","ok");
+  };
+}
+
+init();
+</script>
+</body></html>

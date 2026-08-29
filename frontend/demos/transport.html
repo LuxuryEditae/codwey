@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ТрансЛогистик — перевозки по России и СНГ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#EFF6FF;color:#1E3A5F;line-height:1.6;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace}
+.wrap{width:min(1100px,92%);margin:auto}
+header{background:#ffffffd9;backdrop-filter:blur(10px);border-bottom:1px solid #DBEAFE;position:sticky;top:0;z-index:50}
+.nav{display:flex;align-items:center;height:72px;gap:30px}
+.logo{font-weight:800;font-size:16px;color:#1E3A8A;text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo i{width:34px;height:34px;border-radius:6px;background:#2563EB;color:#fff;display:grid;place-items:center;font-size:15px}
+.logo small{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;color:#93A8C4;letter-spacing:.14em}
+.nav a.lnk{color:#46618A;text-decoration:none;font-size:13.5px;font-weight:500;transition:.2s}
+.nav a.lnk:hover{color:#2563EB}
+.cta{margin-left:auto;background:#EA580C;color:#fff;padding:12px 24px;border-radius:6px;font-weight:700;font-size:13px;text-decoration:none;transition:.2s}
+.cta:hover{background:#C2410C}
+.hero{background:linear-gradient(115deg,#1E40AF 0%,#2563EB 55%,#3B82F6 100%);color:#fff;padding:84px 0 64px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,#60A5FA44,transparent 70%)}
+.hero h1{font-size:clamp(30px,4.6vw,50px);font-weight:800;max-width:660px;letter-spacing:-.02em}
+.hero h1 b{color:#FDBA74}
+.hero p{color:#BFDBFE;margin:18px 0 30px;max-width:500px;font-size:16px}
+.trackcard{margin-top:36px;max-width:520px;background:#fff;border-radius:10px;padding:20px;box-shadow:0 20px 50px rgba(30,58,138,.35);position:relative;z-index:2}
+.trackcard label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:#64748B;text-transform:uppercase}
+.trackrow{display:flex;gap:10px;margin-top:9px}
+.trackrow input{flex:1;padding:13px 15px;border:1.5px solid #CBD5E1;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:14px;outline:none;color:#1E3A5F;min-width:0}
+.trackrow input:focus{border-color:#2563EB}
+.trackrow button{background:#2563EB;color:#fff;border:none;border-radius:6px;padding:0 22px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap}
+.trackrow button:hover{background:#1D4ED8}
+.statusline{display:flex;align-items:center;gap:8px;margin-top:11px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#059669;display:none}
+.statusline.show{display:flex}
+.dotg{width:7px;height:7px;border-radius:50%;background:#10B981;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}
+section{padding:64px 0}
+.shead{display:flex;justify-content:space-between;align-items:end;margin-bottom:32px;flex-wrap:wrap;gap:14px}
+h2{color:#1E3A5F;letter-spacing:-.02em}
+.kick{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.24em;color:#2563EB;font-weight:600;margin-bottom:12px}
+table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(30,64,175,.1)}
+th{background:#1E3A8A;color:#DBEAFE;text-align:left;padding:15px 20px;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+td{padding:15px 20px;border-bottom:1px solid #EFF3F8;font-size:14.5px}
+tbody tr:last-child td{border:none}
+tbody tr{transition:.18s;cursor:pointer}
+tbody tr:hover{background:#FFF7ED}
+.tn{font-weight:700;color:#1E3A8A}
+.ts{font-family:'JetBrains Mono',monospace;font-weight:600;color:#EA580C;white-space:nowrap}
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feat{background:#fff;border:1px solid #DBEAFE;border-radius:10px;padding:26px;transition:.25s}
+.feat:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(37,99,235,.12)}
+.feat .ic{width:42px;height:42px;border-radius:8px;background:#DBEAFE;margin-bottom:16px;position:relative}
+.feat .ic::before{content:"";position:absolute;inset:11px;border:3px solid #2563EB;border-radius:3px}
+.feat b{color:#1E3A8A;font-size:16px}
+.feat p{font-size:13.5px;color:#46618A;margin-top:8px}
+.contact{background:linear-gradient(120deg,#1E3A8A,#2563EB);color:#fff;border-radius:12px;padding:42px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:22px}
+.contact h2{font-size:25px;color:#fff}
+.contact p{color:#BFDBFE;font-size:14.5px;margin-top:8px;font-family:'JetBrains Mono',monospace}
+.wbtn{background:#fff;color:#1D4ED8;padding:15px 30px;border-radius:6px;font-weight:700;font-size:14px;text-decoration:none;transition:.2s}
+.wbtn:hover{background:#DBEAFE}
+footer{background:#172B54;color:#8FA8CC;text-align:center;padding:24px;font-size:12.5px;margin-top:64px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #FDBA74;outline-offset:2px}
+@media(max-width:860px){.feats{grid-template-columns:1fr}.nav a.lnk{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav">
+  <a class="logo" href="#"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></i><span>ТРАНСЛОГИСТИК<small>ГРУЗЫ ПО РФ И СНГ · С 2013</small></span></a>
+  <a class="lnk" href="#tariffs">Тарифы</a>
+  <a class="lnk" href="#why">Гарантии</a>
+  <a class="lnk" href="#contact">Контакты</a>
+  <a class="cta" href="#contact">Заказать перевозку</a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <h1>Ваш груз доедет <b>точно в срок</b> — или мы платим неустойку</h1>
+  <p>Свой парк из 140 машин, страхование каждого рейса до 10 млн ₽ и живое GPS-отслеживание прямо на этой странице.</p>
+  <div class="trackcard">
+    <label>ОТСЛЕДИТЬ ГРУЗ ПО НАКЛАДНОЙ</label>
+    <div class="trackrow">
+      <input type="text" placeholder="TL-104857" oninput="document.getElementById('sl').classList.add('show');this.value=this.value||'TL-104857'">
+      <button onclick="document.getElementById('sl').classList.add('show')">Отследить</button>
+    </div>
+    <div class="statusline" id="sl"><span class="dotg"></span>TL-104857 · в пути · прибытие сегодня, 18:40 · Волгоград → Москва</div>
+  </div>
+</div></header>
+
+<section id="tariffs"><div class="wrap">
+  <div class="shead"><div><div class="kick">// ТАРИФНАЯ СЕТКА</div><h2>Прозрачные ставки без скрытых доплат</h2></div></div>
+  <table>
+    <thead><tr><th>Транспорт</th><th>Объём</th><th>Маршрут</th><th>Ставка</th></tr></thead>
+    <tbody>
+      <tr><td class="tn">Газель</td><td>до 1,5 т / 9 м³</td><td>город + область</td><td class="ts">от 35 ₽/км</td></tr>
+      <tr><td class="tn">Фура 20т</td><td>до 20 т / 86 м³</td><td>межгород РФ</td><td class="ts">от 62 ₽/км</td></tr>
+      <tr><td class="tn">Рефрижератор</td><td>до 10 т · −20…+12 °C</td><td>РФ и СНГ</td><td class="ts">от 78 ₽/км</td></tr>
+      <tr><td class="tn">Сборный груз</td><td>от 100 кг</td><td>все направления</td><td class="ts">от 12 ₽/кг</td></tr>
+    </tbody>
+  </table>
+</div></section>
+
+<section id="why" style="background:#fff;border-block:1px solid #DBEAFE"><div class="wrap">
+  <div class="shead"><div><div class="kick">// ГАРАНТИИ</div><h2>Почему нам доверяют 900+ компаний</h2></div></div>
+  <div class="feats">
+    <div class="feat"><div class="ic"></div><b>Страховка 10 млн ₽</b><p>Каждый рейс застрахован автоматически — без доплат и звёздочек в договоре.</p></div>
+    <div class="feat"><div class="ic"></div><b>GPS в реальном времени</b><p>Ссылка на карту приходит SMS сразу после погрузки. Следите сами.</p></div>
+    <div class="feat"><div class="ic"></div><b>Документы за день</b><p>УПД и акты на следующий рабочий день — бухгалтерия скажет спасибо.</p></div>
+  </div>
+</div></section>
+
+<section id="contact"><div class="wrap">
+  <div class="contact">
+    <div><h2>Стоимость рейса — за 15 минут</h2><p>8 (800) 555-01-23 · @translogistic · zakaz@translogistic.ru</p></div>
+    <a class="wbtn" href="#">Оставить заявку</a>
+  </div>
+</div></section>
+
+<footer>© 2026 ТрансЛогистик · демо-сайт от CodWay</footer>
+</body>
+</html>
+

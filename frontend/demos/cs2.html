@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEADSHOT — форум CS2</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Chakra Petch','Segoe UI',sans-serif;background:#0F0F23;color:#d7dae2;line-height:1.55;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+   repeating-linear-gradient(0deg,transparent 0 39px,#ffffff06 39px 40px),
+   repeating-linear-gradient(90deg,transparent 0 39px,#ffffff06 39px 40px)}
+body::after{content:"";position:fixed;top:-140px;left:50%;transform:translateX(-50%);width:700px;height:340px;
+  background:radial-gradient(ellipse,rgba(124,58,237,.18),transparent 65%);z-index:0;pointer-events:none}
+.wrap{width:min(1080px,94%);margin:auto;position:relative;z-index:2}
+header{border-bottom:1px solid #ffffff12;background:#0F0F23D9;backdrop-filter:blur(10px);position:sticky;top:0;z-index:50}
+.nav{display:flex;align-items:center;height:64px;gap:24px}
+.logo{font-family:'Russo One',sans-serif;font-weight:400;font-size:20px;color:#fff;text-decoration:none}
+.logo b{color:#7C3AED;text-shadow:0 0 18px rgba(124,58,237,.65)}
+.logo span{color:#5b6070;font-weight:600;font-size:11px;letter-spacing:.3em;margin-left:8px}
+.search{flex:1;max-width:380px;margin-left:auto;display:flex}
+.search input{width:100%;background:#14141a;border:1px solid #ffffff14;border-radius:8px;padding:9px 15px;color:#d7dae2;font-size:13px;outline:none;transition:.25s}
+.search input:focus{border-color:#7C3AED}
+.online{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8b91a1;font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:50%;background:#37e07a;box-shadow:0 0 10px rgba(55,224,122,.9);animation:pulse 1.8s infinite}
+@keyframes pulse{50%{opacity:.4}}
+.banner{margin:26px 0;padding:26px 30px;border-radius:14px;position:relative;overflow:hidden;
+  background:linear-gradient(100deg,#1c0d05,#331404 45%,#1c0d05);border:1px solid #7C3AED44}
+.banner::after{content:"";position:absolute;top:0;left:-70%;width:40%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(167,139,250,.15),transparent);
+  animation:sweep 3.4s ease-in-out infinite}
+@keyframes sweep{to{left:130%}}
+.banner h2{font-family:'Russo One',sans-serif;font-size:clamp(20px,3vw,28px);font-weight:900;color:#fff}
+.banner h2 b{color:#F43F5E}
+.banner p{color:#c08a68;font-size:13.5px;margin-top:6px}
+.banner .go{position:absolute;right:26px;top:50%;transform:translateY(-50%);
+  border:1px solid #7C3AED;color:#A78BFA;background:none;border-radius:8px;padding:10px 22px;
+  font-weight:800;font-size:13px;cursor:pointer;transition:.25s;letter-spacing:.06em;font-family:inherit}
+.banner .go:hover{background:#7C3AED;color:#0F0F23;box-shadow:0 0 26px rgba(244,63,94,.45)}
+.cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.cat{padding:8px 17px;border-radius:8px;border:1px solid #ffffff14;background:#17172E;
+  color:#8b91a1;font-size:12.5px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}
+.cat:hover{color:#fff;border-color:#ffffff2e}
+.cat.active{background:#7C3AED;border-color:#7C3AED;color:#0F0F23;box-shadow:0 4px 20px rgba(255,77,0,.35)}
+.board{border:1px solid #ffffff10;border-radius:12px;overflow:hidden;background:#14142A}
+.trow{display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #ffffff0a;
+  transition:.22s;position:relative;cursor:pointer}
+.trow:last-child{border-bottom:none}
+.trow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:#7C3AED;
+  transform:scaleY(0);transition:.25s}
+.trow:hover{background:#1C1C36;transform:translateX(4px)}
+.trow:hover::before{transform:scaleY(1)}
+.ava{width:42px;height:42px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;
+  font-weight:900;font-size:14px;color:#0F0F23}
+.tt{flex:1;min-width:0}
+.tt b{display:block;color:#eef0f5;font-family:'Russo One',sans-serif;font-weight:400;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<style>
+.tt .by{font-size:12px;color:#6b7080;margin-top:3px}
+.tt .by b{display:inline;color:#a8adc0;font-weight:600;font-size:12px}
+.tag{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:900;letter-spacing:.1em;vertical-align:1px}
+.tag.hot{background:#7C3AED;color:#0F0F23;animation:hotGlow 2s infinite}
+@keyframes hotGlow{50%{box-shadow:0 0 14px rgba(255,77,0,.7)}}
+.tag.pin{background:#2f6fed;color:#fff}
+.stat{flex-shrink:0;text-align:center;width:64px}
+.stat b{display:block;color:#eef0f5;font-size:14px;font-variant-numeric:tabular-nums}
+.stat span{font-size:10px;color:#5b6070;text-transform:uppercase;letter-spacing:.12em}
+.when{flex-shrink:0;width:90px;text-align:right;font-size:12px;color:#5b6070}
+.newbar{padding:13px 20px;background:#17172E;border-top:1px solid #ffffff10;display:flex;justify-content:space-between;align-items:center}
+.newbar span{font-size:12.5px;color:#8b91a1}
+.newbtn{background:#7C3AED;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:800;font-size:13px;cursor:pointer;transition:.25s;font-family:inherit;letter-spacing:.04em}
+.newbtn:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(255,77,0,.45)}
+.rules{margin-top:22px;padding:18px 22px;border:1px dashed #ffffff18;border-radius:10px;font-size:12.5px;color:#6b7080}
+footer{border-top:1px solid #ffffff10;text-align:center;color:#5b6070;padding:24px;font-size:12px;margin-top:30px}
+@media(max-width:700px){.stat,.when,.search{display:none}}
+</style>
+
+<div class="wrap">
+<header style="margin:0 -3%"><div class="wrap nav" style="width:auto">
+  <a class="logo" href="#"><b>HEADSHOT</b><span>CS2 FORUM</span></a>
+  <div class="search"><input type="text" placeholder="Поиск по темам…"></div>
+  <div class="online"><i class="dot"></i>1 284 онлайн</div>
+</div></header>
+
+<div class="banner">
+  <h2>WINTER CUP <b>//</b> призовой фонд 500 000 ₽</h2>
+  <p>Регистрация команд до 30 января · 5x5 · MR12 · сервера Москва/Франкфурт</p>
+  <button class="go">РЕГИСТРАЦИЯ</button>
+</div>
+
+<div class="cats">
+  <button class="cat active">Все</button><button class="cat">Общее</button>
+  <button class="cat">Тактика</button><button class="cat">Скрипты и конфиги</button>
+  <button class="cat">Барахолка</button><button class="cat">Кланы</button>
+</div>
+
+<div class="board">
+  <div class="trow"><div class="ava" style="background:#A78BFA">SM</div>
+    <div class="tt"><b><span class="tag pin">PIN</span> Правила форума — читать перед созданием темы</b><span class="by"><b>admin_smoke</b> · сегодня в 09:14</span></div>
+    <div class="stat"><b>8 402</b><span>просм.</span></div><div class="stat"><b>12</b><span>отв.</span></div><div class="when">—</div></div>
+  <div class="trow"><div class="ava" style="background:#37e07a">KV</div>
+    <div class="tt"><b><span class="tag hot">HOT</span> Мой конфиг про-игрока: прицел + бинд на дроп бомбы</b><span class="by"><b>kv1nt</b> · сегодня в 11:02</span></div>
+    <div class="stat"><b>3 157</b><span>просм.</span></div><div class="stat"><b>148</b><span>отв.</span></div><div class="when">5 мин назад</div></div>
+  <div class="trow"><div class="ava" style="background:#2f6fed">DR</div>
+    <div class="tt"><b>Разбор демки: как я вышел на FACEIT 10 lvl за сезон</b><span class="by"><b>dream3r</b> · вчера</span></div>
+    <div class="stat"><b>1 984</b><span>просм.</span></div><div class="stat"><b>76</b><span>отв.</span></div><div class="when">2 ч назад</div></div>
+  <div class="trow"><div class="ava" style="background:#c084fc">NX</div>
+    <div class="tt">Продам AK-47 | Redline (FT) — торг у капота</b></b><span class="by"><b>nexuzz</b> · вчера</span></div>
+    <div class="stat"><b>642</b><span>просм.</span></div><div class="stat"><b>31</b><span>отв.</span></div><div class="when">4 ч назад</div></div>
+  <div class="trow"><div class="ava" style="background:#fbbf24">GL</div>
+    <div class="tt">Ищем 5-го в команду на Winter Cup, рейтинг 8+</b><span class="by"><b>gladiolus</b> · сегодня</span></div>
+    <div class="stat"><b>388</b><span>просм.</span></div><div class="stat"><b>19</b><span>отв.</span></div><div class="when">18 мин назад</div></div>
+  <div class="trow"><div class="ava" style="background:#f472b6">MZ</div>
+    <div class="tt">Патч от 26.01: что изменилось в экономике пистолетных раундов</b><span class="by"><b>muzzle</b> · 2 дня назад</span></div>
+    <div class="stat"><b>2 240</b><span>просм.</span></div><div class="stat"><b>54</b><span>отв.</span></div><div class="when">вчера</div></div>
+  <div class="newbar"><span>Показаны темы за последние 30 дней</span><button class="newbtn">+ Новая тема</button></div>
+</div>
+
+<div class="rules">Форум живёт по правилам: без читов, скама и токсичности. Торговля — только через гаранта. Бан за читера — навсегда, обсуждение — в теме «Банхаммер».</div>
+</div>
+
+<footer>© 2026 HEADSHOT · demo by CodWay</footer>
+</body>
+</html>
+
+

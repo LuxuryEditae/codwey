@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroRouter — все LLM через один API</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#020617;color:#E2E8F0;line-height:1.6;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace}
+.wrap{width:min(1100px,92%);margin:auto}
+header{position:sticky;top:0;z-index:50;background:#020617D9;border-bottom:1px solid #1E293B;backdrop-filter:blur(10px)}
+.nav{display:flex;align-items:center;height:68px;gap:30px}
+.logo{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:16px;color:#F8FAFC;text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo i{width:22px;height:22px;border-radius:5px;background:#22C55E;display:inline-block;box-shadow:0 0 18px rgba(34,197,94,.55)}
+.nav a.lnk{color:#94A3B8;text-decoration:none;font-size:13.5px;font-family:'JetBrains Mono',monospace;transition:.2s}
+.nav a.lnk:hover{color:#22C55E}
+.nav .cta{margin-left:auto;font-family:'JetBrains Mono',monospace;background:#22C55E;color:#052E16;padding:10px 20px;border-radius:6px;font-weight:600;font-size:13px;text-decoration:none;transition:.2s}
+.nav .cta:hover{background:#4ADE80;box-shadow:0 0 24px rgba(34,197,94,.4)}
+.hero{text-align:center;padding:92px 0 60px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:
+ linear-gradient(#0F172A88 1px,transparent 1px) 0 0/44px 44px,
+ linear-gradient(90deg,#0F172A88 1px,transparent 1px) 0 0/44px 44px;
+ mask-image:radial-gradient(560px 320px at 50% 0%,#000 30%,transparent 75%)}
+.hero>*{position:relative}
+.term{display:inline-flex;align-items:center;gap:7px;border:1px solid #1E293B;background:#0F172A;border-radius:100px;padding:7px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#4ADE80;margin-bottom:26px}
+h1{font-size:clamp(32px,5vw,56px);font-weight:700;letter-spacing:-.02em;line-height:1.08}
+h1 code{font-family:'JetBrains Mono',monospace;color:#22C55E;background:#052E1633;border:1px solid #14532D66;border-radius:6px;padding:2px 12px;font-size:.82em}
+.sub{color:#94A3B8;max-width:520px;margin:22px auto 34px;font-size:16.5px}
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{font-family:'JetBrains Mono',monospace;padding:14px 28px;border-radius:6px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;border:1px solid transparent;transition:.2s}
+.b1{background:#22C55E;color:#052E16}.b1:hover{background:#4ADE80;box-shadow:0 0 30px rgba(34,197,94,.35)}
+.b2{border-color:#334155;color:#CBD5E1}.b2:hover{border-color:#22C55E;color:#22C55E}
+.code{max-width:740px;margin:46px auto 0;text-align:left;background:#0F172A;border:1px solid #1E293B;border-radius:10px;overflow:hidden}
+.cbar{display:flex;align-items:center;gap:6px;padding:11px 16px;border-bottom:1px solid #1E293B}
+.cb{width:10px;height:10px;border-radius:50%}.cb.r{background:#EF444480}.cb.y{background:#F59E0B80}.cb.g{background:#22C55E80}
+.cbar span{margin-left:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#475569}
+.code pre{padding:20px 24px;font-family:'JetBrains Mono',monospace;font-size:12.8px;line-height:1.75;color:#CBD5E1;overflow-x:auto}
+.tk-k{color:#7DD3FC}.tk-s{color:#86EFAC}.tk-g{color:#22C55E}.tk-c{color:#475569}
+section{padding:70px 0}
+.shead{text-align:center;margin-bottom:40px}
+.kick{font-family:'JetBrains Mono',monospace;font-size:11px;color:#22C55E;letter-spacing:.26em;margin-bottom:14px}
+h2{font-size:clamp(25px,3.4vw,36px);font-weight:700;color:#F8FAFC;letter-spacing:-.01em}
+.secd{color:#94A3B8;margin-top:12px;font-size:15px}
+.tbl{border:1px solid #1E293B;border-radius:10px;overflow:hidden;background:#0F172A}
+.trow,.thead{display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr;padding:15px 22px;align-items:center;gap:12px}
+.thead{background:#0C1425;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:#64748B;text-transform:uppercase}
+.trow{border-top:1px solid #1E293B;font-size:14px;transition:.2s;cursor:pointer}
+.trow:hover{background:#132033}
+.mn b{display:block;color:#F8FAFC;font-family:'JetBrains Mono',monospace;font-size:13.5px}
+.mn span{font-size:12px;color:#64748B}
+.ctx{font-family:'JetBrains Mono',monospace;color:#94A3B8;font-size:12.5px}
+.pin{font-family:'JetBrains Mono',monospace;color:#4ADE80;font-weight:500}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:920px;margin:auto}
+.plan{background:#0F172A;border:1px solid #1E293B;border-radius:10px;padding:32px 28px;text-align:left;transition:.25s}
+.plan:hover{border-color:#22C55E55;transform:translateY(-4px)}
+.plan.hot{border-color:#22C55E;box-shadow:0 0 44px rgba(34,197,94,.12)}
+.hot-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:#22C55E;margin-bottom:12px}
+.plan h3{color:#F8FAFC;font-size:17px;font-weight:600}
+.pr{font-family:'JetBrains Mono',monospace;font-size:30px;color:#F8FAFC;font-weight:600;margin:12px 0 4px}
+.pr small{font-size:13px;color:#64748B;font-weight:400}
+.plan ul{list-style:none;margin:18px 0 24px;display:grid;gap:9px;font-size:13.5px;color:#94A3B8}
+.plan li::before{content:"▸ ";color:#22C55E}
+footer{border-top:1px solid #1E293B;text-align:center;color:#475569;padding:26px;font-size:12.5px;margin-top:64px;font-family:'JetBrains Mono',monospace}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #22C55E;outline-offset:2px}
+@media(max-width:900px){.plans{grid-template-columns:1fr}.trow,.thead{grid-template-columns:1.6fr .8fr .8fr}.trow :last-child,.thead :last-child{display:none}.nav a.lnk{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav">
+  <a class="logo" href="#"><i></i>neurorouter<span style="color:#334155">_</span></a>
+  <a class="lnk" href="#models">models</a>
+  <a class="lnk" href="#pricing">pricing</a>
+  <a class="lnk" href="#docs">docs</a>
+  <a class="cta" href="#pricing">Get API key</a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div class="term"><span style="width:7px;height:7px;border-radius:50%;background:#22C55E;display:inline-block"></span> all systems operational · 99.98% uptime</div>
+  <h1>Каждая большая LLM.<br>Один <code>endpoint</code>. Один баланс.</h1>
+  <p class="sub">NeuroRouter агрегирует десятки моделей за OpenAI-совместимым API. Меняете модель одной строкой — код не переписываете.</p>
+  <div class="btns"><a class="btn b1" href="#pricing">Получить ключ бесплатно</a><a class="btn b2" href="#docs">curl за 30 секунд</a></div>
+  <div class="code" id="docs">
+    <div class="cbar"><span class="cb r"></span><span class="cb y"></span><span class="cb g"></span><span>POST /v1/chat/completions</span></div>
+<pre><span class="k">curl</span> https://api.neurorouter.ai/v1/chat/completions \
+  -H <span class="tk-s">"Authorization: Bearer nr_sk_live_..."</span> \
+  -d <span class="tk-s">'{
+    "model": "</span><span class="tk-g">gpt-class-turbo</span><span class="tk-s">",
+    "messages": [{"role": "user", "content": "Привет!"}]
+  }'</span>
+<span class="tk-c"># захотели claude-class-long? меняется одна строка ↑</span></pre>
+  </div>
+</div></section>
+
+<section id="models"><div class="wrap">
+  <div class="shead"><div class="kick">// MODEL CATALOG</div><h2>Модели и цены за 1K токенов</h2><p class="secd">единый баланс на все модели · списание по факту</p></div>
+  <div class="tbl">
+    <div class="thead"><span>model</span><span>context</span><span>input /1k</span><span>status</span></div>
+    <div class="trow"><div class="mn"><b>gpt-class-turbo</b><span>флагман: чат, код, инструменты</span></div><span class="ctx">128K</span><span class="pin">1,20 ₽</span><span class="pin">● live</span></div>
+    <div class="trow"><div class="mn"><b>claude-class-long</b><span>длинные документы и анализ</span></div><span class="ctx">200K</span><span class="pin">1,80 ₽</span><span class="pin">● live</span></div>
+    <div class="trow"><div class="mn"><b>llama-open-70b</b><span>открытая модель без вендор-лока</span></div><span class="ctx">32K</span><span class="pin">0,45 ₽</span><span class="pin">● live</span></div>
+    <div class="trow"><div class="mn"><b>mistral-fast</b><span>дешёвая скорость для простых задач</span></div><span class="ctx">16K</span><span class="pin">0,15 ₽</span><span class="pin">● live</span></div>
+  </div>
+</div></section>
+
+<section id="pricing" style="border-block:1px solid #1E293B;background:#050B18"><div class="wrap">
+  <div class="shead"><div class="kick">// PRICING</div><h2>Платите за токены, а не за airtime</h2><p class="secd">без подписочных ловушек · отмена в один клик</p></div>
+  <div class="plans">
+    <div class="plan"><div class="hot-tag">FREE</div><h3>Старт</h3><div class="pr">0 ₽<small> навсегда</small></div>
+      <ul><li>100K токенов на старте</li><li>Все базовые модели</li><li>Чат поддержки сообщества</li></ul>
+      <a class="btn b2" href="#">Создать ключ</a></div>
+    <div class="plan hot"><div class="hot-tag">POPULAR ▸</div><h3>Pro</h3><div class="pr">1 990 ₽<small> /мес</small></div>
+      <ul><li>−20% на все токены</li><li>Приоритетная очередь</li><li>Логи запросов 30 дней</li></ul>
+      <a class="btn b1" href="#">Подключить Pro</a></div>
+    <div class="plan"><div class="hot-tag">TEAM</div><h3>Enterprise</h3><div class="pr">Индивид.</div>
+      <ul><li>Выделенные лимиты</li><li>SLA 99.9%</li><li>Инженер на связи</li></ul>
+      <a class="btn b2" href="#">Обсудить</a></div>
+  </div>
+</div></section>
+
+<footer>// demo by codway · neurorouter is a fictional brand for showcase purposes</footer>
+</body>
+</html>

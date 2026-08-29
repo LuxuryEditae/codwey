@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AROMA — обжарочная и кофейня</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#FFFBEB;color:#451A03;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{width:min(1060px,92%);margin:auto}
+header{position:sticky;top:0;z-index:50;background:#FFFBEBE6;backdrop-filter:blur(10px);border-bottom:1px solid #FDE68A66}
+.nav{display:flex;align-items:center;height:70px;gap:30px}
+.logo{font-family:'Playfair Display',serif;font-size:26px;color:#451A03;text-decoration:none;letter-spacing:.04em}
+.logo b{color:#B45309}
+.nav a.lnk{margin-left:auto;color:#92400E;text-decoration:none;font-size:13.5px;font-weight:500;padding-bottom:2px;border-bottom:1.5px solid transparent;transition:.2s}
+.nav a.lnk+.lnk{margin-left:22px}
+.nav a.lnk:hover{border-color:#B45309}
+.hero{text-align:center;padding:96px 0 72px;background:
+ radial-gradient(420px 210px at 20% 8%,#FDE68A88,transparent),
+ radial-gradient(420px 210px at 80% 90%,#FDE68A66,transparent)}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.34em;color:#B45309;margin-bottom:20px}
+h1{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:clamp(38px,6vw,68px);line-height:1.08;letter-spacing:-.01em}
+h1 b{color:#B45309}
+.hero p{max-width:460px;margin:22px auto 32px;color:#78350F;font-size:16px}
+.btn{display:inline-block;padding:15px 36px;border-radius:100px;font-weight:600;font-size:14px;text-decoration:none;transition:.25s;cursor:pointer;border:1px solid transparent;font-family:inherit}
+.b1{background:#92400E;color:#fff}.b1:hover{background:#78350F;transform:translateY(-2px)}
+.b2{border-color:#D97706;color:#92400E}.b2:hover{background:#FEF3C7;border-color:#B45309}
+.divider{display:flex;align-items:center;gap:14px;max-width:300px;margin:auto}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:#D9770655}
+.divider i{width:7px;height:7px;background:#B45309;transform:rotate(45deg)}
+section{padding:64px 0}
+h2.sec{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:clamp(28px,3.6vw,40px);text-align:center;margin-bottom:10px}
+.secd{text-align:center;color:#92400E99;font-size:13px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;margin-bottom:40px}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.mitem{background:#fff;border:1px solid #FDE68A;border-radius:4px;padding:26px 22px;display:flex;flex-direction:column;transition:.25s}
+.mitem:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(146,64,14,.12)}
+.mitem .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.mitem h3{font-size:16.5px;font-weight:600}
+.mitem .dots{flex:1;border-bottom:1px dotted #D9770688;margin:0 4px;transform:translateY(-4px)}
+.mitem .pr{font-weight:700;color:#B45309}
+.mitem p{font-size:12.5px;color:#92400E99;margin-top:6px}
+.about{background:#451A03;color:#FDE68A;border-radius:6px;padding:56px 48px;display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center}
+.about h2{font-family:'Playfair Display',serif;font-style:italic;font-size:30px;margin-bottom:14px}
+.about p{opacity:.82;font-size:15px}
+.roast{display:flex;gap:10px;justify-content:flex-end}
+.bean{width:52px;height:74px;border-radius:50%/38%;background:linear-gradient(160deg,#B45309,#78350F);position:relative;box-shadow:inset -6px -8px 14px rgba(0,0,0,.35)}
+.bean::after{content:"";position:absolute;left:50%;top:8%;bottom:8%;width:6px;background:#451A03;border-radius:50%;transform:translateX(-50%) rotate(8deg)}
+.contact{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:860px;margin:auto;text-align:center}
+.cbox{background:#fff;border:1px solid #FDE68A;border-radius:4px;padding:26px}
+.cbox b{display:block;font-size:17px;margin-bottom:6px}
+.cbox span{font-size:13px;color:#92400EAA}
+footer{border-top:1px solid #FDE68A66;text-align:center;color:#92400E88;padding:24px;font-size:12.5px;margin-top:64px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #B45309;outline-offset:2px}
+@media(max-width:860px){.menu-grid{grid-template-columns:1fr 1fr}.about{grid-template-columns:1fr}.roast{justify-content:flex-start}}
+@media(max-width:540px){.menu-grid,.contact{grid-template-columns:1fr}.nav a.lnk{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav">
+  <a class="logo" href="#">Aro<b>ma</b></a>
+  <a class="lnk" href="#menu">Меню</a>
+  <a class="lnk" href="#about">Обжарка</a>
+  <a class="lnk" href="#contact">Контакты</a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div class="kicker">ОБЖАРОЧНАЯ И КОФЕЙНЯ · С 2019 ГОДА</div>
+  <h1>Кофе, который<br><b>собирает людей</b></h1>
+  <p>Обжариваем зерно малыми партиями в двух шагах от барной стойки. От зерна до чашки — одни руки и одна страсть.</p>
+  <div class="btns"><a class="btn b1" href="#menu">Открыть меню</a> <a class="btn b2" href="#about">Как мы жарим</a></div>
+  <div style="margin-top:44px" class="divider"><i></i></div>
+</div></section>
+
+<section id="menu"><div class="wrap">
+  <h2 class="sec">Меню сезона</h2>
+  <p class="secd">зерно этой недели — эфиопия ирамбу</p>
+  <div class="menu-grid">
+    <div class="mitem"><div class="top"><h3>Эспрессо</h3><span class="dots"></span><span class="pr">120 ₽</span></div><p>Плотное тело, густая пенка, какао-ноты</p></div>
+    <div class="mitem"><div class="top"><h3>Капучино</h3><span class="dots"></span><span class="pr">220 ₽</span></div><p>Классика на молоке 3,2%, бархатная текстура</p></div>
+    <div class="mitem"><div class="top"><h3>Латте овсяный</h3><span class="dots"></span><span class="pr">260 ₽</span></div><p>Мягкий, растительный, для долгих разговоров</p></div>
+    <div class="mitem"><div class="top"><h3>Раф ванильный</h3><span class="dots"></span><span class="pr">280 ₽</span></div><p>Сливочный десерт с домашним сиропом</p></div>
+    <div class="mitem"><div class="top"><h3>Фильтр Эфиопия</h3><span class="dots"></span><span class="pr">190 ₽</span></div><p>Ягодные ноты, чайное тело, яркая кислотность</p></div>
+    <div class="mitem"><div class="top"><h3>Матча-латте</h3><span class="dots"></span><span class="pr">300 ₽</span></div><p>Церемониальная матча, молоко на выбор</p></div>
+  </div>
+</div></section>
+
+<section id="about"><div class="wrap">
+  <div class="about">
+    <div>
+      <h2>Жарим сами.<br>Тут же варим.</h2>
+      <p>Барабан на 5 кг стоит за стеклом у входа. Каждую среду — новый лот: приходите понюхать разницу между промытыми и натуралами.</p>
+      <p style="margin-top:14px"><b>Пн–Вс 8:00–22:00 · ул. Кофейная, 7</b></p>
+    </div>
+    <div class="roast"><div class="bean"></div><div class="bean" style="transform:rotate(24deg) scale(.92)"></div><div class="bean" style="transform:rotate(-18deg) scale(1.05)"></div></div>
+  </div>
+</div></section>
+
+<section id="contact"><div class="wrap">
+  <h2 class="sec">Загляните или напишите</h2>
+  <p class="secd">любим звонки меньше, чем живые встречи</p>
+  <div class="contact">
+    <div class="cbox"><b>Адрес</b><span>ул. Кофейная, 7<br>м. Чистые пруды</span></div>
+    <div class="cbox"><b>Связь</b><span>+7 (999) 123-45-67<br>@aroma_coffee</span></div>
+    <div class="cbox"><b>Часы</b><span>Ежедневно<br>8:00 — 22:00</span></div>
+  </div>
+</div></section>
+
+<footer>© 2026 AROMA · демо-сайт от CodWay</footer>
+</body>
+</html>

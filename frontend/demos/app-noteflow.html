@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>NoteFlow · Демо CodWay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--bg-2:#111;--panel:#141414;--panel-2:#1a1a1a;--line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.18);--text:#f5f5f5;--muted:#9a9a9a;--faint:#5a5a5a;--accent:#facc15;--accent-2:#fde047;--ok:#22c55e;--warn:#f59e0b;--err:#ef4444;--font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--accent);color:#000}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#262626;border-radius:8px}
+button,input,select,textarea{font-family:inherit;outline:none;border:none;background:none;color:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:280px 1fr;grid-template-rows:54px 1fr;height:100vh}
+.topbar{grid-column:1/3;display:flex;align-items:center;padding:0 18px;background:var(--bg-2);border-bottom:1px solid var(--line);gap:14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;min-width:240px}
+.logo .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.logo b em{color:var(--accent);font-style:normal}
+.logo span{color:var(--muted);font-weight:500;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;display:block;margin-top:1px}
+.spacer{flex:1}
+.topbar .btn{padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px}
+.topbar .btn:hover{border-color:var(--line-strong)}
+.topbar .btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+.search{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 12px;width:280px;font-size:12px;color:var(--text)}
+.search:focus{border-color:var(--accent)}
+
+.sidebar{background:var(--bg-2);border-right:1px solid var(--line);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.main{overflow:hidden;background:var(--bg);display:grid;grid-template-columns:340px 1fr}
+.list{border-right:1px solid var(--line);overflow-y:auto;background:var(--bg-2)}
+.editor{overflow-y:auto;padding:24px 32px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
+
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px;margin-bottom:12px}
+.sec h4{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.sec h4 .h{color:var(--accent);font-weight:500;letter-spacing:0;text-transform:none;font-size:10px}
+
+.folder{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;font-size:12.5px;cursor:pointer;margin-bottom:2px}
+.folder:hover{background:var(--panel)}
+.folder.active{background:var(--accent);color:#000;font-weight:700}
+.folder .em{font-size:13px;width:16px;text-align:center}
+.folder .ct{font-size:10px;color:var(--muted);font-family:var(--mono);margin-left:auto}
+.folder.active .ct{color:#000}
+.folder .x{opacity:0;width:16px;height:16px;display:grid;place-items:center;border-radius:4px;color:var(--err)}
+.folder:hover .x{opacity:1}
+.folder .x:hover{background:var(--err);color:#fff}
+
+.note{display:block;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;transition:.1s}
+.note:hover{background:var(--panel)}
+.note.active{background:var(--panel-2);border-left:3px solid var(--accent)}
+.note .t{font-size:13px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note .pin{color:var(--accent)}
+.note .s{font-size:11px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note .m{font-size:10px;color:var(--faint);margin-top:4px;font-family:var(--mono);display:flex;justify-content:space-between;align-items:center}
+.note .tags{font-size:9.5px;color:var(--accent)}
+
+.empty{padding:32px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5}
+
+.editor-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.editor input.title{flex:1;background:transparent;font-size:20px;font-weight:800;padding:4px 0;border-bottom:1px solid var(--line)}
+.editor input.title:focus{border-color:var(--accent)}
+.editor-meta{font-size:10.5px;color:var(--muted);font-family:var(--mono);display:flex;gap:12px;flex-wrap:wrap}
+.editor-toolbar{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px;flex-wrap:wrap}
+.tool{width:30px;height:28px;border-radius:5px;background:transparent;display:grid;place-items:center;font-size:13px;color:var(--muted)}
+.tool:hover{background:var(--panel-2);color:var(--text)}
+.tool b{color:var(--text)}
+.editor textarea{width:100%;min-height:60vh;background:transparent;font-family:var(--mono);font-size:13px;line-height:1.6;resize:vertical}
+.preview{padding:16px 18px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;font-size:13.5px;line-height:1.7;min-height:60vh}
+.preview h1{font-size:22px;margin:8px 0 12px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.preview h2{font-size:18px;margin:14px 0 8px}
+.preview h3{font-size:15px;margin:10px 0 6px;color:var(--accent)}
+.preview code{background:var(--bg);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12px;color:var(--accent-2)}
+.preview pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:8px 0;overflow-x:auto}
+.preview pre code{background:transparent;padding:0;color:var(--text)}
+.preview blockquote{border-left:3px solid var(--accent);padding-left:10px;color:var(--muted);margin:8px 0}
+.preview ul,.preview ol{padding-left:24px;margin:6px 0}
+.preview a{color:var(--accent-2);text-decoration:underline}
+
+.tabs{display:flex;gap:6px;margin-bottom:6px}
+.tab{padding:5px 12px;background:var(--panel);border:1px solid var(--line);border-radius:7px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.tab.active{background:var(--accent);color:#000;border-color:var(--accent)}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-bg.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line-strong);border-radius:14px;padding:24px;width:400px;max-width:90vw}
+.modal h3{font-size:14px;font-weight:800;margin-bottom:10px}
+.modal input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:10px}
+.modal .row{display:flex;gap:8px;justify-content:flex-end}
+.ctrl{padding:8px 14px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.ctrl.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line-strong);padding:10px 18px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.5);opacity:0;transition:.3s}
+.toast.show{opacity:1}
+.toast.ok{border-color:var(--ok);color:var(--ok)}
+.toast.warn{border-color:var(--warn);color:var(--warn)}
+
+/* DEMO BANNER */
+.demo-banner{position:fixed;top:0;left:0;right:0;z-index:2000;background:linear-gradient(90deg,#facc15,#f59e0b);color:#000;padding:6px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,.4)}
+.demo-banner .x{cursor:pointer;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,.15)}
+.demo-banner .x:hover{background:rgba(0,0,0,.3)}
+.app{padding-top:34px}
+.demo-delivery.app-demo-delivery {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.95), rgba(245, 158, 11, 0.95));
+  color: #000;
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 32px rgba(250, 204, 21, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: deliveryPulse 2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.demo-delivery.app-demo-delivery::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #000;
+  animation: deliveryDot 1.5s ease-in-out infinite;
+}
+@keyframes deliveryPulse {
+  0%, 100% { box-shadow: 0 8px 32px rgba(250, 204, 21, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.1); }
+  50% { box-shadow: 0 12px 40px rgba(250, 204, 21, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.2); }
+}
+@keyframes deliveryDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+</style>
+</head>
+<body>
+<div class="demo-delivery app-demo-delivery" style="--ac:#facc15">✓ Выдача в течение 24 часов</div>
+
+<div class="demo-banner" id="banner">
+  <div>🎮 <b>ДЕМО</b> — ты в браузерной версии. Установленный .exe NoteFlow хранит заметки локально, имеет глобальную хоткею Ctrl+Alt+N, drag&drop файлов, экспорт в .pdf и автобэкап. <a href="https://codway.su/#products" style="color:#000;text-decoration:underline">Узнать про .exe →</a></div>
+  <span class="x" id="banner-close">✕</span>
+</div>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <span class="dot"></span>
+      <div><b>Note<em>Flow</em></b><span>LOCAL MARKDOWN</span></div>
+    </div>
+    <div class="spacer"></div>
+    <input id="search" class="search" placeholder="🔍 Поиск по всем заметкам..." />
+    <div class="spacer"></div>
+    <button class="btn" id="btn-storage">📁 Хранилище</button>
+    <button class="btn primary" id="btn-new">+ Новая</button>
+  </div>
+
+  <div class="sidebar">
+    <div class="sec">
+      <h4>Папки <span class="h" id="folder-add">+</span></h4>
+      <div id="folders"></div>
+    </div>
+    <div class="sec">
+      <h4>Теги</h4>
+      <div id="tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+    </div>
+    <div class="sec">
+      <h4>Возможности .exe</h4>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5">
+        • <b>Ctrl+Alt+N</b> — глобальная хоткея из любой программы<br>
+        • Хранение локально (без облака)<br>
+        • Drag&drop файлов и картинок<br>
+        • Экспорт в .md / .pdf<br>
+        • Бэкап и автосинхронизация<br>
+        • Шаблоны (митинг/идея/баг/чек-лист)
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="list" id="list"></div>
+    <div class="editor" id="editor">
+      <div class="empty" style="margin:auto">Выбери заметку слева или создай новую</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Папка</h3>
+    <input id="modal-input" placeholder="" />
+    <div class="row">
+      <button class="ctrl" id="modal-cancel">Отмена</button>
+      <button class="ctrl primary" id="modal-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+const LS_KEY="noteflow_demo";
+let state={notes:[],folders:["Inbox","Шаблоны","Проекты","Архив"],trash:[]};
+let current={note:null,folder:"Inbox",filter:""};
+let mode="edit";
+
+function toast(m,k="ok"){const t=$("#toast");t.textContent=m;t.className="toast show "+k;setTimeout(()=>t.classList.remove("show"),2200);}
+
+function loadLS(){
+  try{
+    const s=localStorage.getItem(LS_KEY);
+    if(s) return JSON.parse(s);
+  }catch(e){}
+  return null;
+}
+function saveLS(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
+}
+
+function init(){
+  const loaded=loadLS();
+  if(loaded){
+    state=loaded;
+  } else {
+    state.notes=[
+      {id:"w1",title:"👋 Добро пожаловать в NoteFlow",content:"# Привет!\n\nЭто **демо** NoteFlow. Здесь ты видишь интерфейс, который выглядит как в .exe версии. Все заметки сохраняются в твоём браузере (localStorage).\n\n## Возможности\n- Markdown с подсветкой кода\n- Папки и теги\n- Поиск по всем заметкам\n- Шаблоны\n- Глобальная хоткея (только в .exe)\n\n```js\nconst idea='быстрые заметки';\nconsole.log(idea);\n```\n\n## Что в демке не работает\n- Хоткея Ctrl+Alt+N\n- Хранение на диске\n- Drag&drop файлов\n- Экспорт .pdf\n- Иконка в трее\n\nЭто работает только в установленном .exe.",folder:"Inbox",tags:["welcome","demo"],pinned:true,created:Date.now()/1000,updated:Date.now()/1000},
+      {id:"m1",title:"📅 Шаблон: встреча",content:"## Повестка\n- Пункт 1\n- Пункт 2\n\n## Решения\n- \n\n## Действия\n- [ ] @Артём: ...\n- [ ] @Никита: ...\n",folder:"Шаблоны",tags:["meeting"],pinned:false,created:Date.now()/1000,updated:Date.now()/1000},
+      {id:"i1",title:"💡 Шаблон: идея",content:"## О чём?\n\n\n## Почему важно?\n\n\n## Первый шаг\n\n",folder:"Шаблоны",tags:["idea"],pinned:false,created:Date.now()/1000,updated:Date.now()/1000},
+    ];
+  }
+  current.folder="Inbox";
+  renderFolders(); renderList(); renderTags();
+  bindSearch(); bindHotkeys(); bindNew(); bindStorage();
+  $("#folder-add").onclick=()=>openModal("Новая папка","Имя папки",(v)=>{
+    if(v && !state.folders.includes(v)){state.folders.push(v); saveLS(); renderFolders();}
+  });
+  $("#banner-close").onclick=()=>$("#banner").style.display="none";
+  $("#btn-storage").onclick=()=>toast("В демо хранилище = localStorage браузера. В .exe — папка на диске.","warn");
+}
+
+function renderFolders(){
+  const el=$("#folders");
+  el.innerHTML="";
+  const counts={};
+  for(const n of state.notes) counts[n.folder]=(counts[n.folder]||0)+1;
+  for(const f of state.folders){
+    const d=document.createElement("div");
+    d.className="folder"+(current.folder===f?" active":"");
+    const ico=f==="Inbox"?"📥":f==="Шаблоны"?"📑":f==="Проекты"?"📁":f==="Архив"?"🗄":"📂";
+    d.innerHTML=`<span class="em">${ico}</span><span>${esc(f)}</span><span class="ct">${counts[f]||0}</span><span class="x" data-del="${esc(f)}">×</span>`;
+    d.onclick=(e)=>{
+      if(e.target.dataset.del) return;
+      current.folder=f; renderFolders(); renderList();
+    };
+    el.appendChild(d);
+  }
+  const tr=document.createElement("div");
+  tr.className="folder"+(current.folder==="__trash"?" active":"");
+  tr.innerHTML=`<span class="em">🗑</span><span>Корзина</span><span class="ct">${(state.trash||[]).length}</span>`;
+  tr.onclick=()=>{current.folder="__trash"; renderFolders(); renderTrash();};
+  el.appendChild(tr);
+  el.querySelectorAll("[data-del]").forEach(x=>{
+    x.onclick=(e)=>{
+      e.stopPropagation();
+      const name=x.dataset.del;
+      if(!confirm(`Удалить папку «${name}»? Заметки переедут в Inbox.`)) return;
+      for(const n of state.notes) if(n.folder===name) n.folder="Inbox";
+      state.folders=state.folders.filter(f=>f!==name);
+      if(current.folder===name) current.folder="Inbox";
+      saveLS(); renderFolders(); renderList();
+    };
+  });
+}
+
+function renderTags(){
+  const el=$("#tags");
+  const all=new Set();
+  for(const n of state.notes) for(const t of (n.tags||[])) all.add(t);
+  if(!all.size){el.innerHTML='<span style="font-size:10.5px;color:var(--faint)">тегов нет</span>';return;}
+  el.innerHTML=Array.from(all).map(t=>`<span class="folder" style="padding:2px 8px;font-size:10.5px;background:var(--bg)">#${esc(t)}</span>`).join("");
+}
+
+function renderList(){
+  const el=$("#list");
+  if(current.folder==="__trash"){return renderTrash();}
+  let notes=state.notes.filter(n=>current.folder==="Inbox"||n.folder===current.folder);
+  const q=current.filter.toLowerCase();
+  if(q){
+    if(q.startsWith("#")){
+      const tag=q.slice(1);
+      notes=state.notes.filter(n=>(n.tags||[]).some(t=>t.toLowerCase().includes(tag)));
+    } else {
+      notes=state.notes.filter(n=>(n.title+" "+n.content+" "+(n.tags||[]).join(" ")).toLowerCase().includes(q));
+    }
+  }
+  notes.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||b.updated-a.updated);
+  if(!notes.length){el.innerHTML='<div class="empty">Заметок нет.<br>Нажми «+ Новая».</div>';return;}
+  el.innerHTML=notes.map(n=>{
+    const d=new Date(n.updated*1000);
+    const date=d.toLocaleDateString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+    const preview=(n.content||"").replace(/[#*`>_-]/g,"").replace(/\n+/g," ").trim().slice(0,140);
+    return `<div class="note ${current.note&&current.note.id===n.id?"active":""}" data-id="${n.id}">
+      <div class="t">${n.pinned?'<span class="pin">📌</span>':""}${esc(n.title)}</div>
+      <div class="s">${esc(preview)}</div>
+      <div class="m"><span>${date}</span><span class="tags">${(n.tags||[]).map(t=>'#'+esc(t)).join(" ")}</span></div>
+    </div>`;
+  }).join("");
+  el.querySelectorAll(".note").forEach(x=>{
+    x.onclick=()=>{
+      const n=state.notes.find(z=>z.id===x.dataset.id);
+      if(n){current.note=n; renderList(); renderEditor();}
+    };
+  });
+}
+
+function renderTrash(){
+  const el=$("#list");
+  const tr=state.trash||[];
+  el.innerHTML=`<div class="empty" style="padding:12px"><button class="ctrl primary" id="empty-trash" style="font-size:11px">🗑 Очистить корзину</button></div>`;
+  if(!tr.length){el.innerHTML+='<div class="empty">Корзина пуста</div>';}
+  else el.innerHTML+=tr.map(n=>`<div class="note" data-id="${n.id}">
+    <div class="t">${esc(n.title)}</div>
+    <div class="m"><span>удалено</span><span class="tags">📌восстановить</span></div>
+  </div>`).join("");
+  el.querySelectorAll(".note").forEach(x=>{
+    x.onclick=()=>{
+      state.trash=state.trash.filter(z=>z.id!==x.dataset.id);
+      const n=tr.find(z=>z.id===x.dataset.id);
+      n.updated=Date.now()/1000;
+      state.notes.unshift(n);
+      saveLS(); renderFolders(); renderList();
+      toast("Восстановлено","ok");
+    };
+  });
+  const eb=$("#empty-trash");
+  if(eb) eb.onclick=()=>{state.trash=[]; saveLS(); renderTrash();};
+}
+
+function renderEditor(){
+  const el=$("#editor");
+  const n=current.note;
+  if(!n){el.innerHTML='<div class="empty" style="margin:auto">Выбери заметку слева</div>';return;}
+  el.innerHTML=`
+    <div class="editor-head">
+      <input class="title" id="ed-title" value="${esc(n.title)}" />
+      <button class="ctrl" id="ed-pin">${n.pinned?"📌 Открепить":"📌 Закрепить"}</button>
+      <button class="ctrl" id="ed-export">💾 Экспорт</button>
+      <button class="ctrl" id="ed-trash">🗑 В корзину</button>
+    </div>
+    <div class="editor-meta">
+      <span>📁 <select id="ed-folder" style="background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:2px 6px;font-size:11px">${state.folders.map(f=>`<option ${f===n.folder?"selected":""}>${esc(f)}</option>`).join("")}</select></span>
+      <span>🏷 <input id="ed-tags" value="${(n.tags||[]).join(", ")}" placeholder="теги через запятую" style="background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:2px 6px;font-size:11px;width:200px"/></span>
+      <span>создана: ${new Date(n.created*1000).toLocaleString("ru-RU")}</span>
+      <span>изменена: ${new Date(n.updated*1000).toLocaleString("ru-RU")}</span>
+    </div>
+    <div class="tabs">
+      <div class="tab ${mode==="edit"?"active":""}" data-mode="edit">✏️ Markdown</div>
+      <div class="tab ${mode==="preview"?"active":""}" data-mode="preview">👁 Превью</div>
+    </div>
+    <div class="editor-toolbar">
+      <button class="tool" data-md="**">𝐁</button>
+      <button class="tool" data-md="_"><i>I</i></button>
+      <button class="tool" data-md="# ">H1</button>
+      <button class="tool" data-md="## ">H2</button>
+      <button class="tool" data-md="### ">H3</button>
+      <button class="tool" data-md="\`">code</button>
+      <button class="tool" data-md="\`\`\`">pre</button>
+      <button class="tool" data-md="- ">•</button>
+      <button class="tool" data-md="1. ">1.</button>
+      <button class="tool" data-md="- [ ]">☑</button>
+      <button class="tool" data-md="> ">“”</button>
+    </div>
+    ${mode==="edit"
+      ? `<textarea id="ed-content" spellcheck="false">${esc(n.content)}</textarea>`
+      : `<div class="preview">${md(n.content||"")}</div>`}
+  `;
+  $("#ed-title").oninput=(e)=>{n.title=e.target.value;n.updated=Date.now()/1000;saveLS();renderList();};
+  const ta=$("#ed-content");
+  if(ta) ta.addEventListener("input",(e)=>{n.content=e.target.value;n.updated=Date.now()/1000;saveLS();});
+  $("#ed-folder").onchange=(e)=>{n.folder=e.target.value;n.updated=Date.now()/1000;saveLS();renderFolders();renderList();};
+  $("#ed-tags").onchange=(e)=>{n.tags=e.target.value.split(",").map(s=>s.trim()).filter(Boolean);saveLS();renderTags();renderList();};
+  $("#ed-pin").onclick=()=>{n.pinned=!n.pinned;n.updated=Date.now()/1000;saveLS();renderEditor();renderList();};
+  $("#ed-trash").onclick=()=>{
+    if(!confirm(`Удалить «${n.title}» в корзину?`)) return;
+    state.notes=state.notes.filter(x=>x.id!==n.id);
+    state.trash=state.trash||[];
+    state.trash.push(n);
+    saveLS();
+    current.note=null; renderFolders();renderList();renderEditor();
+    toast("В корзине");
+  };
+  $("#ed-export").onclick=()=>{
+    const blob=new Blob([n.content],{type:"text/markdown"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=n.title.slice(0,40)+".md";
+    a.click();
+    toast("Скачано","ok");
+  };
+  el.querySelectorAll(".tab").forEach(t=>{t.onclick=()=>{mode=t.dataset.mode; renderEditor();};});
+  el.querySelectorAll(".tool").forEach(b=>{b.onclick=()=>insertMd(b.dataset.md);});
+}
+
+function insertMd(mdStr){
+  const ta=$("#ed-content"); if(!ta) return;
+  const s=ta.selectionStart, e=ta.selectionEnd;
+  const v=ta.value;
+  let insert=mdStr;
+  if(s!==e){insert=mdStr+v.slice(s,e)+mdStr;}
+  ta.value=v.slice(0,s)+insert+v.slice(e);
+  ta.selectionStart=ta.selectionEnd=s+insert.length;
+  current.note.content=ta.value;
+  saveLS();
+}
+
+function bindSearch(){$("#search").oninput=(e)=>{current.filter=e.target.value; renderList();};}
+function bindHotkeys(){
+  document.addEventListener("keydown",(e)=>{
+    if((e.ctrlKey||e.metaKey) && e.key==="n"){e.preventDefault();newNote();}
+    if(e.key==="Escape" && current.note){current.note=null;renderEditor();renderList();}
+  });
+}
+function bindNew(){$("#btn-new").onclick=newNote;}
+function bindStorage(){$("#btn-storage").onclick=()=>toast("В демо хранилище = localStorage. В .exe — папка на диске.","warn");}
+function newNote(){
+  const n={id:"n"+Date.now().toString(36),title:"Новая заметка",content:"",folder:current.folder==="__trash"?"Inbox":current.folder,tags:[],pinned:false,created:Date.now()/1000,updated:Date.now()/1000};
+  state.notes.unshift(n); saveLS();
+  current.note=n; renderFolders();renderList();renderEditor();
+  setTimeout(()=>{const t=$("#ed-title"); if(t) t.select();},50);
+}
+function openModal(title,placeholder,onOk){
+  const m=$("#modal");
+  m.classList.add("show");
+  m.querySelector("#modal-title").textContent=title;
+  const inp=m.querySelector("#modal-input");
+  inp.placeholder=placeholder; inp.value="";
+  setTimeout(()=>inp.focus(),50);
+  m.querySelector("#modal-ok").onclick=()=>{onOk(inp.value); m.classList.remove("show");};
+  m.querySelector("#modal-cancel").onclick=()=>m.classList.remove("show");
+}
+function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+function md(s){
+  let h=esc(s);
+  h=h.replace(/```([\s\S]*?)```/g,(m,c)=>`<pre><code>${c}</code></pre>`);
+  h=h.replace(/`([^`\n]+)`/g,(m,c)=>`<code>${c}</code>`);
+  h=h.replace(/^### (.*$)/gim,"<h3>$1</h3>");
+  h=h.replace(/^## (.*$)/gim,"<h2>$1</h2>");
+  h=h.replace(/^# (.*$)/gim,"<h1>$1</h1>");
+  h=h.replace(/^\> (.*$)/gim,"<blockquote>$1</blockquote>");
+  h=h.replace(/\*\*([^\n]+?)\*\*/g,"<b>$1</b>");
+  h=h.replace(/_([^_\n]+)_/g,"<i>$1</i>");
+  h=h.replace(/- \[( |x)\] (.*)$/gim,(_,k,v)=>`<div><input type="checkbox" ${k==="x"?"checked":""} disabled>${v}</div>`);
+  h=h.replace(/^\- (.*)$/gim,"<ul><li>$1</li></ul>");
+  h=h.replace(/^\d+\. (.*)$/gim,"<ol><li>$1</li></ol>");
+  h=h.replace(/(<\/ul>\s*<ul>)/g,"").replace(/(<\/ol>\s*<ol>)/g,"");
+  h=h.replace(/\n\n/g,"<br><br>");
+  h=h.replace(/\n/g,"<br>");
+  return h;
+}
+init();
+</script>
+</body></html>

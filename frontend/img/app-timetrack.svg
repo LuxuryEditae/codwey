@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a0a0a"/>
+      <stop offset="1" stop-color="#0a1224"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#b)"/>
+  <!-- clock face -->
+  <circle cx="128" cy="120" r="62" fill="none" stroke="url(#g)" stroke-width="5" opacity=".3"/>
+  <circle cx="128" cy="120" r="62" fill="none" stroke="url(#g)" stroke-width="6"/>
+  <!-- ticks -->
+  <g stroke="url(#g)" stroke-width="3" stroke-linecap="round">
+    <line x1="128" y1="62" x2="128" y2="70"/>
+    <line x1="128" y1="170" x2="128" y2="178"/>
+    <line x1="70" y1="120" x2="78" y2="120"/>
+    <line x1="178" y1="120" x2="186" y2="120"/>
+  </g>
+  <!-- hands -->
+  <line x1="128" y1="120" x2="128" y2="78" stroke="url(#g)" stroke-width="5" stroke-linecap="round"/>
+  <line x1="128" y1="120" x2="160" y2="138" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="128" cy="120" r="6" fill="url(#g)"/>
+  <!-- arrow up -->
+  <g transform="translate(186 60)">
+    <path d="M 0 16 L 8 0 L 16 16 Z" fill="url(#g)"/>
+    <rect x="6" y="14" width="4" height="14" fill="url(#g)"/>
+  </g>
+  <text x="128" y="232" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="800" fill="#3b82f6" letter-spacing="3">TIMETRACK</text>
+</svg>

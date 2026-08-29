@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipMaster · CodWay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a;--bg-2:#111;--panel:#141414;--panel-2:#1a1a1a;
+    --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.18);
+    --text:#f5f5f5;--muted:#9a9a9a;--faint:#5a5a5a;
+    --accent:#10b981;--accent-2:#34d399;--accent-glow:rgba(16,185,129,.4);
+    --ok:#22c55e;--warn:#f59e0b;--err:#ef4444;--yellow:#fbbf24;
+    --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--accent);color:#000}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#262626;border-radius:8px}
+  button,input,select,textarea{font-family:inherit;outline:none;border:none;background:none;color:inherit}
+  button{cursor:pointer}
+
+  .app{display:grid;grid-template-columns:240px 1fr 300px;grid-template-rows:54px 1fr 60px;height:100vh}
+  .topbar{grid-column:1/4;display:flex;align-items:center;padding:0 18px;background:var(--bg-2);border-bottom:1px solid var(--line);gap:14px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;min-width:210px}
+  .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .logo b{font-size:14px}
+  .logo b em{color:var(--accent);font-style:normal}
+  .logo span{color:var(--muted);font-weight:500;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;display:block;margin-top:1px}
+  .search{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 14px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;max-width:520px;margin:0 auto}
+  .search input{flex:1;font-size:13px}
+  .search input::placeholder{color:var(--faint)}
+  .search svg{width:14px;height:14px;color:var(--muted);flex-shrink:0}
+  .topbar .btn{padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+  .topbar .btn:hover{border-color:var(--line-strong)}
+  .topbar .btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+
+  .sidebar{background:var(--bg-2);border-right:1px solid var(--line);padding:14px;overflow-y:auto}
+  .right{background:var(--bg-2);border-left:1px solid var(--line);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+  .sec{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px;margin-bottom:12px}
+  .sec h4{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+  .sec h4 .h{color:var(--accent);font-weight:500;letter-spacing:0;text-transform:none;font-size:10px}
+
+  .folder{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-size:12px;margin-bottom:5px;cursor:pointer;transition:.15s}
+  .folder:hover{border-color:var(--line-strong)}
+  .folder.active{border-color:var(--accent);background:rgba(16,185,129,.06)}
+  .folder .ico{width:24px;height:24px;border-radius:6px;background:var(--panel-2);display:grid;place-items:center;font-size:13px}
+  .folder.active .ico{background:var(--accent);color:#000}
+  .folder .meta{flex:1;min-width:0}
+  .folder .meta b{display:block;font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .folder .meta span{font-size:10px;color:var(--faint);font-family:var(--mono)}
+  .folder .cnt{font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--panel-2);padding:2px 6px;border-radius:4px}
+
+  /* MAIN */
+  .main{overflow-y:auto;padding:20px 24px;background:var(--bg);position:relative}
+  .main-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+  .main-head h1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .main-head h1 small{color:var(--muted);font-size:11px;font-weight:500;margin-left:8px;letter-spacing:0;text-transform:uppercase}
+  .tabs{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px;flex-wrap:wrap}
+  .tab{padding:7px 13px;border-radius:6px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--accent);color:#000}
+
+  .clip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:11px;margin-bottom:16px}
+  .clip{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px;cursor:pointer;transition:.15s var(--ease);display:flex;flex-direction:column;gap:8px;min-height:120px}
+  .clip:hover{border-color:var(--line-strong);transform:translateY(-1px)}
+  .clip.pinned{border-color:var(--yellow);background:linear-gradient(135deg,rgba(251,191,36,.06),transparent)}
+  .clip .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .clip .type{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+  .clip.text .type{color:var(--accent-2);border-color:rgba(16,185,129,.3)}
+  .clip.url .type{color:#3b82f6;border-color:rgba(59,130,246,.3)}
+  .clip.code .type{color:var(--purple,#a855f7);border-color:rgba(168,85,247,.3)}
+  .clip.email .type{color:var(--yellow);border-color:rgba(251,191,36,.3)}
+  .clip .ico-act{display:flex;gap:3px}
+  .clip .ico-act button{width:22px;height:22px;border-radius:5px;background:transparent;color:var(--muted);font-size:11px;display:grid;place-items:center;transition:.15s}
+  .clip .ico-act button:hover{background:var(--bg);color:var(--text)}
+  .clip .ico-act button.pin:hover,.clip.pinned .ico-act button.pin{color:var(--yellow)}
+  .clip .ico-act button.del:hover{background:var(--err);color:#fff}
+  .clip .content{font-family:var(--mono);font-size:12px;line-height:1.5;color:var(--text);flex:1;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all;white-space:pre-wrap}
+  .clip .foot{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--faint);font-family:var(--mono);border-top:1px solid var(--line);padding-top:7px}
+  .clip .foot .src{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+  .clip .foot .time{flex-shrink:0}
+
+  .empty{text-align:center;padding:60px 20px;color:var(--faint);font-size:13px}
+  .empty .em{font-size:42px;margin-bottom:10px;opacity:.5}
+  .empty b{display:block;font-size:14px;color:var(--muted);font-weight:600;margin-bottom:4px}
+
+  /* RIGHT PANEL */
+  .tpl{display:flex;align-items:center;gap:9px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:9px;margin-bottom:6px;cursor:pointer;transition:.15s}
+  .tpl:hover{border-color:var(--accent)}
+  .tpl .ico{width:32px;height:32px;border-radius:7px;background:var(--panel-2);display:grid;place-items:center;font-size:14px;flex-shrink:0}
+  .tpl .meta b{display:block;font-weight:600;font-size:12px}
+  .tpl .meta span{font-size:10.5px;color:var(--faint);font-family:var(--mono)}
+  .tpl .hk{font-family:var(--mono);font-size:9.5px;background:var(--panel-2);padding:2px 5px;border-radius:4px;color:var(--muted);flex-shrink:0}
+
+  .editor{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+  .editor textarea{width:100%;min-height:80px;background:transparent;font-family:var(--mono);font-size:12px;line-height:1.5;color:var(--text);resize:vertical}
+  .editor .act{display:flex;gap:6px}
+  .editor .act button{flex:1;padding:8px;background:var(--panel-2);border-radius:7px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .editor .act button:hover{background:var(--bg)}
+  .editor .act button.primary{background:var(--accent);color:#000}
+  .editor .act button.primary:hover{background:var(--accent-2)}
+
+  .stat{display:flex;justify-content:space-between;padding:5px 0;font-size:11px;border-bottom:1px dashed var(--line)}
+  .stat:last-child{border-bottom:none}
+  .stat span{color:var(--muted)}
+  .stat b{color:var(--text);font-family:var(--mono);font-weight:600}
+
+  .transport{grid-column:1/4;display:flex;align-items:center;padding:0 18px;background:var(--bg-2);border-top:1px solid var(--line);gap:14px}
+  .t-btn{width:36px;height:36px;border-radius:8px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;transition:.15s}
+  .t-btn:hover{border-color:var(--line-strong)}
+  .t-btn svg{width:14px;height:14px}
+  .t-info{flex:1;font-family:var(--mono);font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;border:1px solid var(--line-strong);padding:11px 17px;border-radius:10px;font-size:12px;font-weight:600;opacity:0;pointer-events:none;transition:.3s var(--ease);z-index:50;display:flex;align-items:center;gap:8px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .ico{color:var(--accent)}
+  .toast .ico.ok{color:var(--ok)}
+
+  @media (max-width:1100px){
+    .app{grid-template-columns:220px 1fr}
+    .right{display:none}
+  }
+  @media (max-width:700px){
+    .app{grid-template-columns:1fr}
+    .sidebar{display:none}
+    .clip-grid{grid-template-columns:1fr}
+  }
+  .demo-delivery.app-demo-delivery {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    animation: deliveryPulse 2s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .demo-delivery.app-demo-delivery::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fff;
+    animation: deliveryDot 1.5s ease-in-out infinite;
+  }
+  @keyframes deliveryPulse {
+    0%, 100% { box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1); }
+    50% { box-shadow: 0 12px 40px rgba(16, 185, 129, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2); }
+  }
+  @keyframes deliveryDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+</style>
+</head>
+<body>
+<div class="demo-delivery app-demo-delivery" style="--ac:#10b981">✓ Выдача в течение 24 часов</div>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <span class="dot"></span>
+      <div><b>CLIP<em>MASTER</em></b><span>CodWay · v1.7</span></div>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="search" placeholder="Поиск по истории… (Ctrl+K)">
+    </div>
+    <button class="btn primary" id="btnAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>Добавить</button>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sec">
+      <h4>Папки <span class="h" id="fCnt">0</span></h4>
+      <div id="fList"></div>
+    </div>
+    <div class="sec">
+      <h4>Автосохранение</h4>
+      <div class="folder" id="tAuto" style="margin-bottom:5px">
+        <div class="ico">⚡</div>
+        <div class="meta"><b>Следить за буфером</b><span>Ctrl+Shift+C · вкл</span></div>
+      </div>
+      <div class="folder" id="tEncrypt">
+        <div class="ico">🔒</div>
+        <div class="meta"><b>Шифровать пароли</b><span>автоматически</span></div>
+      </div>
+    </div>
+    <div class="sec">
+      <h4>Хранилище</h4>
+      <div class="stat"><span>Всего записей</span><b id="sAll">0</b></div>
+      <div class="stat"><span>Закреплено</span><b id="sPin">0</b></div>
+      <div class="stat"><span>За сегодня</span><b id="sToday">0</b></div>
+      <div class="stat"><span>Объём</span><b id="sSize">0 КБ</b></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-head">
+      <h1 id="fTitle">Все записи <small>CTRL+1–9 для быстрого переключения</small></h1>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-f="all">Все</button>
+        <button class="tab" data-f="text">Текст</button>
+        <button class="tab" data-f="url">Ссылки</button>
+        <button class="tab" data-f="code">Код</button>
+        <button class="tab" data-f="email">Email</button>
+        <button class="tab" data-f="pin">📌 Закреплённые</button>
+      </div>
+    </div>
+
+    <div id="clipArea"></div>
+  </main>
+
+  <aside class="right">
+    <div class="sec">
+      <h4>Новая запись</h4>
+      <div class="editor">
+        <textarea id="newText" placeholder="Вставьте текст или ссылку (Ctrl+V)…"></textarea>
+        <div class="act">
+          <button id="btnNew">Очистить</button>
+          <button class="primary" id="btnSave">Сохранить</button>
+        </div>
+      </div>
+    </div>
+    <div class="sec">
+      <h4>Шаблоны <span class="h">CTRL+T</span></h4>
+      <div class="tpl"><div class="ico">✉️</div><div class="meta"><b>Email-подпись</b><span>Имя, должность, тел</span></div><span class="hk">Ctrl+1</span></div>
+      <div class="tpl"><div class="ico">📞</div><div class="meta"><b>Телефон RU</b><span>+7 (___) ___-__-__</span></div><span class="hk">Ctrl+2</span></div>
+      <div class="tpl"><div class="ico">💼</div><div class="meta"><b>Подпись для TG</b><span>премиум-разработка</span></div><span class="hk">Ctrl+3</span></div>
+      <div class="tpl"><div class="ico">🎨</div><div class="meta"><b>Hex-цвет #000000</b><span>плейсхолдер</span></div><span class="hk">Ctrl+4</span></div>
+      <div class="tpl"><div class="ico">📅</div><div class="meta"><b>Дата ISO</b><span>YYYY-MM-DD</span></div><span class="hk">Ctrl+5</span></div>
+      <div class="tpl"><div class="ico">🆔</div><div class="meta"><b>UUID v4</b><span>копировать</span></div><span class="hk">Ctrl+6</span></div>
+    </div>
+    <div class="sec">
+      <h4>Горячие клавиши</h4>
+      <div class="stat"><span>Открыть поиск</span><b>Ctrl+K</b></div>
+      <div class="stat"><span>Копировать выделенное</span><b>Enter</b></div>
+      <div class="stat"><span>Закрепить</span><b>P</b></div>
+      <div class="stat"><span>Удалить</span><b>Del</b></div>
+      <div class="stat"><span>Шаблоны</span><b>Ctrl+T</b></div>
+    </div>
+  </aside>
+
+  <div class="transport">
+    <button class="t-btn" id="tClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+    <button class="t-btn" id="tSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <div class="t-info" id="tInfo">Готов · последнее: —</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span><span id="toastMsg">Готово</span></div>
+
+<script>
+(function(){
+  'use strict';
+  function $(s){return document.querySelector(s)}
+  function $$(s){return Array.from(document.querySelectorAll(s))}
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(msg,kind){var t=$('#toast');$('#toastMsg').textContent=msg;var i=t.querySelector('.ico');i.className='ico '+(kind||'');t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show')},1800)}
+  function detectType(t){
+    if(/^https?:\/\//.test(t))return'url';
+    if(/^[\w.+-]+@[\w-]+\.[\w.-]+$/.test(t))return'email';
+    if(/^(function |const |let |var |class |import |if|for|while|return)/.test(t.trim())||/[{};]=>/.test(t))return'code';
+    return'text';
+  }
+  function fmtRel(ts){
+    var d=Math.floor((Date.now()-ts)/1000);
+    if(d<60)return d+'с назад';
+    if(d<3600)return Math.floor(d/60)+'м назад';
+    if(d<86400)return Math.floor(d/3600)+'ч назад';
+    return new Date(ts).toLocaleDateString('ru-RU');
+  }
+  function fmtSize(b){if(b<1024)return b+' Б';if(b<1024*1024)return Math.round(b/1024)+' КБ';return(b/1024/1024).toFixed(1)+' МБ'}
+
+  var folders=[
+    {id:1,name:'Все',em:'📋',icon:'📋'},
+    {id:2,name:'Код',em:'💻'},
+    {id:3,name:'Ссылки',em:'🔗'},
+    {id:4,name:'Пароли',em:'🔒'},
+    {id:5,name:'Заметки',em:'📝'}
+  ];
+  var state={
+    active:1,
+    filter:'all',
+    search:'',
+    selected:null,
+    clips:[
+      {id:1,text:'https://codway.su',type:'url',folder:3,pin:false,ts:Date.now()-60000,src:'Браузер'},
+      {id:2,text:'const sum=(a,b)=>a+b\nconsole.log(sum(2,3))',type:'code',folder:2,pin:true,ts:Date.now()-180000,src:'VS Code'},
+      {id:3,text:'P@ssw0rd!_demo_encrypted',type:'text',folder:4,pin:true,ts:Date.now()-3600000,src:'1Password'},
+      {id:4,text:'support@codway.su',type:'email',folder:3,pin:false,ts:Date.now()-7200000,src:'Gmail'},
+      {id:5,text:'const express=require("express")\nconst app=express()\napp.listen(3000)',type:'code',folder:2,pin:false,ts:Date.now()-86400000,src:'VS Code'},
+      {id:6,text:'Встреча переносится на 15:00\n\nС уважением,\nКоманда CodWay',type:'text',folder:5,pin:false,ts:Date.now()-1800000,src:'Telegram'},
+      {id:7,text:'https://github.com/anomalyco/opencode',type:'url',folder:3,pin:false,ts:Date.now()-3600000,src:'Браузер'},
+      {id:8,text:'SELECT * FROM users WHERE active=1 LIMIT 50',type:'code',folder:2,pin:false,ts:Date.now()-7200000,src:'DBeaver'},
+      {id:9,text:'+7 (999) 123-45-67',type:'text',folder:5,pin:false,ts:Date.now()-10800000,src:'Контакты'},
+      {id:10,text:'# Премиум-дизайн\n- Inter 900\n- Чёрный фон\n- Золотые акценты',type:'text',folder:5,pin:true,ts:Date.now()-14400000,src:'Notion'},
+      {id:11,text:'https://figma.com/file/abc123',type:'url',folder:3,pin:false,ts:Date.now()-18000000,src:'Figma'},
+      {id:12,text:'#ff2a2a',type:'text',folder:5,pin:false,ts:Date.now()-86400000,src:'Photoshop'}
+    ]
+  };
+
+  function renderFolders(){
+    var l=$('#fList');l.innerHTML='';
+    folders.forEach(function(f){
+      var d=document.createElement('div');d.className='folder'+(f.id===state.active?' active':'');
+      var cnt=state.clips.filter(function(c){return c.folder===f.id}).length;
+      d.innerHTML='<div class="ico">'+f.em+'</div><div class="meta"><b>'+f.name+'</b><span>'+cnt+' записей</span></div><div class="cnt">'+cnt+'</div>';
+      d.addEventListener('click',function(){state.active=f.id;renderFolders();renderClips()});
+      l.appendChild(d);
+    });
+    $('#fCnt').textContent=folders.length;
+  }
+  function getFolder(){return folders.find(function(f){return f.id===state.active})||folders[0]}
+
+  function renderClips(){
+    var folder=getFolder();
+    $('#fTitle').innerHTML=esc(folder.name)+' <small>CTRL+1–5 для папок</small>';
+    var clips=state.clips.slice();
+    if(state.active!==1) clips=clips.filter(function(c){return c.folder===state.active});
+    if(state.filter==='pin') clips=clips.filter(function(c){return c.pin});
+    else if(state.filter!=='all') clips=clips.filter(function(c){return c.type===state.filter});
+    if(state.search){
+      var s=state.search.toLowerCase();
+      clips=clips.filter(function(c){return c.text.toLowerCase().indexOf(s)>=0});
+    }
+    clips.sort(function(a,b){return(b.pin?1:0)-(a.pin?1:0)||b.ts-a.ts});
+
+    var area=$('#clipArea');
+    if(!clips.length){
+      area.innerHTML='<div class="empty"><div class="em">📋</div><b>Записей нет</b>Скопируйте что-нибудь или нажмите Ctrl+1 чтобы переключить папку</div>';
+    } else {
+      area.innerHTML='<div class="clip-grid" id="cg"></div>';
+      var g=area.querySelector('#cg');
+      clips.forEach(function(c){
+        var d=document.createElement('div');d.className='clip '+(c.pin?'pinned ':'')+c.type;
+        d.innerHTML='<div class="top"><span class="type">'+c.type+'</span><div class="ico-act"><button class="pin" title="Закрепить">📌</button><button class="del" title="Удалить">×</button></div></div><div class="content">'+esc(c.text)+'</div><div class="foot"><span class="src">'+esc(c.src||'')+'</span><span class="time">'+fmtRel(c.ts)+'</span></div>';
+        d.addEventListener('click',function(e){
+          if(e.target.classList.contains('pin')||e.target.classList.contains('del'))return;
+          copyClip(c);
+        });
+        d.querySelector('.pin').addEventListener('click',function(e){e.stopPropagation();c.pin=!c.pin;renderClips();toast(c.pin?'📌 Закреплено':'Откреплено')});
+        d.querySelector('.del').addEventListener('click',function(e){e.stopPropagation();state.clips=state.clips.filter(function(x){return x.id!==c.id});renderClips();renderFolders();updateStats()});
+        g.appendChild(d);
+      });
+    }
+    updateStats();
+  }
+  function copyClip(c){
+    if(navigator.clipboard){navigator.clipboard.writeText(c.text).then(function(){toast('Скопировано в буфер ('+c.type+')','ok');$('#tInfo').textContent='Скопировано: '+c.text.slice(0,60)+(c.text.length>60?'…':'')}).catch(function(){toast('Не удалось скопировать',false)})}
+    else{toast('Буфер обмена недоступен',false)}
+  }
+  function updateStats(){
+    var today=new Date();today.setHours(0,0,0,0);
+    var sToday=state.clips.filter(function(c){return c.ts>=today.getTime()}).length;
+    var sPin=state.clips.filter(function(c){return c.pin}).length;
+    var size=state.clips.reduce(function(s,c){return s+c.text.length},0);
+    $('#sAll').textContent=state.clips.length;
+    $('#sPin').textContent=sPin;
+    $('#sToday').textContent=sToday;
+    $('#sSize').textContent=fmtSize(size);
+  }
+
+  /* Tabs */
+  $$('.tab').forEach(function(t){t.addEventListener('click',function(){
+    $$('.tab').forEach(function(x){x.classList.remove('active')});t.classList.add('active');
+    state.filter=t.dataset.f;renderClips();
+  })});
+
+  /* Search */
+  $('#search').addEventListener('input',function(e){state.search=e.target.value;renderClips()});
+  $('#search').addEventListener('keydown',function(e){
+    if(e.key==='Escape'){this.value='';state.search='';renderClips();this.blur()}
+  });
+
+  /* Add new */
+  $('#newText').addEventListener('input',function(e){
+    /* auto-detect type */
+  });
+  $('#btnSave').addEventListener('click',function(){
+    var t=$('#newText').value.trim();
+    if(!t){toast('Пусто',false);return}
+    var c={id:Date.now(),text:t,type:detectType(t),folder:state.active,pin:false,ts:Date.now(),src:'Ручной ввод'};
+    state.clips.unshift(c);
+    $('#newText').value='';
+    renderClips();renderFolders();
+    toast('Сохранено: '+t.slice(0,40)+(t.length>40?'…':''),'ok');
+  });
+  $('#btnNew').addEventListener('click',function(){$('#newText').value='';$('#newText').focus()});
+  $('#btnAdd').addEventListener('click',function(){$('#newText').focus()});
+
+  /* Templates */
+  $$('.tpl').forEach(function(t,i){
+    t.addEventListener('click',function(){
+      var samples=[
+        'С уважением,\nИван Петров\nCEO CodWay\n+7 (999) 123-45-67',
+        '+7 (___) ___-__-__',
+        '🚀 Премиум-разработка сайтов, ботов и приложений\n📍 codway.su\n💬 @codway_support',
+        '#000000',
+        new Date().toISOString().slice(0,10),
+        crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16)})
+      ];
+      var s=samples[i];
+      $('#newText').value=s;
+      if(navigator.clipboard){navigator.clipboard.writeText(s).then(function(){toast('Шаблон скопирован','ok')})}
+    });
+  });
+
+  /* Auto-clipboard monitor */
+  var lastClip='';
+  setInterval(function(){
+    if(!navigator.clipboard||!$('#tAuto').classList.contains('active')) return;
+    navigator.clipboard.readText().then(function(t){
+      if(t&&t!==lastClip&&t.length<2000){
+        lastClip=t;
+        var exists=state.clips.find(function(c){return c.text===t});
+        if(!exists){
+          state.clips.unshift({id:Date.now(),text:t,type:detectType(t),folder:1,pin:false,ts:Date.now(),src:'Авто'});
+          renderClips();renderFolders();
+          toast('📋 Авто-добавлено: '+t.slice(0,30)+(t.length>30?'…':''),'ok');
+        }
+      }
+    }).catch(function(){});
+  },2000);
+
+  $('#tAuto').addEventListener('click',function(){this.classList.toggle('active');toast('Авто-слежение '+(this.classList.contains('active')?'включено':'выключено'),this.classList.contains('active')?'ok':'warn')});
+  $('#tAuto').classList.add('active');
+  $('#tEncrypt').addEventListener('click',function(){this.classList.toggle('active');toast('Шифрование паролей '+(this.classList.contains('active')?'включено':'выключено'))});
+
+  /* Toggles */
+  $('#tClear').addEventListener('click',function(){
+    if(confirm('Очистить всю историю?')){state.clips=state.clips.filter(function(c){return c.pin});renderClips();renderFolders();toast('История очищена (закреплённые сохранены)','warn')}
+  });
+  $('#tSettings').addEventListener('click',function(){toast('Настройки (демо)','warn')});
+
+  /* Global hotkeys */
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();$('#search').focus();$('#search').select()}
+    if((e.ctrlKey||e.metaKey)&&e.key==='t'){e.preventDefault();$('.tpl').click()}
+    if((e.ctrlKey||e.metaKey)&&/^[1-5]$/.test(e.key)){e.preventDefault();var idx=parseInt(e.key)-1;if(folders[idx]){state.active=folders[idx].id;renderFolders();renderClips()}}
+    if(e.key==='Escape'){$('#search').blur()}
+  });
+
+  renderFolders();renderClips();
+  setTimeout(function(){toast('ClipMaster · история буфера обмена готова')},400);
+})();
+</script>
+</body>
+</html>

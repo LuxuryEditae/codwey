@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodWay — премиальная разработка сайтов, Telegram-ботов и приложений</title>
+  <meta name="description" content="CodWay — студия премиальной разработки. Готовые решения и проекты под ключ: сайты, Telegram-боты, мобильные приложения. Хостинг и домен — на вашей стороне, всю разработку берём на себя.">
+  <meta name="theme-color" content="#050505">
+  <meta property="og:title" content="CodWay — разработка, которая выглядит дорого">
+  <meta property="og:description" content="Сайты, Telegram-боты и приложения премиального уровня. Готовые решения и разработка под ключ.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://codway.su">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='6' fill='%23050505'/%3E%3Cpath d='M44 10L22 54' stroke='%23ffffff' stroke-width='6' stroke-linecap='square'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/app.js" defer></script>
+  <script src="js/chat.js" defer></script>
+</head>
+<body>
+
+  <!-- ======================= PRELOADER · GUNFIRE ======================= -->
+  <div class="preloader" id="preloader" aria-hidden="true" role="status" aria-label="Загрузка страницы">
+    <div class="pl-half pl-left"></div>
+    <div class="pl-half pl-right"></div>
+
+    <svg class="pl-gun" viewBox="0 0 660 260" fill="none" aria-hidden="true" focusable="false">
+      <g>
+        <path class="k-draw" d="M 60 78 L 356 78"/>
+        <path class="k-draw" d="M 356 78 L 356 122 L 236 122"/>
+        <path class="k-draw" d="M 236 122 L 128 122 L 118 108 L 60 108 L 60 78"/>
+        <path class="k-draw" d="M 84 78 L 84 66 L 96 66 L 96 78"/>
+        <path class="k-draw" d="M 322 78 L 322 68 L 330 68 L 330 78"/>
+        <path class="k-draw" d="M 60 78 L 50 64 L 66 70"/>
+        <path class="k-draw" d="M 132 122 L 208 122 L 194 214 L 112 214 Z"/>
+        <path class="k-draw" d="M 216 122 C 258 122 262 168 224 172 L 210 172"/>
+        <path class="k-draw" d="M 226 132 C 236 138 234 154 222 156"/>
+        <path class="k-draw" d="M 128 148 L 200 145"/>
+        <path class="k-draw" d="M 124 170 L 196 167"/>
+        <path class="k-draw" d="M 121 192 L 193 189"/>
+      </g>
+      <g class="gun-flash">
+        <path d="M 370 91 C 400 93 448 96 500 99 L 500 101 C 448 104 400 107 370 109 Z"/>
+        <path d="M 374 98 L 428 76 L 388 97 Z"/>
+        <path d="M 374 102 L 432 124 L 382 105 Z"/>
+        <circle cx="370" cy="100" r="13"/>
+        <path class="sparks" d="M 486 96 L 540 88"/>
+        <path class="sparks" d="M 486 101 L 546 103"/>
+        <path class="sparks" d="M 484 106 L 528 118"/>
+      </g>
+      <g class="gun-hole">
+        <path d="M 560 70 C 576 66 592 80 588 96 C 594 114 576 126 560 122 C 542 128 526 114 532 96 C 526 78 544 74 560 70 Z"/>
+        <path d="M 560 70 L 552 40"/>
+        <path d="M 586 78 L 620 56"/>
+        <path d="M 594 102 L 630 112"/>
+        <path d="M 572 121 L 584 152"/>
+        <path d="M 541 119 L 528 150"/>
+        <path d="M 534 82 L 500 62"/>
+      </g>
+    </svg>
+
+    <div class="pl-count" id="plCount" aria-live="polite" aria-atomic="true">00</div>
+  </div>
+
+  <div class="progress" id="progress" aria-hidden="true" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Прогресс прокрутки"></div>
+
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <!-- ======================= NAVIGATION ======================= -->
+  <header class="nav" id="nav" role="banner">
+    <div class="container nav-inner">
+      <a href="#top" class="logo" aria-label="CodWay — на главную">CODWAY</a>
+      <nav class="nav-links" aria-label="Основная навигация">
+        <a href="#categories">Направления</a>
+        <a href="#products">Решения</a>
+        <a href="#process">Процесс</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
+      <button class="btn btn-primary btn-sm nav-cta" data-order-open>Обсудить проект</button>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="mobileMenu"><span aria-hidden="true"></span><span aria-hidden="true"></span></button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Мобильное меню" hidden>
+      <a href="#categories">Направления</a>
+      <a href="#products">Решения</a>
+      <a href="#process">Процесс</a>
+      <a href="#contacts">Контакты</a>
+      <button class="btn btn-primary" data-order-open>Обсудить проект</button>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ======================= HERO ======================= -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-inner">
+
+        <p class="eyebrow ht-eyebrow reveal">Студия цифровых решений · est. 2020</p>
+
+        <h1 id="hero-title" class="hero-title">
+          <span class="ht-line"><span class="ht-word">Разработка,</span></span>
+          <span class="ht-line"><span class="ht-word stroke">которая</span></span>
+          <span class="ht-line"><span class="ht-word shine">выглядит дорого</span></span>
+        </h1>
+
+        <p class="lead reveal d2">CodWay создаёт сайты, Telegram-ботов и приложения премиального уровня. Готовые решения — запуск за считанные дни. Индивидуальные проекты — под ключ.</p>
+
+        <div class="hero-tags reveal d3" role="list" aria-label="Направления деятельности">
+          <a class="tag-chip" href="#products" data-goto-cat="site" role="listitem">Сайты</a>
+          <a class="tag-chip" href="#products" data-goto-cat="bot" role="listitem">Telegram-боты</a>
+          <a class="tag-chip" href="#products" data-goto-cat="app" role="listitem">Приложения</a>
+        </div>
+
+        <div class="hero-actions reveal d4">
+          <a href="#products" class="btn btn-primary">Выбрать решение</a>
+          <button class="btn btn-ghost" data-order-open>Заказать разработку</button>
+        </div>
+
+        <div class="hero-stats reveal d5" role="list" aria-label="Статистика студии">
+          <div class="stat" role="listitem"><b data-count="120">0</b><span>+ проектов запущено</span></div>
+          <div class="stat" role="listitem"><b data-count="6">0</b><span>лет в разработке</span></div>
+          <div class="stat" role="listitem"><b data-count="14">0</b><span>дней — средний срок</span></div>
+          <div class="stat" role="listitem"><b>24/7</b><span>поддержка клиентов</span></div>
+        </div>
+      </div>
+
+      <div class="orbit" aria-hidden="true">
+        <svg viewBox="0 0 130 130" aria-hidden="true" focusable="false">
+          <defs><path id="circPath" d="M65,65 m-50,0 a50,50 0 1,1 100,0 a50,50 0 1,1 -100,0"/></defs>
+          <text><textPath href="#circPath">PREMIUM DIGITAL STUDIO · CODWAY · EST 2020 · </textPath></text>
+        </svg>
+        <span class="orbit-core" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        </span>
+      </div>
+
+      <div class="scroll-hint" aria-hidden="true"><span></span></div>
+    </section>
+
+    <!-- ======================= MARQUEE ======================= -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>Сайты</span><i>/</i><span>Telegram-боты</span><i>/</i><span>Приложения</span><i>/</i><span>UI/UX дизайн</span><i>/</i><span>Автоматизация</span><i>/</i><span>Поддержка 24/7</span><i>/</i>
+        <span>Сайты</span><i>/</i><span>Telegram-боты</span><i>/</i><span>Приложения</span><i>/</i><span>UI/UX дизайн</span><i>/</i><span>Автоматизация</span><i>/</i><span>Поддержка 24/7</span><i>/</i>
+      </div>
+    </div>
+
+    <!-- ======================= CATEGORIES ======================= -->
+    <section id="categories" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Направления</p>
+          <h2>Три сферы.<br><em>Один стандарт.</em></h2>
+        </div>
+        <div class="cat-rows">
+          <a href="#products" class="cat-row reveal" data-goto-cat="site">
+            <span class="cr-num">01</span>
+            <span class="cr-title">Сайты</span>
+            <span class="cr-desc">Лендинги · корпоративные · e-commerce · порталы</span>
+            <span class="cr-price">от 8 900 ₽</span>
+            <span class="cr-arrow" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            </span>
+          </a>
+          <a href="#products" class="cat-row reveal d1" data-goto-cat="bot">
+            <span class="cr-num">02</span>
+            <span class="cr-title">Боты</span>
+            <span class="cr-desc">Магазины · запись · рассылки · AI-поддержка</span>
+            <span class="cr-price">от 5 900 ₽</span>
+            <span class="cr-arrow" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            </span>
+          </a>
+          <a href="#products" class="cat-row reveal d2" data-goto-cat="app">
+            <span class="cr-num">03</span>
+            <span class="cr-title">Приложения</span>
+            <span class="cr-desc">Десктоп-утилиты · автоматизация · AI-инструменты</span>
+            <span class="cr-price">от 1 900 ₽</span>
+            <span class="cr-arrow" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= PRODUCTS ======================= -->
+    <section id="products" class="section section-alt">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Каталог</p>
+          <h2>Готовые <em>решения</em></h2>
+          <p class="sub">Основа для быстрого старта — адаптируем под ваш бренд, наполняем контентом и запускаем.<br><b class="sub-note">Хостинг и домен остаются на вашей стороне — мы выполняем полную разработку: систему, код и весь функционал.</b></p>
+        </div>
+
+        <div class="tabs reveal" role="tablist" aria-label="Фильтр по категориям">
+          <button class="tab active" data-filter="all">Все</button>
+          <button class="tab" data-filter="site">Сайты</button>
+          <button class="tab" data-filter="bot">Боты</button>
+          <button class="tab" data-filter="app">Приложения</button>
+        </div>
+
+        <div class="grid-products" id="productGrid">
+
+          <!-- ======== САЙТЫ ======== -->
+          <article class="product-card spot reveal" data-cat="site" data-demo="coffee">
+            <div class="p-top">
+              <span class="p-badge">Сайт</span>
+              <span class="p-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></span>
+            </div>
+            <h3>Лендинг Premium</h3>
+            <p>Продающий одностраничник с анимациями и высокой конверсией.</p>
+            <ul class="p-feats"><li>Адаптив под все экраны</li><li>Формы и интеграция CRM</li><li>SEO-оптимизация</li></ul>
+            <div class="p-delivery">Запуск в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 8 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-demo" data-demo-open="coffee">Демо</button>
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="Лендинг Premium (сайт)">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="site" data-demo="stroi">
+            <div class="p-top">
+              <span class="p-badge">Сайт</span>
+              <span class="p-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/><path d="M9 11h.01M15 11h.01M12 11h.01"/></svg></span>
+            </div>
+            <h3>Корпоративный сайт</h3>
+            <p>Имиджевый сайт компании с каталогом услуг, блогом и вакансиями.</p>
+            <ul class="p-feats"><li>До 20 страниц</li><li>CMS для контента</li><li>Мультиязычность</li></ul>
+            <div class="p-delivery">Запуск в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 15 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-demo" data-demo-open="stroi">Демо</button>
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="Корпоративный сайт (сайт)">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="site" data-demo="itschool">
+            <div class="p-top">
+              <span class="p-badge">Сайт</span>
+              <span class="p-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M17.8 6.2L19 5M12.2 6.2L11 5M3 9l6 6 6-6-6-6-6 6z"/></svg></span>
+            </div>
+            <h3>Промо-сайт</h3>
+            <p>Эффектный запуск продукта, акции или мероприятия с wow-анимациями.</p>
+            <ul class="p-feats"><li>Кинематографичные анимации</li><li>Таймеры и формы захвата</li><li>Запуск за 7 дней</li></ul>
+            <div class="p-delivery">Запуск в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 11 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-demo" data-demo-open="itschool">Демо</button>
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="Промо-сайт (сайт)">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="site" data-demo="transport">
+            <div class="p-top">
+              <span class="p-badge">Сайт</span>
+              <span class="p-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.6"/><circle cx="19" cy="21" r="1.6"/><path d="M1 2h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span>
+            </div>
+            <h3>Интернет-магазин</h3>
+            <p>Полноценный e-commerce с корзиной, оплатой и панелью управления.</p>
+            <ul class="p-feats"><li>Каталог и умные фильтры</li><li>Онлайн-оплата</li><li>Управление складом</li></ul>
+            <div class="p-delivery">Запуск в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 22 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-demo" data-demo-open="transport">Демо</button>
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="Интернет-магазин (сайт)">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="site" data-demo="ai">
+            <div class="p-top">
+              <span class="p-badge">Сайт</span>
+              <span class="p-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></span>
+            </div>
+            <h3>Веб-сервис / портал</h3>
+            <p>Личный кабинет, API и сложная бизнес-логика под ваши процессы.</p>
+            <ul class="p-feats"><li>Роли и права доступа</li><li>Интеграции по API</li><li>Высокие нагрузки</li></ul>
+            <div class="p-delivery">Запуск в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 27 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-demo" data-demo-open="ai">Демо</button>
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="Веб-сервис или портал (сайт)">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="site" data-demo="cs2">
+            <div class="p-top">
+              <span class="p-badge">Сайт</span>
+              <span class="p-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.6.8-4 4 .9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-4 5.6-.8L12 2z"/></svg></span>
+            </div>
+            <h3>Сайт «под ключ»</h3>
+            <p>Берём всё на себя: тексты, фото, дизайн, разработка и запуск.</p>
+            <ul class="p-feats"><li>Копирайтинг и контент</li><li>Фирменный стиль</li><li>Поддержка 3 месяца</li></ul>
+            <div class="p-delivery">Запуск в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 32 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-demo" data-demo-open="cs2">Демо</button>
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="Сайт «под ключ» (сайт)">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <!-- ======== БОТЫ ======== -->
+
+          <article class="product-card spot reveal" data-cat="bot" data-demo="tg:vdmax" style="--ac:#ff3b30">
+            <div class="p-cover" aria-hidden="true"><img src="img/bots/bot-dl-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge">Бот</span>
+            </div>
+            <h3>Video Downloader</h3>
+            <p>Скачивает видео с YouTube, VK, RuTube, TikTok и Telegram файлом прямо в чат. Работает в <b>личных сообщениях</b> (бот отвечает каждому пользователю персонально), в <b>группах</b> и <b>супергруппах</b> (отвечает на сообщения, где его упомянули через @ или ответом), в <b>публичных/приватных каналах</b> с включёнными комментариями (реагирует на ключевые слова в обсуждении). Можно добавить в любой чат как обычного участника — без отдельного сервера, без VPN, выдаём готовый токен.</p>
+            <div class="p-tags"><span class="ptag">youtube</span><span class="ptag">vk</span><span class="ptag">rutube</span><span class="ptag">tiktok</span></div>
+            <ul class="p-feats"><li>до 4K60 HDR</li><li>MP3-режим</li><li>плейлисты</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 6 900 ₽</span></div>
+              <div class="p-actions"><button class="btn btn-ghost btn-sm btn-demo" data-demo-open="tg:vdmax">Демо</button><button class="btn btn-ghost btn-sm btn-buy" data-product="Video Downloader (бот)">Купить</button></div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="bot" data-demo="tg:aimod" style="--ac:#8b5cf6">
+            <div class="p-cover" aria-hidden="true"><img src="img/bots/bot-aimod-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge">Бот</span>
+            </div>
+            <h3>AI-модератор групп</h3>
+            <p>Чистит чат от мата, спама и флуда 24/7, встречает новичков капчей, выдаёт варны и мутит/банит нарушителей. Работает в <b>группах</b> и <b>супергруппах</b> любого размера (от 10 до 200 000 участников), в <b>публичных/приватных каналах</b> с включёнными комментариями (модерирует обсуждение под постами), в <b>личных сообщениях</b> (если у бота открыт режим привата). Устанавливается как администратор чата — без доступа к переписке пользователей, читает только публичный поток сообщений. Можно подключить к десяткам групп/каналов одного бота.</p>
+            <div class="p-tags"><span class="ptag">24/7</span><span class="ptag">логи</span><span class="ptag">фильтры</span></div>
+            <ul class="p-feats"><li>фильтры мата/спама</li><li>капча на вход</li><li>варны → мут → бан</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 9 900 ₽</span></div>
+              <div class="p-actions"><button class="btn btn-ghost btn-sm btn-demo" data-demo-open="tg:aimod">Демо</button><button class="btn btn-ghost btn-sm btn-buy" data-product="AI-модератор групп (бот)">Купить</button></div>
+            </div>
+          </article>
+
+<article class="product-card spot reveal" data-cat="bot" data-demo="tg:aisales" style="--ac:#10b981">
+            <div class="p-cover" aria-hidden="true"><img src="img/bots/bot-aisales-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge">Бот</span>
+            </div>
+            <h3>AI-менеджер продаж</h3>
+            <p>Отвечает клиентам по вашей базе знаний, квалифицирует и присылает готовую заявку в админку. Работает в <b>личных сообщениях</b> — это основной канал продаж: бот ведёт диалог один-на-один, не теряет контекст и квалифицирует лида по вашему сценарию. Подключается к <b>группам и супергруппам</b> (каждый, кто написал в чат или нажал кнопку в публикации, мягко уводится в личку с ботом), к <b>публичным и приватным каналам</b> — через комментарии и inline-кнопки под постом переход в диалог происходит автоматически. Поддерживает несколько операторов с эскалацией и связку с CRM: amoCRM, Bitrix24, Google Sheets через webhook.</p>
+            <div class="p-tags"><span class="ptag">ai-мозг</span><span class="ptag">24/7</span><span class="ptag">заявки</span></div>
+            <ul class="p-feats"><li>база знаний</li><li>заявки в админку</li><li>скидки по сценарию</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 13 900 ₽</span></div>
+              <div class="p-actions"><button class="btn btn-ghost btn-sm btn-demo" data-demo-open="tg:aisales">Демо</button><button class="btn btn-ghost btn-sm btn-buy" data-product="AI-менеджер продаж (бот)">Купить</button></div>
+            </div>
+          </article>
+
+<article class="product-card spot reveal" data-cat="bot" data-demo="tg:shop" style="--ac:#d97706">
+            <div class="p-cover" aria-hidden="true"><img src="img/bots/bot-shop-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge">Бот</span>
+            </div>
+            <h3>Магазин в Telegram</h3>
+            <p>Каталог с карточками, корзина, промокоды, оплата и уведомления о заказах. Работает в <b>личных сообщениях</b> (полноценная витрина: покупатель листает товары, кладёт в корзину, оплачивает встроенной оплатой Telegram прямо в чате), в <b>группах/супергруппах</b> (пост с карточкой товара и кнопкой «Купить» — клиент уходит в ЛС с ботом и оформляет там), в <b>публичных/приватных каналах</b> (тот же сценарий: пост-витрина → inline-кнопка → оплата в ЛС). Поддерживает несколько администраторов, экспорт заказов в Excel/amoCRM/Bitrix, выгрузку остатков из 1С.</p>
+            <div class="p-tags"><span class="ptag">каталог</span><span class="ptag">оплата</span><span class="ptag">CRM</span></div>
+            <ul class="p-feats"><li>корзина и оплата</li><li>уведомления</li><li>промокоды</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 9 900 ₽</span></div>
+              <div class="p-actions"><button class="btn btn-ghost btn-sm btn-demo" data-demo-open="tg:shop">Демо</button><button class="btn btn-ghost btn-sm btn-buy" data-product="Магазин в Telegram (бот)">Купить</button></div>
+            </div>
+          </article>
+
+<article class="product-card spot reveal" data-cat="bot" data-demo="tg:booker" style="--ac:#2563eb">
+            <div class="p-cover" aria-hidden="true"><img src="img/bots/bot-booker-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge">Бот</span>
+            </div>
+            <h3>Бот записи клиентов</h3>
+            <p>Свободные слоты, запись в два тапа, автонапоминания за 24 часа и 2 часа, сбор отзывов. Работает в <b>личных сообщениях</b> (клиент пишет боту, выбирает услугу → дату → время, получает подтверждение и место в календаре), в <b>группах/супергруппах</b> (для групповых услуг публикуется пост с кнопкой «Записаться», открывается мини-приложение прямо в чате), в <b>каналах</b> с комментариями (администратор фиксирует запись вручную или через reply на сообщение клиента). Синхронизируется с Google/Яндекс.Календарём, Notion и CRM; поддерживает несколько мастеров и услуг.</p>
+            <div class="p-tags"><span class="ptag">календарь</span><span class="ptag">SMS/TG</span><span class="ptag">отзывы</span></div>
+            <ul class="p-feats"><li>слоты и расписание</li><li>напоминания</li><li>отзывы</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 6 900 ₽</span></div>
+              <div class="p-actions"><button class="btn btn-ghost btn-sm btn-demo" data-demo-open="tg:booker">Демо</button><button class="btn btn-ghost btn-sm btn-buy" data-product="Бот записи клиентов (бот)">Купить</button></div>
+            </div>
+          </article>
+
+<article class="product-card spot reveal" data-cat="bot" data-demo="tg:support" style="--ac:#06b6d4">
+            <div class="p-cover" aria-hidden="true"><img src="img/bots/bot-support-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge">Бот</span>
+            </div>
+            <h3>Бот-поддержка</h3>
+            <p>Отвечает клиентам 24/7 по вашей базе знаний, принимает тикеты и эскалирует сложные случаи живому оператору — ни один вопрос не теряется. Основной режим — <b>личные сообщения</b>: клиент пишет боту, мгновенно получает ответ из FAQ, а при сложном вопросе диалог передаётся оператору с полной историей переписки. В <b>группах и супергруппах</b> бот отвечает на упоминания @ и ключевые слова, помогает участникам прямо в ветке. В <b>каналах</b> работает через обсуждения под постами — закрывает возражения там же, где возник вопрос. Подключается к админке CodWay, пересылает тикеты в Telegram-чат поддержки, Telegram-аккаунты операторов или почту; вся история диалогов сохраняется в лог.</p>
+            <div class="p-tags"><span class="ptag">24/7</span><span class="ptag">FAQ</span><span class="ptag">тикеты</span></div>
+            <ul class="p-feats"><li>База знаний и FAQ</li><li>Тикеты в админку</li><li>Эскалация оператору</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 5 900 ₽</span></div>
+              <div class="p-actions"><button class="btn btn-ghost btn-sm btn-demo" data-demo-open="tg:support">Демо</button><button class="btn btn-ghost btn-sm btn-buy" data-product="Бот-поддержка (бот)">Купить</button></div>
+            </div>
+          </article>
+
+          <!-- ======== ПРИЛОЖЕНИЯ (6 шт) ======== -->
+
+          <article class="product-card spot reveal" data-cat="app" style="--ac:#ff2a2a">
+            <div class="p-cover" aria-hidden="true"><img src="img/app-soundpad-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge" style="background:rgba(0,0,0,.78);color:#fff;border-color:rgba(255,255,255,.35)">Приложение</span>
+            </div>
+            <h3>SoundPad Pro</h3>
+            <p>Soundboard для стримов и подкастов: 12 пэдов, выбор микрофона, раздельная громкость «в наушники» и «в микрофон», усилитель ×4, запись с эффектами и автозапуск с Windows.</p>
+            <div class="p-tags"><span class="ptag" style="border-color:#ff2a2a;color:#ff2a2a">12 пэдов</span><span class="ptag">Voice FX</span><span class="ptag">автозапуск</span><span class="ptag">boost ×4</span></div>
+            <ul class="p-feats"><li>Выбор микрофона и выхода</li><li>Усилитель до ×4 без клиппинга</li><li>Автозапуск с Windows + от админа</li><li>Запись в WAV · hotkeys F1–F12</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 4 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="SoundPad Pro (приложение)" data-price="4 900 ₽">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="app" style="--ac:#22d3ee">
+            <div class="p-cover" aria-hidden="true"><img src="img/app-aiassistant-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge" style="background:rgba(0,0,0,.78);color:#fff;border-color:rgba(255,255,255,.35)">.exe · NEW</span>
+            </div>
+            <h3>AI Assistant</h3>
+            <p>Лёгкий <b>десктопный .exe</b> для одного диалога с ИИ: голос (Whisper STT + браузерный TTS), текст и вставка скриншотов. Пресеты «Онлайн-урок», «Помощник», «Vision», «Свой промпт». <b>Отличие от AI Hub:</b> Assistant — минималистичный и быстрый, без лишних модулей, заточен под «открыл → задал вопрос голосом → получил ответ». AntiOBS-режим скрывает окно от записи экрана.</p>
+            <div class="p-tags"><span class="ptag" style="border-color:#22d3ee;color:#22d3ee">голос</span><span class="ptag">vision</span><span class="ptag">AntiOBS</span><span class="ptag">пресеты</span></div>
+            <ul class="p-feats"><li>Голосовой ввод (Whisper) + озвучка (ru-RU)</li><li>Пресеты: урок / помощник / vision / код</li><li>Вставка скриншота (Ctrl+V) → ИИ смотрит</li><li>AntiOBS: скрыт от ShareX/OBS/записи стрима</li><li>OpenAI / OpenRouter / NIM, свой API</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 3 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="AI Assistant (приложение .exe)" data-price="3 900 ₽">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="app" style="--ac:#facc15">
+            <div class="p-cover" aria-hidden="true"><img src="img/app-noteflow-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge" style="background:rgba(0,0,0,.78);color:#fff;border-color:rgba(255,255,255,.35)">.exe · NEW</span>
+            </div>
+            <h3>NoteFlow</h3>
+            <p>Локальный менеджер заметок в Markdown: мгновенный захват мысли (Win+Alt+N), папки и теги, быстрый поиск по всему, шаблоны (митинг, идея, баг), прикрепление файлов и картинок, экспорт в .md / .pdf. Всё хранится у тебя на диске, без облака.</p>
+            <div class="p-tags"><span class="ptag" style="border-color:#facc15;color:#facc15">markdown</span><span class="ptag">горячие клавиши</span><span class="ptag">локально</span></div>
+            <ul class="p-feats"><li>Глобальная хоткея Win+Alt+N — открывает окно за 100мс</li><li>Markdown с подсветкой кода и превью</li><li>Папки, теги, избранное, быстрый поиск</li><li>Шаблоны: митинг / идея / баг / чек-лист</li><li>Прикрепление файлов и картинок drag&drop</li><li>Экспорт в .md / .pdf, бэкап в JSON</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 2 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="NoteFlow (приложение)" data-price="2 900 ₽">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="app" style="--ac:#10b981">
+            <div class="p-cover" aria-hidden="true"><img src="img/app-clipmaster-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge" style="background:rgba(0,0,0,.78);color:#fff;border-color:rgba(255,255,255,.35)">Приложение</span>
+            </div>
+            <h3>ClipMaster</h3>
+            <p>Менеджер буфера обмена с историей, папками и шаблонами. Следит за Copy, автоматически сортирует по типу, шифрует пароли.</p>
+            <div class="p-tags"><span class="ptag" style="border-color:#10b981;color:#10b981">буфер</span><span class="ptag">шаблоны</span><span class="ptag">Ctrl+K</span></div>
+            <ul class="p-feats"><li>История буфера с поиском</li><li>Папки и закрепление</li><li>Авто-добавление из буфера</li><li>Шаблоны: подпись, UUID, дата</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 2 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="ClipMaster (приложение)" data-price="2 900 ₽">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="app" style="--ac:#f59e0b">
+            <div class="p-cover" aria-hidden="true"><img src="img/app-focuspomodoro-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge" style="background:rgba(0,0,0,.78);color:#fff;border-color:rgba(255,255,255,.35)">.exe · NEW</span>
+            </div>
+            <h3>FocusPomodoro</h3>
+            <p>Помодоро-таймер с блокировкой отвлекающих сервисов через DNS/hosts. Пресеты 20+ сервисов (YouTube, TikTok, VK, Instagram, Telegram Web, Discord, Twitch, Reddit, Twitter/X, Steam, Netflix и др.). Режим «Жёсткий» — ползунок нельзя сдвинуть, задачи не удаляются, защита от обхода даже при перезагрузке ПК.</p>
+            <div class="p-tags"><span class="ptag" style="border-color:#f59e0b;color:#f59e0b">помодоро</span><span class="ptag">DNS-блокировка</span><span class="ptag">20+ пресетов</span><span class="ptag">Жёсткий режим</span></div>
+            <ul class="p-feats"><li>Циклы 25/5/15 с настраиваемой длительностью</li><li>Блокировка через hosts-файл (DNS) — без вреда системе</li><li>Пресеты: YouTube, TikTok, VK, Insta, Telegram, Discord, Twitch, Reddit, X, Steam, Netflix…</li><li>Режим «Жёсткий»: нельзя выключить до конца таймера, ползунок заблокирован</li><li>Streak и статистика недели</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 1 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="FocusPomodoro (приложение)" data-price="1 900 ₽">Купить</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card spot reveal" data-cat="app" style="--ac:#3b82f6">
+            <div class="p-cover" aria-hidden="true"><img src="img/app-timetrack-cover.svg" alt="" /></div>
+            <div class="p-top">
+              <span class="p-badge" style="background:rgba(0,0,0,.78);color:#fff;border-color:rgba(255,255,255,.35)">.exe · NEW</span>
+            </div>
+            <h3>TimeTrack</h3>
+            <p>Трекер времени по проектам и задачам. Запускаешь таймер, работаешь — приложение само считает часы. В конце недели/месяца выгружаешь отчёт в PDF или Excel. Авто-категоризация (IDE / браузер / встреча / код), графики продуктивности, цели по часам и напоминания «ты уже 2 часа в одном проекте».</p>
+            <div class="p-tags"><span class="ptag" style="border-color:#3b82f6;color:#3b82f6">трекер</span><span class="ptag">отчёты</span><span class="ptag">PDF/Excel</span></div>
+            <ul class="p-feats"><li>Несколько проектов одновременно + переключение в один клик</li><li>Авто-категория по активному окну (IDE, браузер, Meet)</li><li>Графики по дням/неделям + цели по часам</li><li>Отчёт PDF/Excel за любой период</li><li>Уведомления: «2ч в одном проекте», «пора на перерыв»</li><li>Синхронизация с Toggl/Clockify (опционально)</li></ul>
+            <div class="p-delivery">Выдача в течение 24 часов</div>
+            <div class="p-foot">
+              <div class="p-price-row"><span class="p-price">от 3 900 ₽</span></div>
+              <div class="p-actions">
+                <button class="btn btn-ghost btn-sm btn-buy" data-product="TimeTrack (приложение)" data-price="3 900 ₽">Купить</button>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= PROCESS ======================= -->
+    <section id="process" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Процесс</p>
+          <h2>От идеи — <em>до запуска</em></h2>
+        </div>
+        <ol class="proc-list">
+          <li class="proc-row reveal">
+            <span class="pr-num">01</span>
+            <div class="pr-body"><h3>Бриф и аналитика</h3><p>Изучаем задачу, конкурентов и аудиторию. Формируем точное техзадание и фиксируем объём работ.</p></div>
+            <span class="pr-tag">1 день</span>
+          </li>
+          <li class="proc-row reveal d1">
+            <span class="pr-num">02</span>
+            <div class="pr-body"><h3>Прототип и дизайн</h3><p>Структура, UI-концепция и фирменный стиль. Показываем живой прототип до старта кода.</p></div>
+            <span class="pr-tag">3–5 дней</span>
+          </li>
+          <li class="proc-row reveal d2">
+            <span class="pr-num">03</span>
+            <div class="pr-body"><h3>Разработка</h3><p>Код, интеграции, тестирование на всех устройствах и браузерах. Промежуточные сборки каждую неделю.</p></div>
+            <span class="pr-tag">7–14 дней</span>
+          </li>
+          <li class="proc-row reveal d3">
+            <span class="pr-num">04</span>
+            <div class="pr-body"><h3>Запуск и рост</h3><p>Помогаем загрузить проект на ваш хостинг, настраиваем аналитику, затем — поддержка и развитие продукта.</p></div>
+            <span class="pr-tag">постоянно</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ======================= CTA ======================= -->
+    <section class="cta section">
+      <div class="container reveal">
+        <p class="eyebrow">Начнём?</p>
+        <h2 class="cta-title">Расскажите о задаче —<br><em>остальное сделаем мы</em></h2>
+        <p class="cta-sub">Заполните короткий бриф — мы уточним детали, рассчитаем цену и вернёмся с предложением. Без звонков и спама.</p>
+        <button class="btn btn-primary btn-lg" data-order-open>Заполнить заявку на разработку</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================= FOOTER ======================= -->
+  <footer id="contacts">
+    <div class="container">
+      <div class="f-grid">
+        <div class="f-col f-about">
+          <a href="#top" class="logo">CODWAY</a>
+          <p>Студия премиальной разработки цифровых продуктов. Сайты, Telegram-боты и приложения, которые работают на результат. Хостинг и домен — на вашей стороне, всю разработку выполняем мы.</p>
+          <div class="f-meta"><i class="online"></i><span id="localTime">--:--</span>&nbsp;MSK · отвечаем 10:00–22:00</div>
+        </div>
+        <div class="f-col">
+          <h4>Навигация</h4>
+          <a href="#categories">Направления</a>
+          <a href="#products">Готовые решения</a>
+          <a href="#process">Процесс работы</a>
+          <a href="legal.html">Политика конфиденциальности</a>
+          <a href="legal.html#offer">Публичная оферта</a>
+        </div>
+        <div class="f-col">
+          <h4>Контакты</h4>
+          <a href="https://t.me/codway_support" target="_blank" rel="noopener">Telegram · @codway_support</a>
+          <a href="mailto:hello@codway.su">hello@codway.su</a>
+          <span class="f-place">Москва · работаем по всему миру</span>
+        </div>
+      </div>
+      <div class="f-wordmark" aria-hidden="true">CODWAY</div>
+      <div class="f-bottom">
+        <span>© <span id="year">2026</span> CodWay · codway.su</span>
+        <a class="to-top" href="#top">Наверх ↑</a>
+      </div>
+    </div>
+  </footer>
+
+<!-- ======================= LAW POPUP · 152-ФЗ ======================= -->
+  <div class="modal-backdrop law-backdrop" id="lawBackdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="lawTitle">
+    <div class="order-modal law-modal">
+      <button type="button" class="om-close" id="lawClose" aria-label="Закрыть">×</button>
+      <p class="eyebrow">152-ФЗ</p>
+      <h3 id="lawTitle">Согласие на обработку персональных данных</h3>
+      <div class="law-text" tabindex="0">
+Пользователь, оставляя заявку на сайте codway.su (далее — «Сайт»), принадлежащей студии CodWay (далее — «Оператор»), даёт настоящее согласие на обработку своих персональных данных на следующих условиях.
+
+1. Состав обрабатываемых данных: имя; контактные данные (адрес электронной почты, ник в мессенджере/номер телефона); содержимое сообщения и приложенных ссылок, добровольно указанное Пользователем в форме заявки или чате.
+
+2. Цели обработки: связь с Пользователем для уточнения деталей заявки; подготовка коммерческого предложения; исполнение договора разработки; информирование о статусе выполнения работ.
+
+3. Перечень действий: сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, удаление и уничтожение персональных данных.
+
+4. Способ обработки: автоматизированная обработка с использованием средств вычислительной техники и баз данных Оператора.
+
+5. Передача третьим лицам: персональные данные не передаются третьим лицам, за исключением случаев, прямо предусмотренных законодательством РФ, а также подрядчиков Оператора, привлекаемых для исполнения заявки (разработка), с соблюдением требований конфиденциальности.
+
+6. Срок действия согласия: с момента отправки заявки и до достижения целей обработки либо до отзыва согласия. Данные заявок хранятся не дольше 3 (трёх) лет с момента последнего взаимодействия.
+
+7. Отзыв согласия: Пользователь вправе отозвать согласие в любой момент, направив обращение на e-mail hello@codway.su. После отзыва Оператор прекращает обработку и уничтожает данные в срок, не превышающий 30 дней, если иное не предусмотрено законом.
+
+8. Права субъекта: Пользователь имеет право получить сведения об обработке своих данных, требовать их уточнения, блокирования или уничтожения, если они неполны, устарели, неточны или незаконно получены.
+
+9. Оператор принимает необходимые правовые, организационные и технические меры защиты персональных данных от неправомерного доступа, изменения, копирования, распространения и иных неправомерных действий в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных».
+
+Отправка формы с установленным флажком согласия означает полное и безоговорочное принятие настоящих условий.
+      </div>
+      <p class="law-doc-link">Полный документ: <a href="legal.html" target="_blank" rel="noopener">Политика конфиденциальности и публичная оферта</a></p>
+      <button type="button" class="btn btn-primary btn-lg" id="lawAccept">Принимаю и закрываю</button>
+    </div>
+  </div>
+
+  <!-- ======================= ORDER MODAL (бриф → AI-менеджер) ======================= -->
+  <div class="modal-backdrop" id="orderBackdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="omTitle">
+    <div class="order-modal">
+      <button type="button" class="om-close" id="orderClose" aria-label="Закрыть форму">×</button>
+      <div class="om-success" id="orderSuccess" aria-hidden="true">
+        <div class="om-success-check">✓</div>
+        <p>Заявка принята. Свяжемся с вами в течение рабочего дня — уточним детали и рассчитаем стоимость.</p>
+      </div>
+      <p class="eyebrow">Заявка</p>
+      <h3 id="omTitle">Заказать разработку</h3>
+      <form id="orderForm" class="order-form" autocomplete="off" novalidate>
+        <div class="form-group">
+          <label for="oType">Тип продукта</label>
+          <select id="oType" name="type" required>
+            <option value="">Выберите тип</option>
+            <option value="сайт">Сайт</option>
+            <option value="бот">Telegram-бот</option>
+            <option value="приложение">Приложение</option>
+            <option value="другое">Другое / комплексный проект</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="oDesc">Что нужно сделать <span class="required" aria-hidden="true">*</span></label>
+          <textarea id="oDesc" name="description" rows="3" maxlength="1500" required
+            placeholder="Например: лендинг для студии маникюра с онлайн-записью и оплатой"></textarea>
+          <div class="char-count"><span id="oDescCount">0</span>/1500</div>
+        </div>
+        <div class="form-group">
+          <label for="oBudget">Примерный бюджет</label>
+          <input type="text" id="oBudget" name="budget" list="budgetOptions" maxlength="60"
+                 placeholder="Например: до 50 000 ₽ (можно ввести свой)">
+          <datalist id="budgetOptions">
+            <option>Пока не знаю</option>
+            <option>до 30 000 ₽</option>
+            <option>30 000 – 70 000 ₽</option>
+            <option>70 000 – 150 000 ₽</option>
+            <option>150 000 – 400 000 ₽</option>
+            <option>больше 400 000 ₽</option>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label for="oDeadline">Желаемые сроки</label>
+          <select id="oDeadline" name="deadline">
+            <option value="">Не выбрано</option>
+            <option>от 3 дней</option>
+            <option>неделя</option>
+            <option>2 недели</option>
+            <option>месяц</option>
+            <option>3+ месяца</option>
+            <option>не горит</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="oLinks">Ссылки на макеты / ТЗ (файлообменник)</label>
+          <input type="url" id="oLinks" name="links" maxlength="400"
+            placeholder="Google Drive, Яндекс.Диск, Dropbox… через запятую">
+        </div>
+        <div class="om-row">
+          <div class="form-group">
+            <label for="oStyle">Стиль готового решения</label>
+            <select id="oStyle" name="style">
+              <option value="">На ваш вкус</option>
+              <option>Тёмный премиум</option>
+              <option>Минимализм</option>
+              <option>Светлый и чистый</option>
+              <option>Брутализм / жирная типографика</option>
+              <option>Пришлю референс сам</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="oExtras">Доп. пожелания</label>
+            <input type="text" id="oExtras" name="extras" maxlength="200"
+              placeholder="Что важно учесть в проекте">
+          </div>
+        </div>
+        <div class="form-group check-line">
+          <input type="checkbox" id="oRebrand" name="rebrand">
+          <label for="oRebrand">Адаптировать готовое решение под мой бренд (логотип, цвета, тон)</label>
+        </div>
+        <div class="om-row">
+          <div class="form-group">
+            <label for="oName">Имя <span class="required" aria-hidden="true">*</span></label>
+            <input type="text" id="oName" name="name" maxlength="80" required placeholder="Как к вам обращаться">
+          </div>
+          <div class="form-group">
+            <label for="oContact">Телеграм или почта <span class="required" aria-hidden="true">*</span></label>
+            <input type="text" id="oContact" name="contact" maxlength="120" required placeholder="@username или mail@mail.ru">
+          </div>
+        </div>
+        <div class="form-group consent-row">
+          <input type="checkbox" id="oConsent" name="consent" required>
+          <span class="consent-text" id="lawOpen" role="button" tabindex="0" title="Открыть полный текст соглашения">Я даю согласие на обработку персональных данных (152-ФЗ) и подтверждаю корректность контактных данных</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Отправить заявку</button>
+        <small class="om-note">Мы свяжемся с вами для уточнения деталей и расчёта стоимости. Хостинг и домен — на вашей стороне, разработку выполняем полностью мы. Оплата — после согласования.</small>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================= BUY MODAL (готовые приложения) ======================= -->
+  <div class="modal-backdrop" id="buyBackdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="bmTitle">
+    <div class="order-modal">
+      <button type="button" class="om-close" id="buyClose" aria-label="Закрыть форму">×</button>
+      <div class="om-success" id="buySuccess" aria-hidden="true">
+        <div class="om-success-check">✓</div>
+        <p>Заявка принята. Свяжемся с вами в течение рабочего дня для подтверждения и оплаты.</p>
+      </div>
+      <p class="eyebrow">Покупка</p>
+      <h3 id="bmTitle">Купить приложение</h3>
+      <div class="buy-summary">
+        <div class="bs-row"><span>Продукт</span><b id="buyName">—</b></div>
+        <div class="bs-row"><span>Тип продукта</span><b id="buyTypeLabel">Приложение</b></div>
+        <div class="bs-row bs-price"><span>Полная стоимость</span><b id="buyPrice">—</b></div>
+      </div>
+      <div class="buy-includes">
+        <p class="bi-title">Что входит в стоимость</p>
+        <ul id="buyIncludes"></ul>
+      </div>
+      <form id="buyForm" class="order-form" autocomplete="off" novalidate>
+        <div class="form-group check-line">
+          <input type="checkbox" id="bCustomize" name="customize">
+          <label for="bCustomize">Нужна доработка под меня (логотип, цвета, отдельные функции) — входит в стоимость</label>
+        </div>
+        <div class="form-group customize-detail" id="bCustomizeDetail" hidden>
+          <label for="bComment">Что адаптировать под вас</label>
+          <textarea id="bComment" name="comment" rows="2" maxlength="500"
+            placeholder="Логотип, фирменные цвета, нужные функции, платформа (например, сборка под macOS)…"></textarea>
+        </div>
+        <div class="om-row">
+          <div class="form-group">
+            <label for="bName">Имя <span class="required" aria-hidden="true">*</span></label>
+            <input type="text" id="bName" name="name" maxlength="80" required placeholder="Как к вам обращаться">
+          </div>
+          <div class="form-group">
+            <label for="bContact">Телеграм или почта <span class="required" aria-hidden="true">*</span></label>
+            <input type="text" id="bContact" name="contact" maxlength="120" required placeholder="@username или mail@mail.ru">
+          </div>
+        </div>
+        <div class="form-group consent-row">
+          <input type="checkbox" id="bConsent" name="consent" required>
+          <span class="consent-text buy-law-open" role="button" tabindex="0" title="Открыть полный текст соглашения">Я даю согласие на обработку персональных данных (152-ФЗ) и подтверждаю корректность контактных данных</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Оформить покупку</button>
+        <small class="om-note" id="buyNote">Мы подтвердим заказ, пришлём реквизиты для оплаты и передадим файлы. Выдача — в течение 24 часов.</small>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================= DEMO VIEWER ======================= -->
+  <div class="modal-backdrop demo-backdrop" id="demoBackdrop" aria-hidden="true">
+    <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="dmTitle">
+      <button type="button" class="om-close" id="demoClose" aria-label="Закрыть просмотр">×</button>
+      <div class="dm-head">
+        <div>
+          <p class="eyebrow">Живое демо</p>
+          <h3 id="dmTitle">Название проекта</h3>
+        </div>
+      </div>
+      <div class="dm-body">
+        <aside class="dm-info">
+          <p id="dmDesc"></p>
+          <ul class="p-feats" id="dmFeats"></ul>
+          <div class="dm-price-row">
+            <span class="dm-price-label">Стоимость под ключ</span>
+            <b id="dmPrice"></b>
+          </div>
+          <button class="btn btn-primary" id="dmOrder">Заказать такой сайт</button>
+          <small class="om-note">Хостинг и домен — на вашей стороне, разработку выполняем полностью мы. Адаптируем под ваш бренд.</small>
+        </aside>
+        <div class="dm-preview">
+          <div class="browser-bar">
+            <span class="bdot r"></span><span class="bdot y"></span><span class="bdot g"></span>
+            <span class="url" id="dmUrl">codway.su</span>
+            <span class="dev-toggle">
+              <button class="dev-btn active" data-w="wide" title="Десктоп">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>
+              </button>
+              <button class="dev-btn" data-w="narrow" title="Мобильный">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+              </button>
+              <button class="dev-btn" id="dmReload" title="Перезагрузить">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+              </button>
+            </span>
+          </div>
+          <div class="frame-holder" id="dmHolder">
+            <iframe id="dmFrame" title="Просмотр демо-сайта"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= AI CHAT WIDGET ======================= -->
+  <button class="fab" id="chatFab" aria-label="Открыть чат поддержки" aria-expanded="false" aria-controls="chatPanel" title="Чат с менеджером">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span class="fab-badge" aria-hidden="true"></span>
+  </button>
+
+  <div class="chat-panel" id="chatPanel" role="dialog" aria-modal="true" aria-label="Чат поддержки CodWay" aria-hidden="true">
+    <div class="chat-head">
+      <div class="c-avatar" aria-hidden="true">CW</div>
+      <div class="c-titles">
+        <b>CodWay · Менеджер</b>
+        <span><span class="online" aria-hidden="true"></span><span class="online-text">онлайн · отвечаем мгновенно</span></span>
+      </div>
+      <button class="c-close" id="chatClose" aria-label="Закрыть чат">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="chat-body" id="chatMessages" role="log" aria-live="polite" aria-atomic="false"></div>
+    <div class="chat-quick" id="chatQuick" role="group" aria-label="Быстрые вопросы">
+      <button type="button" class="chip">Сколько стоит сайт?</button>
+      <button type="button" class="chip">Нужен Telegram-бот</button>
+      <button type="button" class="chip">Хочу приложение</button>
+    </div>
+    <form id="chatForm" autocomplete="off">
+      <label for="chatInput" class="visually-hidden">Ваше сообщение</label>
+      <input type="text" id="chatInput" placeholder="Опишите вашу задачу…" maxlength="2000" aria-label="Сообщение" autocomplete="off">
+      <button type="submit" class="c-send" aria-label="Отправить сообщение">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </form>
+    <div class="chat-note" aria-hidden="true">AI-менеджер студии · уточнит детали и рассчитает стоимость</div>
+  </div>
+
+  <style>
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 7px; }
+    .required { color: #ff6b6b; }
+    .char-count { font-size: 11px; color: var(--faint); text-align: right; margin-top: 4px; }
+    .check-line { display: flex !important; align-items: center; gap: 10px; margin-bottom: 16px !important; }
+    .check-line input { width: auto; margin: 0; accent-color: #fff; cursor: pointer; }
+    .check-line label { margin: 0; cursor: pointer; font-size: 13px; color: var(--text); text-transform: none; letter-spacing: 0; }
+    .consent-row { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+    .consent-row input { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; accent-color: #fff; cursor: pointer; }
+    .consent-text { cursor: pointer; transition: color 0.25s; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,0.25); }
+    .consent-text:hover { color: var(--white); text-decoration-color: var(--white); }
+    .optional { color: var(--faint); font-weight: 400; text-transform: none; letter-spacing: 0; }
+    .buy-summary { border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px; margin-bottom: 16px; background: rgba(255,255,255,0.02); }
+    .bs-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 10px 0; font-size: 13px; color: var(--muted); }
+    .bs-row + .bs-row { border-top: 1px solid var(--line); }
+    .bs-row b { color: var(--text); font-size: 13.5px; text-align: right; }
+    .bs-price b { font-size: 22px; font-weight: 900; color: var(--white); letter-spacing: -0.02em; }
+    .buy-includes { margin-bottom: 18px; }
+    .bi-title { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .buy-includes ul { list-style: none; display: grid; gap: 7px; }
+    .buy-includes li { position: relative; padding-left: 18px; font-size: 12.6px; color: var(--muted); }
+    .buy-includes li::before { content: ""; position: absolute; left: 0; top: 7px; width: 7px; height: 1px; background: var(--white); }
+    .law-doc-link { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+    .law-doc-link a { color: var(--white); text-decoration: underline; text-underline-offset: 3px; }
+    .law-doc-link a:hover { text-decoration-thickness: 2px; }
+    .fab-badge { position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; border-radius: 50%; background: #ff3b30; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0); transition: opacity 0.3s, transform 0.3s; }
+    .fab-badge.show { opacity: 1; transform: scale(1); }
+  </style>
+</body>
+</html>

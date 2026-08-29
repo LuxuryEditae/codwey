@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СтройМонтажГрупп — дома под ключ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#F8FAFC;color:#334155;line-height:1.6;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace}
+.wrap{width:min(1120px,92%);margin:auto}
+header{background:#ffffffcc;backdrop-filter:blur(10px);border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:50}
+.nav{display:flex;align-items:center;height:72px;gap:32px}
+.logo{font-weight:800;font-size:15px;color:#0F172A;text-decoration:none;letter-spacing:.02em;line-height:1.2}
+.logo small{display:block;font-family:'JetBrains Mono',monospace;font-weight:400;font-size:9.5px;color:#94A3B8;letter-spacing:.14em}
+.nav a.lnk{color:#64748B;text-decoration:none;font-size:13.5px;font-weight:500;padding:6px 2px;border-bottom:2px solid transparent;transition:.2s}
+.nav a.lnk:hover{color:#EA580C;border-color:#EA580C}
+.cta{margin-left:auto;background:#EA580C;color:#fff;padding:12px 24px;border-radius:4px;font-weight:700;font-size:13px;text-decoration:none;letter-spacing:.03em;transition:.2s;cursor:pointer}
+.cta:hover{background:#C2410C}
+.hero{border-bottom:1px solid #E2E8F0;background:#fff}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;padding:88px 0 76px;align-items:center}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;color:#EA580C;font-weight:600;margin-bottom:18px}
+h1{font-size:clamp(34px,4.8vw,54px);font-weight:800;color:#0F172A;letter-spacing:-.025em;line-height:1.05}
+h1 em{font-style:normal;color:#EA580C}
+.hero p{color:#64748B;margin:22px 0 30px;max-width:480px;font-size:16.5px}
+.btnrow{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;padding:15px 30px;border-radius:4px;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer;border:1px solid transparent;transition:.2s;font-family:inherit}
+.b-solid{background:#EA580C;color:#fff}.b-solid:hover{background:#C2410C}
+.b-ghost{border-color:#CBD5E1;color:#334155}.b-ghost:hover{border-color:#EA580C;color:#EA580C}
+.blueprint{aspect-ratio:4/3.4;background:#0F172A;border-radius:6px;position:relative;overflow:hidden;font-family:'JetBrains Mono',monospace}
+.bp-line{position:absolute;background:#1E40AF55}
+.bp-num{position:absolute;color:#22C55E99;font-size:10px}
+.bp-tag{position:absolute;left:14px;bottom:12px;color:#94A3B8;font-size:10px;letter-spacing:.12em}
+.statsbar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#E2E8F0;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden;margin-top:-1px}
+.stat{background:#fff;padding:26px 24px}
+.stat b{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:600;color:#0F172A;display:block}
+.stat span{font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em}
+section{padding:78px 0}
+.shead{display:flex;align-items:end;justify-content:space-between;margin-bottom:38px;gap:20px;flex-wrap:wrap}
+h2{font-size:clamp(26px,3.4vw,36px);font-weight:800;color:#0F172A;letter-spacing:-.02em}
+.slink{font-size:13px;color:#EA580C;font-weight:600;text-decoration:none}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.svc{background:#fff;border:1px solid #E2E8F0;border-radius:6px;padding:26px 22px;transition:.25s;cursor:pointer}
+.svc:hover{border-color:#EA580C;transform:translateY(-3px)}
+.svc .num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#94A3B8;margin-bottom:16px}
+.svc h3{font-size:16.5px;color:#0F172A;margin-bottom:8px}
+.svc p{font-size:13px;color:#64748B}
+.svc .pr{margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#EA580C;font-weight:600}
+.steps-wrap{background:#0F172A;border-radius:8px;padding:46px 42px;color:#fff}
+.steps-wrap h2{color:#fff;margin-bottom:34px}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:22px}
+.stp{border-top:2px solid #334155;padding-top:16px;transition:.25s}
+.stp:hover{border-color:#EA580C}
+.stp i{font-family:'JetBrains Mono',monospace;font-style:normal;color:#EA580C;font-size:12px}
+.stp b{display:block;font-size:14.5px;margin:8px 0 6px;color:#F1F5F9}
+.stp span{font-size:12px;color:#94A3B8}
+.quote{background:#fff;border-left:3px solid #EA580C;border-radius:0 6px 6px 0;padding:26px 30px;max-width:760px;margin:auto}
+.quote p{font-size:17px;color:#334155;font-weight:500}
+.quote span{display:block;margin-top:14px;font-size:13px;color:#94A3B8;font-family:'JetBrains Mono',monospace}
+.formsec{background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:44px;display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center}
+form{display:flex;flex-direction:column;gap:12px}
+label.f{font-size:11px;font-weight:700;letter-spacing:.14em;color:#64748B;display:block;margin-bottom:6px}
+input{width:100%;padding:14px 16px;border:1px solid #CBD5E1;border-radius:4px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;background:#F8FAFC}
+input:focus{border-color:#EA580C;background:#fff}
+footer{background:#0F172A;color:#64748B;padding:34px 0;margin-top:80px;font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #EA580C;outline-offset:2px}
+@media(max-width:960px){.hero-grid,.formsec{grid-template-columns:1fr}.grid4,.steps{grid-template-columns:1fr 1fr}.statsbar{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.nav a.lnk{display:none}.grid4,.steps{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav">
+  <a class="logo" href="#">СТРОЙМОНТАЖГРУПП<small>ДОМА ПОД КЛЮЧ · EST. 2014</small></a>
+  <a class="lnk" href="#services">Услуги</a>
+  <a class="lnk" href="#steps">Процесс</a>
+  <a class="lnk" href="#contact">Контакты</a>
+  <a class="cta" href="#contact">Рассчитать смету</a>
+</div></header>
+
+<div class="hero"><div class="wrap hero-grid">
+  <div>
+    <div class="kicker">СТРОИТЕЛЬСТВО · МОСКВА И ОБЛАСТЬ</div>
+    <h1>Дом вашей мечты — <em>по фиксированной смете</em></h1>
+    <p>Собственная бригада, поэтапная оплата и отчёты с объекта каждую неделю. Цена в договоре не меняется.</p>
+    <div class="btnrow"><a class="btn b-solid" href="#contact">Получить смету за 24 часа</a><a class="btn b-ghost" href="#services">Услуги и цены</a></div>
+  </div>
+  <div class="blueprint">
+    <div class="bp-line" style="left:12%;top:18%;width:70%;height:1px"></div>
+    <div class="bp-line" style="left:12%;top:58%;width:70%;height:1px"></div>
+    <div class="bp-line" style="left:12%;top:18%;width:1px;height:40%"></div>
+    <div class="bp-line" style="left:82%;top:18%;width:1px;height:40%"></div>
+    <div class="bp-line" style="left:47%;top:18%;width:1px;height:40%"></div>
+    <span class="bp-num" style="left:14%;top:22%">9 400 × 11 200</span>
+    <span class="bp-num" style="left:50%;top:64%">кухня-гостиная</span>
+    <span class="bp-num" style="left:16%;top:64%">спальня</span>
+    <div class="bp-line" style="left:12%;bottom:22%;width:70%;height:6px;background:#EA580C66"></div>
+    <span class="bp-tag">PROEKKT_NO1.DWG · МАСШТАБ 1:100</span>
+  </div>
+</div></div>
+
+<div class="wrap"><div class="statsbar">
+  <div class="stat"><b>12 лет</b><span>на рынке</span></div>
+  <div class="stat"><b>240+</b><span>сданных объектов</span></div>
+  <div class="stat"><b>98%</b><span>в срок</span></div>
+  <div class="stat"><b>5 лет</b><span>гарантии</span></div>
+</div></div>
+
+<section id="services"><div class="wrap">
+  <div class="shead"><h2>Услуги и цены</h2><a class="slink" href="#contact">Полный прайс-лист →</a></div>
+  <div class="grid4">
+    <div class="svc"><div class="num">/01</div><h3>Каркасный дом</h3><p>Тёплый дом за 2–3 месяца. Утепление 200 мм, коммуникации.</p><div class="pr">от 2,9 млн ₽</div></div>
+    <div class="svc"><div class="num">/02</div><h3>Дом из бруса</h3><p>Зимняя древесина камерной сушки, усадка учтена в проекте.</p><div class="pr">от 3,6 млн ₽</div></div>
+    <div class="svc"><div class="num">/03</div><h3>Фундамент</h3><p>Свайный, ленточный или плита после геологии участка.</p><div class="pr">от 380 тыс ₽</div></div>
+    <div class="svc"><div class="num">/04</div><h3>Отделка</h3><p>Черновая и чистовая отделка построенных домов под ключ.</p><div class="pr">от 8 500 ₽/м²</div></div>
+  </div>
+</div></section>
+
+<section id="steps" style="background:#fff;border-block:1px solid #E2E8F0"><div class="wrap">
+  <div class="steps-wrap">
+    <h2>Процесс без сюрпризов</h2>
+    <div class="steps">
+      <div class="stp"><i>01</i><b>Геология</b><span>Выезд инженера, анализ грунта</span></div>
+      <div class="stp"><i>02</i><b>Смета</b><span>Фиксированная цена в договоре</span></div>
+      <div class="stp"><i>03</i><b>Строительство</b><span>Фотоотчёты каждую неделю</span></div>
+      <div class="stp"><i>04</i><b>Сдача</b><span>Приёмка с прорабом</span></div>
+      <div class="stp"><i>05</i><b>Гарантия</b><span>5 лет на конструктив</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section style="padding:60px 0"><div class="wrap">
+  <div class="quote">
+    <p>«Дом сдали на три недели раньше сметы. Каждую пятницу получал фотоотчёт, ни разу не попросили доплатить.»</p>
+    <span>— Андрей К., дом из бруса 145 м², Истринский район</span>
+  </div>
+</div></section>
+
+<section id="contact" style="padding-top:0"><div class="wrap">
+  <div class="formsec">
+    <div>
+      <div class="kicker">БЕСПЛАТНО · БЕЗ ОБЯЗАТЕЛЬСТВ</div>
+      <h2 style="font-size:28px">Смета вашего дома за 24 часа</h2>
+      <p style="color:#64748B;font-size:14.5px;margin-top:12px">Инженер перезвонит, задаст 6 вопросов по участку и пришлёт PDF-расчёт в мессенджер.</p>
+    </div>
+    <form onsubmit="event.preventDefault();this.innerHTML='<p style=font-weight:700;color:#0F172A>Принято! Смета прибудет в течение рабочего дня.</p>'">
+      <div><label class="f">ИМЯ</label><input type="text" placeholder="Как к вам обращаться" required></div>
+      <div><label class="f">ТЕЛЕФОН</label><input type="tel" placeholder="+7 (___) ___-__-__" required></div>
+      <button class="btn b-solid">Получить расчёт</button>
+    </form>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <span>© 2026 СтройМонтажГрупп · демо-сайт от CodWay</span>
+  <span class="mono">+7 (495) 000-00-00 · hello@smg-stroy.ru</span>
+</div></footer>
+</body>
+</html>

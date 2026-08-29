@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MacroDeck · CodWay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a;--bg-2:#111;--panel:#141414;--panel-2:#1a1a1a;
+    --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.18);
+    --text:#f5f5f5;--muted:#9a9a9a;--faint:#5a5a5a;
+    --accent:#00d4ff;--accent-2:#3eb8ff;--accent-glow:rgba(0,212,255,.35);
+    --ok:#22c55e;--warn:#f59e0b;--err:#ef4444;--purple:#a855f7;
+    --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--accent);color:#000}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#262626;border-radius:8px}
+  button,input,select,textarea{font-family:inherit;outline:none;border:none;background:none;color:inherit}
+  button{cursor:pointer}
+
+  .app{display:grid;grid-template-rows:54px 1fr 64px;height:100vh}
+  .topbar{display:flex;align-items:center;padding:0 18px;background:var(--bg-2);border-bottom:1px solid var(--line);gap:14px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;min-width:220px}
+  .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .logo b{font-size:14px}
+  .logo b em{color:var(--accent);font-style:normal}
+  .logo span{color:var(--muted);font-weight:500;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;display:block;margin-top:1px}
+  .topbar .pill{padding:6px 11px;background:var(--panel);border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .topbar .pill .d{width:7px;height:7px;border-radius:50%;background:#444}
+  .topbar .pill.on .d{background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 1.4s infinite}
+  .topbar .pill.rec .d{background:var(--err);box-shadow:0 0 8px var(--err);animation:pulse .8s infinite}
+  .topbar .spacer{flex:1}
+  .topbar .btn{padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+  .topbar .btn:hover{border-color:var(--line-strong)}
+  .topbar .btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+  .topbar .btn.rec{background:var(--err);border-color:var(--err);color:#fff}
+
+  .app-body{display:grid;grid-template-columns:240px 1fr;min-height:0}
+  .sidebar{background:var(--bg-2);border-right:1px solid var(--line);padding:14px;overflow-y:auto}
+  .sec{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px;margin-bottom:12px}
+  .sec h4{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:700}
+  .mac-list{display:flex;flex-direction:column;gap:6px}
+  .mac{display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-size:12px;cursor:pointer;transition:.15s}
+  .mac:hover{border-color:var(--line-strong)}
+  .mac.active{border-color:var(--accent);background:rgba(0,212,255,.06)}
+  .mac .ico{width:24px;height:24px;border-radius:6px;background:var(--panel-2);display:grid;place-items:center;font-size:13px;flex-shrink:0}
+  .mac.active .ico{background:var(--accent);color:#000}
+  .mac .meta{flex:1;min-width:0}
+  .mac .meta b{display:block;font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mac .meta span{font-size:10px;color:var(--faint);font-family:var(--mono)}
+  .mac .hk{font-family:var(--mono);font-size:10px;background:var(--panel-2);padding:2px 5px;border-radius:4px;color:var(--muted)}
+
+  .main{overflow-y:auto;padding:20px 24px;background:var(--bg)}
+  .main-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:14px;flex-wrap:wrap}
+  .main-head h1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .main-head h1 small{color:var(--muted);font-size:11px;font-weight:500;margin-left:8px;letter-spacing:0;text-transform:uppercase}
+  .head-act{display:flex;gap:8px;flex-wrap:wrap}
+  .head-act .btn{padding:9px 14px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+  .head-act .btn:hover{border-color:var(--line-strong)}
+  .head-act .btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+
+  /* MACRO EDITOR */
+  .editor{display:grid;grid-template-columns:1fr 320px;gap:16px}
+  .ed-main{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .ed-side{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+  .field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--text);font-family:var(--mono)}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+  .field textarea{min-height:80px;resize:vertical}
+
+  .actions-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;margin-bottom:10px}
+  .action{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:10px;padding:9px 11px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-size:12px}
+  .action .num{font-family:var(--mono);font-size:10px;color:var(--faint);width:18px}
+  .action .body{display:flex;flex-direction:column;min-width:0}
+  .action .body b{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .action .body span{font-size:10px;color:var(--faint);font-family:var(--mono)}
+  .action .ico{width:24px;height:24px;border-radius:6px;background:var(--panel-2);display:grid;place-items:center;font-size:12px}
+  .action .del{width:22px;height:22px;border-radius:5px;background:transparent;color:var(--muted);font-size:14px;display:grid;place-items:center}
+  .action .del:hover{background:var(--err);color:#fff}
+  .action.running{border-color:var(--accent);background:rgba(0,212,255,.08);animation:glow 1.4s ease-in-out infinite}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 4px var(--accent-glow)}}
+
+  .add-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .add-btn{padding:8px 6px;background:var(--bg);border:1px solid var(--line);border-radius:7px;font-size:10.5px;color:var(--text);font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;transition:.15s}
+  .add-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .add-btn .em{font-size:18px}
+
+  .stat-box{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px 12px;display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px}
+  .stat-box span{color:var(--muted);font-size:11px}
+  .stat-box b{font-family:var(--mono);color:var(--text);font-weight:600}
+
+  .recorder{background:linear-gradient(135deg,rgba(239,68,68,.1),transparent);border:1px solid var(--line);border-radius:11px;padding:14px;text-align:center}
+  .recorder.rec{background:linear-gradient(135deg,rgba(239,68,68,.25),rgba(239,68,68,.08));border-color:var(--err);animation:pulse 1s infinite}
+  .recorder .ico{width:54px;height:54px;margin:0 auto 8px;border-radius:50%;background:radial-gradient(circle,#5a0d0d,#240505);display:grid;place-items:center;color:var(--err);border:2px solid var(--line)}
+  .recorder.rec .ico{background:radial-gradient(circle,#dc2626,#7f1d1d);color:#fff;border-color:var(--err)}
+  .recorder .ico svg{width:24px;height:24px}
+  .recorder b{display:block;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+  .recorder span{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
+  .recorder .timer{font-size:24px;font-family:var(--mono);font-weight:600;margin:6px 0;color:var(--text)}
+
+  .transport{display:flex;align-items:center;padding:0 18px;background:var(--bg-2);border-top:1px solid var(--line);gap:14px}
+  .t-btn{width:38px;height:38px;border-radius:9px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;transition:.15s}
+  .t-btn:hover{border-color:var(--line-strong)}
+  .t-btn svg{width:14px;height:14px}
+  .t-info{flex:1;font-family:var(--mono);font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;border:1px solid var(--line-strong);padding:12px 18px;border-radius:10px;font-size:12px;font-weight:600;opacity:0;pointer-events:none;transition:.3s var(--ease);z-index:50;display:flex;align-items:center;gap:8px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .ico{color:var(--accent)}
+  .toast .ico.ok{color:var(--ok)}
+  .toast .ico.warn{color:var(--warn)}
+
+  @media (max-width:1000px){
+    .editor{grid-template-columns:1fr}
+  }
+  @media (max-width:700px){
+    .app-body{grid-template-columns:1fr}
+    .sidebar{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <span class="dot"></span>
+      <div><b>MACRO<em>DECK</em></b><span>CodWay · v1.3</span></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="pill" id="pRecord"><span class="d"></span><span>REC</span></div>
+    <div class="pill" id="pPlay"><span class="d"></span><span>PLAY</span></div>
+    <div class="pill"><span class="d"></span><span>LOOP</span></div>
+    <button class="btn primary" id="btnNew"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>Новый макрос</button>
+  </div>
+
+  <div class="app-body">
+    <aside class="sidebar">
+      <div class="sec">
+        <h4>Мои макросы</h4>
+        <div class="mac-list" id="macList"></div>
+      </div>
+      <div class="sec">
+        <h4>Скорость воспроизведения</h4>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between"><span>Медленно</span><b id="spdVal" style="color:var(--text);font-family:var(--mono)">1.0×</b><span>Быстро</span></div>
+        <input type="range" id="spd" min="25" max="400" value="100" style="width:100%;accent-color:var(--accent)">
+        <div style="font-size:10.5px;color:var(--faint);margin-top:6px">Можно замедлить или ускорить любое действие</div>
+      </div>
+      <div class="sec">
+        <h4>Автозапуск</h4>
+        <div class="stat-box" style="cursor:pointer" id="tAutostart">
+          <span>Старт с Windows</span>
+          <div style="width:32px;height:18px;background:#2a2a2a;border-radius:18px;position:relative;transition:.2s"><i style="position:absolute;top:2px;left:2px;width:14px;height:14px;background:#888;border-radius:50%;transition:.25s"></i></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="main-head">
+        <h1 id="edTitle">Макросы <small>автокликер · ввод текста · триггеры</small></h1>
+        <div class="head-act">
+          <button class="btn" id="btnRun"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Запуск</button>
+          <button class="btn" id="btnLoop"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg>Повтор</button>
+          <button class="btn primary" id="btnRec"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>Записать</button>
+        </div>
+      </div>
+
+      <div class="editor">
+        <div class="ed-main">
+          <div class="field">
+            <label>Название макроса</label>
+            <input type="text" id="mName" placeholder="Например: AFK-фарм">
+          </div>
+          <div class="field">
+            <label>Действия (выполняются по порядку)</label>
+            <div class="actions-list" id="actionsList"></div>
+            <div style="font-size:11px;color:var(--faint);margin-bottom:12px">Клик на действие — редактировать · × — удалить</div>
+            <div class="add-actions">
+              <button class="add-btn" data-add="click"><div class="em">🖱️</div>Клик мыши</button>
+              <button class="add-btn" data-add="move"><div class="em">🎯</div>Двигать мышь</button>
+              <button class="add-btn" data-add="type"><div class="em">⌨️</div>Ввод текста</button>
+              <button class="add-btn" data-add="key"><div class="em">⌨</div>Клавиша</button>
+              <button class="add-btn" data-add="wait"><div class="em">⏱️</div>Подождать</button>
+              <button class="add-btn" data-add="open"><div class="em">🔗</div>Открыть URL</button>
+              <button class="add-btn" data-add="copy"><div class="em">📋</div>Скопировать</button>
+              <button class="add-btn" data-add="screenshot"><div class="em">📸</div>Скриншот</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ed-side">
+          <div class="recorder" id="recPanel">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg></div>
+            <b>Запись действий</b>
+            <span>Кликните «Записать» и MacroDeck запомнит ваши клики/ввод</span>
+            <div class="timer" id="recTimer" style="display:none">00:00.0</div>
+          </div>
+
+          <div>
+            <h4 style="font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:700">Триггер</h4>
+            <div class="field"><label>Тип</label>
+              <select id="trType">
+                <option value="manual">Вручную (кнопка)</option>
+                <option value="hotkey">Горячая клавиша</option>
+                <option value="time">По расписанию</option>
+                <option value="file">При появлении файла</option>
+              </select>
+            </div>
+            <div class="field"><label>Горячая клавиша</label>
+              <input type="text" id="trHk" placeholder="Нажмите комбинацию…">
+            </div>
+            <div class="field"><label>Расписание (cron)</label>
+              <input type="text" id="trCron" placeholder="*/5 * * * * (каждые 5 мин)">
+            </div>
+            <div class="field"><label>Следить за файлом</label>
+              <input type="text" id="trFile" placeholder="C:\path\to\file.txt">
+            </div>
+          </div>
+
+          <div>
+            <h4 style="font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:700">Статистика</h4>
+            <div class="stat-box"><span>Действий</span><b id="stActions">0</b></div>
+            <div class="stat-box"><span>Длительность</span><b id="stDur">0.0с</b></div>
+            <div class="stat-box"><span>Запусков</span><b id="stRuns">0</b></div>
+            <div class="stat-box"><span>Всего выполнено</span><b id="stTotal">0</b></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="transport">
+    <button class="t-btn" id="tPlay" title="Запуск"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="t-btn" id="tStop" title="Стоп"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
+    <div class="t-info" id="tInfo">Готов · выберите макрос слева или создайте новый</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span><span id="toastMsg">Готово</span></div>
+
+<script>
+(function(){
+  'use strict';
+  function $(s){return document.querySelector(s)}
+  function $$(s){return Array.from(document.querySelectorAll(s))}
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(msg,kind){var t=$('#toast');$('#toastMsg').textContent=msg;var i=t.querySelector('.ico');i.className='ico '+(kind||'');t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show')},2000)}
+
+  var ACTION_TYPES={
+    click:{em:'🖱️',name:'Клик мыши',fmt:function(a){return'Клик '+(a.btn||'left')+' @ '+(a.x||'—')+','+(a.y||'—')}},
+    move:{em:'🎯',name:'Двигать мышь',fmt:function(a){return'→ '+(a.x||'—')+','+(a.y||'—')}},
+    type:{em:'⌨️',name:'Ввод текста',fmt:function(a){return'«'+(a.text||'')+'»'}},
+    key:{em:'⌨',name:'Клавиша',fmt:function(a){return (a.mod||[]).join('+')+(a.mod&&a.mod.length?'+':'')+(a.key||'?')}},
+    wait:{em:'⏱️',name:'Подождать',fmt:function(a){return(a.ms||0)+' мс'}},
+    open:{em:'🔗',name:'Открыть URL',fmt:function(a){return a.url||''}},
+    copy:{em:'📋',name:'Скопировать',fmt:function(a){return'«'+(a.text||'')+'»'}},
+    screenshot:{em:'📸',name:'Скриншот',fmt:function(){return'Снимок экрана'}}
+  };
+
+  var state={
+    macros:[
+      {id:1,name:'AFK-фарм (тест)',hk:'Ctrl+Shift+F',actions:[
+        {type:'click',btn:'left',x:500,y:300},
+        {type:'wait',ms:1000},
+        {type:'key',mod:[],key:'Space'},
+        {type:'wait',ms:2000}
+      ],runs:0},
+      {id:2,name:'Авто-ввод пароля',hk:'Ctrl+Alt+P',actions:[
+        {type:'click',btn:'left',x:640,y:400},
+        {type:'type',text:'P@ssw0rd!'},
+        {type:'key',key:'Enter'}
+      ],runs:0},
+      {id:3,name:'Спам в чат (тест)',hk:'F8',actions:[
+        {type:'type',text:'gg'},
+        {type:'key',key:'Enter'},
+        {type:'wait',ms:500}
+      ],runs:0}
+    ],
+    active:0,
+    recording:false,
+    recStart:0,
+    recActions:[],
+    recInterval:null,
+    speed:1.0,
+    autostart:false,
+    running:false,
+    runInterval:null
+  };
+
+  function renderMacros(){
+    var l=$('#macList');l.innerHTML='';
+    state.macros.forEach(function(m,i){
+      var d=document.createElement('div');d.className='mac'+(i===state.active?' active':'');
+      d.innerHTML='<div class="ico">'+(i===state.active?'●':'○')+'</div><div class="meta"><b>'+esc(m.name)+'</b><span>'+m.actions.length+' действ. · '+m.runs+' зап.</span></div><span class="hk">'+esc(m.hk||'')+'</span>';
+      d.addEventListener('click',function(){state.active=i;renderMacros();renderEditor()});
+      l.appendChild(d);
+    });
+  }
+  function cur(){return state.macros[state.active]}
+  function renderEditor(){
+    var m=cur();
+    $('#edTitle').innerHTML=esc(m.name)+' <small>'+m.actions.length+' действий</small>';
+    $('#mName').value=m.name;
+    $('#trHk').value=m.hk||'';
+    var list=$('#actionsList');list.innerHTML='';
+    if(!m.actions.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--faint);font-size:11px">Нет действий — добавьте кнопками ниже или запишите макрос</div>'}
+    m.actions.forEach(function(a,i){
+      var t=ACTION_TYPES[a.type]||{em:'?',name:'?',fmt:function(){return''}};
+      var d=document.createElement('div');d.className='action';
+      d.innerHTML='<div class="num">'+(i+1)+'</div><div class="ico">'+t.em+'</div><div class="body"><b>'+t.name+'</b><span>'+esc(t.fmt(a))+'</span></div><button class="del" title="Удалить">×</button>';
+      d.querySelector('.del').addEventListener('click',function(e){e.stopPropagation();m.actions.splice(i,1);renderEditor();renderMacros()});
+      list.appendChild(d);
+    });
+    updateStats();
+  }
+  function updateStats(){
+    var m=cur();
+    var dur=0;m.actions.forEach(function(a){if(a.type==='wait')dur+=a.ms;else dur+=50});
+    $('#stActions').textContent=m.actions.length;
+    $('#stDur').textContent=(dur/1000).toFixed(1)+'с';
+    $('#stRuns').textContent=m.runs;
+    $('#stTotal').textContent=state.macros.reduce(function(s,m){return s+m.runs},0);
+  }
+
+  /* Speed */
+  $('#spd').addEventListener('input',function(e){state.speed=+$('#spd').value/100;$('#spdVal').textContent=state.speed.toFixed(1)+'×'});
+
+  /* Add actions */
+  $$('.add-btn').forEach(function(b){b.addEventListener('click',function(){
+    var t=b.dataset.add,a={type:t};
+    if(t==='click'){a.btn='left';a.x=Math.round(Math.random()*1000);a.y=Math.round(Math.random()*600)}
+    else if(t==='move'){a.x=Math.round(Math.random()*1000);a.y=Math.round(Math.random()*600)}
+    else if(t==='type'){a.text='Привет, мир!'}
+    else if(t==='key'){a.mod=[];a.key='Enter'}
+    else if(t==='wait'){a.ms=1000}
+    else if(t==='open'){a.url='https://codway.su'}
+    else if(t==='copy'){a.text='скопированный текст'}
+    cur().actions.push(a);renderEditor();renderMacros();toast('Добавлено: '+(ACTION_TYPES[t].name))
+  })});
+
+  /* Name change */
+  $('#mName').addEventListener('input',function(e){cur().name=e.target.value;renderMacros()});
+  $('#trHk').addEventListener('change',function(e){cur().hk=e.target.value;renderMacros()});
+
+  /* Hotkey capture */
+  $('#trHk').addEventListener('keydown',function(e){
+    e.preventDefault();
+    var parts=[];if(e.ctrlKey)parts.push('Ctrl');if(e.shiftKey)parts.push('Shift');if(e.altKey)parts.push('Alt');if(e.metaKey)parts.push('Meta');
+    if(e.key&&!['Control','Shift','Alt','Meta'].includes(e.key))parts.push(e.key);
+    this.value=parts.join('+');
+    cur().hk=this.value;renderMacros();
+  });
+
+  /* Record */
+  $('#btnRec').addEventListener('click',function(){
+    if(state.recording) stopRec(); else startRec();
+  });
+  function startRec(){
+    state.recording=true;state.recActions=[];state.recStart=Date.now();
+    $('#recPanel').classList.add('rec');
+    $('#pRecord').classList.add('rec');
+    $('#recTimer').style.display='block';
+    $('#btnRec').classList.add('rec');$('#btnRec').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>Стоп';
+    state.recInterval=setInterval(function(){
+      var sec=(Date.now()-state.recStart)/1000;
+      var m=Math.floor(sec/60),s=Math.floor(sec%60),t=Math.floor((sec%1)*10);
+      $('#recTimer').textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s+'.'+t;
+    },100);
+    toast('Запись пошла — кликайте и вводите текст','warn');
+  }
+  function stopRec(){
+    state.recording=false;
+    $('#recPanel').classList.remove('rec');$('#pRecord').classList.remove('rec');
+    $('#recTimer').style.display='none';
+    $('#btnRec').classList.remove('rec');$('#btnRec').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>Записать';
+    clearInterval(state.recInterval);
+    if(state.recActions.length){
+      cur().actions=cur().actions.concat(state.recActions);
+      renderEditor();renderMacros();
+      toast('Записано '+state.recActions.length+' действий','ok');
+    } else toast('Ничего не записано','warn');
+  }
+  document.addEventListener('click',function(e){
+    if(!state.recording) return;
+    if(e.target.closest('.mac')||e.target.closest('.action')||e.target.closest('.add-btn')||e.target.closest('.btn')||e.target.closest('.toast')||e.target.closest('.t-btn')) return;
+    state.recActions.push({type:'click',btn:e.button===2?'right':'left',x:e.clientX,y:e.clientY});
+    toast('Клик записан @ '+e.clientX+','+e.clientY);
+  });
+  document.addEventListener('contextmenu',function(e){if(state.recording)e.preventDefault()});
+
+  /* Run */
+  $('#btnRun').addEventListener('click',runMacro);
+  $('#tPlay').addEventListener('click',runMacro);
+  $('#tStop').addEventListener('click',stopMacro);
+  function runMacro(){
+    if(state.running) return;
+    var m=cur();
+    if(!m.actions.length){toast('Макрос пустой',false);return}
+    state.running=true;$('#pPlay').classList.add('on');$('#tInfo').textContent='▶ '+m.name;
+    var i=0;
+    function next(){
+      if(!state.running||i>=m.actions.length){stopMacro();return}
+      var a=m.actions[i];
+      $$('.action').forEach(function(el){el.classList.remove('running')});
+      var el=$('#actionsList').children[i];if(el)el.classList.add('running');
+      executeAction(a);
+      var dur=(a.type==='wait'?a.ms:50)/state.speed;
+      i++;
+      setTimeout(next,dur);
+    }
+    next();
+  }
+  function executeAction(a){
+    if(a.type==='type'){
+      if(navigator.clipboard){navigator.clipboard.writeText(a.text).catch(function(){})}
+      toast('Ввод: «'+a.text+'»');
+    } else if(a.type==='copy'){
+      if(navigator.clipboard)navigator.clipboard.writeText(a.text);
+      toast('Скопировано: «'+a.text+'»','ok');
+    } else if(a.type==='open'){
+      if(a.url) window.open(a.url,'_blank');
+      toast('Открыт: '+a.url);
+    } else if(a.type==='screenshot'){
+      toast('Скриншот сохранён (демо)','ok');
+    } else if(a.type==='key'){
+      toast('Клавиша: '+a.key);
+    } else if(a.type==='click'){
+      toast('Клик @ '+a.x+','+a.y);
+    } else if(a.type==='wait'){
+      /* skip */
+    } else toast('→ '+ACTION_TYPES[a.type].name);
+  }
+  function stopMacro(){
+    state.running=false;$('#pPlay').classList.remove('on');
+    $$('.action').forEach(function(el){el.classList.remove('running')});
+    if(cur().actions.length){cur().runs++;renderMacros();updateStats()}
+    $('#tInfo').textContent='Готов';
+    toast('Макрос остановлен','warn');
+  }
+
+  /* New */
+  $('#btnNew').addEventListener('click',function(){
+    var m={id:Date.now(),name:'Новый макрос '+((state.macros.length+1)),hk:'',actions:[],runs:0};
+    state.macros.push(m);state.active=state.macros.length-1;renderMacros();renderEditor();
+    toast('Создан новый макрос','ok');
+  });
+
+  /* Autostart toggle */
+  $('#tAutostart').addEventListener('click',function(){
+    state.autostart=!state.autostart;
+    var sw=this.querySelector('div'),ic=sw.querySelector('i');
+    if(state.autostart){sw.style.background='var(--accent)';ic.style.left='16px';ic.style.background='#000';toast('Автозапуск включён','ok')}
+    else{sw.style.background='#2a2a2a';ic.style.left='2px';ic.style.background='#888';toast('Автозапуск выключен','warn')}
+  });
+
+  /* Global hotkey */
+  document.addEventListener('keydown',function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+    if(e.key==='Escape'){stopMacro();stopRec();return}
+    state.macros.forEach(function(m){
+      if(!m.hk) return;
+      var parts=[];if(e.ctrlKey)parts.push('Ctrl');if(e.shiftKey)parts.push('Shift');if(e.altKey)parts.push('Alt');
+      if(e.key&&!['Control','Shift','Alt','Meta'].includes(e.key))parts.push(e.key);
+      var got=parts.join('+');
+      if(got.toLowerCase()===m.hk.toLowerCase()){
+        e.preventDefault();
+        state.active=state.macros.indexOf(m);
+        renderMacros();renderEditor();
+        runMacro();
+      }
+    });
+  });
+
+  renderMacros();renderEditor();
+  setTimeout(function(){toast('MacroDeck готов · создайте или выберите макрос')},500);
+})();
+</script>
+</body>
+</html>
