@@ -16,7 +16,7 @@
       el.className = 'om-error';
       form.appendChild(el);
     }
-    el.textContent = 'Не удалось отправить заявку. Напишите нам в Telegram @codway_support — примем вручную.';
+    el.textContent = 'Не удалось отправить заявку. Напишите нам в Telegram @codwey — примем вручную.';
   }
 
   function clearFormError(form) {
