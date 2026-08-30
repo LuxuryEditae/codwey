@@ -266,37 +266,37 @@
       title: "Кофейня «AROMA» · Лендинг Premium",
       desc: "Одностраничный сайт кофейни с собственным обжарочным цехом: меню с ценами, философия бренда, часы работы и контакты. Тёплая палитра и типографика создают ощущение чашки свежего кофе.",
       feats: ["Адаптив под все экраны", "Меню с ценами за 30 минут правок", "Формы и кнопки мессенджеров", "SEO-разметка для картинок и блюд"],
-      price: "от 8 900 ₽", file: "demos/coffee.html", url: "codway.su/demo/aroma-coffee"
+      price: "8 900 ₽", file: "demos/coffee.html", url: "codway.su/demo/aroma-coffee"
     },
     stroi: {
       title: "СтройМонтажГрупп · Корпоративный сайт",
       desc: "Сайт строительной компании в швейцарском стиле: чертёж-панель в герое, пронумерованные услуги с ценами, тёмный блок процесса и живой отзыв клиента с объекта.",
       feats: ["Форма сметы с мгновенным откликом", "Чертёж-визуал вместо стоковой картинки", "Моноширинные цифры и метки", "Конверсионные кнопки в каждом экране"],
-      price: "от 15 900 ₽", file: "demos/stroi.html", url: "codway.su/demo/stroymontazh"
+      price: "15 900 ₽", file: "demos/stroi.html", url: "codway.su/demo/stroymontazh"
     },
     ai: {
       title: "NeuroRouter · Веб-сервис (API-платформа)",
       desc: "Тёмная developer-платформа доступа к нейросетям через единый API в стиле OpenRouter: терминальный hero с curl-примером, таблица моделей с ценами за токены, тарифы Free/Pro/Enterprise на IBM Plex Sans + JetBrains Mono.",
       feats: ["OpenAI-совместимая документация", "Терминальный блок запроса", "Таблица моделей со статусами live", "Личный кабинет и биллинг (в полной версии)"],
-      price: "от 27 900 ₽", file: "demos/ai.html", url: "codway.su/demo/neurorouter"
+      price: "27 900 ₽", file: "demos/ai.html", url: "codway.su/demo/neurorouter"
     },
     itschool: {
       title: "PRO//КОД · Промо-сайт IT-школы",
       desc: "OLED-тёмный лендинг школы программирования в terminal-стилике: мигающий курсор в логотипе, prompt-строка $ ./start_career, зелёное свечение, курсы как файлы кода и счётчики метрик при скролле.",
       feats: ["Terminal-эстетика и сканлайны", "Счётчики с анимацией чисел", "Marquee-лента технологий", "CTA в виде окна терминала"],
-      price: "от 11 900 ₽", file: "demos/itschool.html", url: "codway.su/demo/prokod"
+      price: "11 900 ₽", file: "demos/itschool.html", url: "codway.su/demo/prokod"
     },
     transport: {
       title: "ТрансЛогистик · Сайт транспортной компании",
       desc: "Сайт перевозчика в tracking-blue палитре: карточка отслеживания груза прямо в первом экране со статусом «в пути», тарифная сетка с ховером и три гарантии с иконками.",
       feats: ["Живой трекинг накладной в герое", "Тарифная таблица с ховером строк", "Статус-бар груза с пульсацией", "Моноширинные номера и ставки"],
-      price: "от 22 900 ₽", file: "demos/transport.html", url: "codway.su/demo/translogistic"
+      price: "22 900 ₽", file: "demos/transport.html", url: "codway.su/demo/translogistic"
     },
     cs2: {
       title: "HEADSHOT // Форум CS2 · Сайт «под ключ»",
       desc: "Киберспортивный форум в неон-пурпуре на шрифтах Russo One + Chakra Petch: сетка-фон, турнирный баннер WINTER CUP со sweep-бликом, темы с тегами HOT/PIN и счётчиками просмотров.",
       feats: ["Шрифты Russo One / Chakra Petch", "Баннер турнира со sweep-анимацией", "Строки тем с ховер-подъёмом", "Разделы-фильтры и поиск"],
-      price: "от 32 900 ₽", file: "demos/cs2.html", url: "codway.su/demo/headshot-cs2"
+      price: "32 900 ₽", file: "demos/cs2.html", url: "codway.su/demo/headshot-cs2"
     }
   };
   /* Готовые приложения: данные для окна покупки (демо-режим у приложений отключён) */
@@ -351,12 +351,12 @@
   /* Telegram-боты: интерактивный симулятор */
   var TG_FILES={vdmax:"dl.html",aimod:"aimod.html",aisales:"aisales.html",shop:"shop.html",booker:"booker.html",support:"support.html"};
   var TG_BOTS = {
-    vdmax:{title:"Video Downloader · Telegram-бот",desc:"Скачивает видео с YouTube, VK, RuTube, TikTok и Telegram в максимальном качестве до 4K60 — файлом прямо в чат. MP3-режим и плейлисты включены.",feats:["5 платформ","До 4K60 HDR + MP3","Плейлисты одним запросом"],price:"от 6 900 ₽",url:"t.me/videodownloader_max_bot",file:"demos/bots/dl.html"},
-    aimod:{title:"AI-модератор групп · Telegram-бот",desc:"Цензурирует мат и оскорбления, режет ссылки-спам, встречает новичков капчей, ведёт варны и автоматически мутирует/банит нарушителей.",feats:["Фильтры мата/спама/капса","Капча на входе","Варны → мут → бан"],price:"от 9 900 ₽",url:"t.me/ai_moderator_codway_bot",file:"demos/bots/aimod.html"},
-    aisales:{title:"AI-менеджер продаж · Telegram-бот",desc:"Отвечает клиентам в личке или группе по вашей базе знаний, квалифицирует потребность и присылает готовую заявку вам в админку CodWay.",feats:["Отвечает 24/7 по базе знаний","Заявки летят в админку","Скидки по сценарию"],price:"от 13 900 ₽",url:"t.me/ai_sales_codway_bot",file:"demos/bots/aisales.html"},
-    shop:{title:"Магазин в Telegram",desc:"Каталог с карточками товаров, корзина, промокоды, приём оплаты и уведомления о заказах — весь магазин внутри мессенджера.",feats:["Каталог и корзина","Оплата и чеки","Уведомления о заказах"],price:"от 9 900 ₽",url:"t.me/shop_codway_bot",file:"demos/bots/shop.html"},
-    booker:{title:"Бот записи клиентов · Telegram-бот",desc:"Свободные слоты в два тапа, автонапоминания за 24 часа и 2 часа до визита, сбор отзывов после обслуживания.",feats:["Слоты и расписание","Напоминания 24ч/2ч","Сбор отзывов"],price:"от 6 900 ₽",url:"t.me/booker_codway_bot",file:"demos/bots/booker.html"},
-    support:{title:"Бот-поддержка · Telegram-бот",desc:"Отвечает на типовые вопросы клиентов из вашей базы знаний 24/7, принимает тикеты и эскалирует сложные случаи оператору — ни один вопрос не теряется.",feats:["База знаний и FAQ","Тикеты в админку","Эскалация оператору"],price:"от 5 900 ₽",url:"t.me/support_codway_bot",file:"demos/bots/support.html"}
+    vdmax:{title:"Video Downloader · Telegram-бот",desc:"Скачивает видео с YouTube, VK, RuTube, TikTok и Telegram в максимальном качестве до 4K60 — файлом прямо в чат. MP3-режим и плейлисты включены.",feats:["5 платформ","До 4K60 HDR + MP3","Плейлисты одним запросом"],price:"6 900 ₽",url:"t.me/videodownloader_max_bot",file:"demos/bots/dl.html"},
+    aimod:{title:"AI-модератор групп · Telegram-бот",desc:"Цензурирует мат и оскорбления, режет ссылки-спам, встречает новичков капчей, ведёт варны и автоматически мутирует/банит нарушителей.",feats:["Фильтры мата/спама/капса","Капча на входе","Варны → мут → бан"],price:"9 900 ₽",url:"t.me/ai_moderator_codway_bot",file:"demos/bots/aimod.html"},
+    aisales:{title:"AI-менеджер продаж · Telegram-бот",desc:"Отвечает клиентам в личке или группе по вашей базе знаний, квалифицирует потребность и присылает готовую заявку вам в админку CodWay.",feats:["Отвечает 24/7 по базе знаний","Заявки летят в админку","Скидки по сценарию"],price:"13 900 ₽",url:"t.me/ai_sales_codway_bot",file:"demos/bots/aisales.html"},
+    shop:{title:"Магазин в Telegram",desc:"Каталог с карточками товаров, корзина, промокоды, приём оплаты и уведомления о заказах — весь магазин внутри мессенджера.",feats:["Каталог и корзина","Оплата и чеки","Уведомления о заказах"],price:"9 900 ₽",url:"t.me/shop_codway_bot",file:"demos/bots/shop.html"},
+    booker:{title:"Бот записи клиентов · Telegram-бот",desc:"Свободные слоты в два тапа, автонапоминания за 24 часа и 2 часа до визита, сбор отзывов после обслуживания.",feats:["Слоты и расписание","Напоминания 24ч/2ч","Сбор отзывов"],price:"6 900 ₽",url:"t.me/booker_codway_bot",file:"demos/bots/booker.html"},
+    support:{title:"Бот-поддержка · Telegram-бот",desc:"Отвечает на типовые вопросы клиентов из вашей базы знаний 24/7, принимает тикеты и эскалирует сложные случаи оператору — ни один вопрос не теряется.",feats:["База знаний и FAQ","Тикеты в админку","Эскалация оператору"],price:"5 900 ₽",url:"t.me/support_codway_bot",file:"demos/bots/support.html"}
   };
   function hashCode(s) {
     var h = 5381;
@@ -779,6 +779,7 @@
       return;
     }
     var payload = {
+      kind: 'custom',
       source: omTitle.textContent,
       type: oType.value,
       description: oDesc.value.trim(),
@@ -906,6 +907,8 @@
     var comment = (bComment.value || '').trim();
     var customize = !!(bCustomize && bCustomize.checked);
     var payload = {
+      kind: 'ready',
+      product: currentProduct.name,
       source: 'Купить «' + currentProduct.name + '»',
       type: currentProduct.cat || 'приложение',
       description: 'Покупка готового решения «' + currentProduct.name + '» (' + (CAT_LABEL[currentProduct.cat] || 'приложение') + ') за ' + currentProduct.price +

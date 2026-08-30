@@ -91,6 +91,6 @@
     <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="1.5" fill="#475569">.EXE · WINDOWS</text>
   </g>
   <g transform="translate(740 360)">
-    <text x="0" y="0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="1.5" fill="#f59e0b" font-weight="700">от 1 900 ₽</text>
+    <text x="0" y="0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="1.5" fill="#f59e0b" font-weight="700">1 900 ₽</text>
   </g>
 </svg>
