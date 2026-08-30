@@ -5,6 +5,7 @@
   'use strict';
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pageT0 = Date.now(); // для анти-бот проверки времени заполнения формы
 
   /* ---------- Отправка заявки напрямую в админку (без чата) ---------- */
   var ORDER_API = 'https://api.codway.su/api/order';
@@ -780,6 +781,8 @@
     }
     var payload = {
       kind: 'custom',
+      hp_url: (orderForm.querySelector('[name="hp_url"]') || {}).value || '',
+      form_ms: Date.now() - pageT0,
       source: omTitle.textContent,
       type: oType.value,
       description: oDesc.value.trim(),
@@ -909,6 +912,8 @@
     var payload = {
       kind: 'ready',
       product: currentProduct.name,
+      hp_url: (buyForm.querySelector('[name="hp_url"]') || {}).value || '',
+      form_ms: Date.now() - pageT0,
       source: 'Купить «' + currentProduct.name + '»',
       type: currentProduct.cat || 'приложение',
       description: 'Покупка готового решения «' + currentProduct.name + '» (' + (CAT_LABEL[currentProduct.cat] || 'приложение') + ') за ' + currentProduct.price +

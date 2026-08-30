@@ -1448,16 +1448,11 @@ body:not(.ready) { overflow: hidden; }
   .p-foot { flex-wrap: wrap; gap: 12px; }
   .btn-buy { min-width: 0; flex: 1 1 auto; }
 
-  /* Мобайл: декоративные SVG-обложки прячем — они дублируют инфо и налезают на бейдж */
-  .product-card > .p-cover { display: none; }
-  .product-card:has(> .p-cover) > .p-top {
-    position: static; left: auto; top: auto;
-    margin: 20px 20px 0 !important; display: flex; width: auto;
-  }
-  .product-card:has(> .p-cover) > .p-top .p-badge {
-    background: none; backdrop-filter: none; -webkit-backdrop-filter: none;
-    border: 1px solid var(--line-strong); text-shadow: none; color: var(--white);
-  }
+  /* Мобайл: обложки ботов/приложений видны целиком (аспект 2:1 = как в SVG,
+     без обрезки), а плавающий HTML-бейдж прячем — в самой обложке уже есть
+     подпись (BOT · / APP ·), иначе он налезал на заголовок. */
+  .product-card > .p-cover { aspect-ratio: 800 / 400; }
+  .product-card:has(> .p-cover) > .p-top { display: none; }
   .product-card .p-top, .product-card h3, .product-card > p,
   .product-card .p-tags, .product-card .p-feats, .product-card .p-foot { margin-left: 20px; margin-right: 20px; }
 }
