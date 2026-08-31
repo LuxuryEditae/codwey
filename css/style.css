@@ -840,7 +840,7 @@ footer {
   padding: 68px 0 32px;
   overflow: hidden;
 }
-.f-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 44px; }
+.f-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px; }
 .f-about p { color: var(--muted); font-size: 14px; max-width: 320px; margin-top: 16px; }
 .f-meta {
   display: flex; align-items: center;
@@ -1415,6 +1415,7 @@ body:not(.ready) { overflow: hidden; }
 @media (max-width: 1024px) {
   .grid-products { grid-template-columns: repeat(2, 1fr); }
   .orbit { display: none; }
+  .f-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
 }
 
 @media (max-width: 720px) {
