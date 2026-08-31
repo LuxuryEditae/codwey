@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="Inter, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0b"/><stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9a468"/><stop offset="1" stop-color="#e9cf9f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g stroke="#ffffff" stroke-opacity="0.045" stroke-width="1">
+    <path d="M100 0V630M300 0V630M500 0V630M700 0V630M900 0V630M1100 0V630M0 150H1200M0 315H1200M0 480H1200"/>
+  </g>
+  <g stroke="#c9a468" stroke-opacity="0.5" stroke-width="2" fill="none">
+    <path d="M56 56v26M56 56h26M1144 56v26M1144 56h-26M56 574v-26M56 574h26M1144 574v-26M1144 574h-26"/>
+  </g>
+
+  <text x="80" y="150" fill="#c9a468" font-size="20" font-weight="700" letter-spacing="6">СТУДИЯ ЦИФРОВЫХ РЕШЕНИЙ · EST. 2020</text>
+
+  <text x="76" y="330" fill="#ffffff" font-size="150" font-weight="900" letter-spacing="-4">CODWAY</text>
+  <path d="M720 210 L640 330" stroke="url(#gold)" stroke-width="16" stroke-linecap="square"/>
+
+  <text x="80" y="410" fill="#f3f1ec" font-size="42" font-weight="800">Разработка, которая выглядит дорого</text>
+
+  <g font-size="22" font-weight="700" letter-spacing="1" fill="#a7a49b">
+    <rect x="80" y="452" width="196" height="52" rx="6" fill="none" stroke="#ffffff" stroke-opacity="0.22"/>
+    <text x="106" y="486">САЙТЫ</text>
+    <rect x="292" y="452" width="300" height="52" rx="6" fill="none" stroke="#ffffff" stroke-opacity="0.22"/>
+    <text x="318" y="486">TELEGRAM-БОТЫ</text>
+    <rect x="608" y="452" width="278" height="52" rx="6" fill="none" stroke="#ffffff" stroke-opacity="0.22"/>
+    <text x="634" y="486">ПРИЛОЖЕНИЯ</text>
+  </g>
+
+  <text x="80" y="576" fill="#ffffff" font-size="30" font-weight="900" letter-spacing="1">codway.su</text>
+  <text x="1120" y="576" text-anchor="end" fill="#706e66" font-size="20" font-weight="600" letter-spacing="1">Готовые решения · Проекты под ключ</text>
+</svg>

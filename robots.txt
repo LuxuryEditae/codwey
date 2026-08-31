@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /pay.html
+Disallow: /legal.html
 
 Sitemap: https://codway.su/sitemap.xml
