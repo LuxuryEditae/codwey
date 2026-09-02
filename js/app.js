@@ -15,6 +15,7 @@
     if (!el) {
       el = document.createElement('p');
       el.className = 'om-error';
+      el.setAttribute('role', 'alert');
       form.appendChild(el);
     }
     el.textContent = 'Не удалось отправить заявку. Напишите нам в Telegram @codwey — примем вручную.';
@@ -32,11 +33,17 @@
       if (done) return;
       done = true;
       if (ok) {
-        if (opts.successEl) opts.successEl.classList.add('show');
+        if (opts.successEl) {
+          opts.successEl.setAttribute('aria-hidden', 'false');
+          opts.successEl.classList.add('show');
+        }
         setTimeout(function () {
           if (opts.form) { opts.form.reset(); clearFormError(opts.form); }
           if (opts.close) opts.close();
-          if (opts.successEl) opts.successEl.classList.remove('show');
+          if (opts.successEl) {
+            opts.successEl.classList.remove('show');
+            opts.successEl.setAttribute('aria-hidden', 'true');
+          }
         }, 1600);
       } else if (opts.onError) {
         opts.onError();
