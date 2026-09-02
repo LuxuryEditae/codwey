@@ -1050,6 +1050,13 @@ footer {
 }
 .consent-row label[for] { cursor: pointer; }
 .consent-text {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   transition: color 0.25s;
   text-decoration: underline;

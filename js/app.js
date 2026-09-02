@@ -576,6 +576,68 @@
   var lastDemoIsTg = false;
   var currentDemoBuyKey = '';
 
+  /* ---------- Управление фокусом в диалогах ----------
+     Диалоги не должны выпускать фокус на страницу под ними: иначе
+     клавиатурный пользователь теряет контекст формы или демо. */
+  var activeDialog = null;
+  var dialogSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function openDialog(dialog, initialFocus) {
+    if (!dialog) return;
+    dialog._returnFocus = document.activeElement;
+    dialog._previousDialog = activeDialog;
+    if (activeDialog) {
+      activeDialog.setAttribute('inert', '');
+      activeDialog.setAttribute('aria-hidden', 'true');
+    }
+    activeDialog = dialog;
+    dialog.classList.add('open');
+    dialog.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () {
+      var target = initialFocus || dialog.querySelector(dialogSelector);
+      if (target && typeof target.focus === 'function') target.focus();
+    }, 340);
+  }
+
+  function closeDialog(dialog) {
+    if (!dialog) return;
+    dialog.classList.remove('open');
+    dialog.setAttribute('aria-hidden', 'true');
+    if (activeDialog === dialog) activeDialog = dialog._previousDialog || null;
+    if (activeDialog) {
+      activeDialog.removeAttribute('inert');
+      activeDialog.setAttribute('aria-hidden', 'false');
+    }
+    if (!activeDialog || !activeDialog.classList.contains('open')) document.body.style.overflow = '';
+    var returnFocus = dialog._returnFocus;
+    dialog._returnFocus = null;
+    setTimeout(function () {
+      if (returnFocus && document.contains(returnFocus) && typeof returnFocus.focus === 'function') {
+        returnFocus.focus();
+      }
+    }, 0);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab' || !activeDialog || !activeDialog.classList.contains('open')) return;
+    var focusable = Array.prototype.slice.call(activeDialog.querySelectorAll(dialogSelector))
+      .filter(function (el) {
+        var style = window.getComputedStyle(el);
+        return !el.hidden && style.display !== 'none' && style.visibility !== 'hidden' && el.getClientRects().length > 0;
+      });
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+
   /* Демо-ключ → ключ товара в каталоге (для кнопки «Купить такой …» в окне демо) */
   var DEMO_BUYKEY = {
     coffee: "Лендинг Premium (сайт)",
@@ -619,15 +681,11 @@
       if (isTg) dmOrderBtn.textContent = 'Купить такого бота';
       else dmOrderBtn.textContent = 'Купить такой сайт';
     }
-    demoBackdrop.classList.add('open');
-    demoBackdrop.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    openDialog(demoBackdrop, document.getElementById('demoClose'));
   }
 
   function closeDemo() {
-    demoBackdrop.classList.remove('open');
-    demoBackdrop.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    closeDialog(demoBackdrop);
     setTimeout(function () { dmFrame.src = 'about:blank'; }, 350);
   }
 
@@ -695,15 +753,14 @@
   /* ---------- Попап закона 152-ФЗ ---------- */
   var lawBackdrop = document.getElementById('lawBackdrop');
   function openLaw() {
-    lawBackdrop.classList.add('open');
-    lawBackdrop.setAttribute('aria-hidden', 'false');
+    openDialog(lawBackdrop, document.getElementById('lawClose'));
   }
   function closeLaw() {
-    lawBackdrop.classList.remove('open');
-    lawBackdrop.setAttribute('aria-hidden', 'true');
+    closeDialog(lawBackdrop);
   }
   document.querySelectorAll('.consent-text').forEach(function (el) {
     el.addEventListener('click', openLaw);
+    if (el.tagName === 'BUTTON') return;
     el.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLaw(); }
     });
@@ -755,16 +812,11 @@
       input.removeAttribute('aria-invalid');
     });
     if (oDescCount) oDescCount.textContent = oDesc.value.length;
-    backdrop.classList.add('open');
-    backdrop.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    setTimeout(function () { oDesc.focus(); }, 340);
+    openDialog(backdrop, oDesc);
   }
 
   function closeOrder() {
-    backdrop.classList.remove('open');
-    backdrop.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    closeDialog(backdrop);
   }
 
   document.getElementById('orderClose').addEventListener('click', closeOrder);
@@ -871,10 +923,7 @@
     buyForm.querySelectorAll('input, textarea').forEach(function (el) {
       el.removeAttribute('aria-invalid');
     });
-    buyBackdrop.classList.add('open');
-    buyBackdrop.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    setTimeout(function () { try { bName.focus(); } catch (e) {} }, 340);
+    openDialog(buyBackdrop, bName);
   }
 
   /* Чекбокс «нужна доработка» раскрывает поле с деталями */
@@ -889,9 +938,7 @@
   }
 
   function closeBuy() {
-    buyBackdrop.classList.remove('open');
-    buyBackdrop.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    closeDialog(buyBackdrop);
   }
 
   document.getElementById('buyClose').addEventListener('click', closeBuy);

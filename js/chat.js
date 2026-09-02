@@ -37,6 +37,8 @@
   var reconnectAttempts = 0;
   var maxReconnectAttempts = 3;
   var isOnline = navigator.onLine;
+  var chatReturnFocus = null;
+  var chatFocusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
   /* ---------- утилиты ---------- */
   function escapeHtml(s) {
@@ -306,6 +308,7 @@
   });
 
   function openPanel(prefill) {
+    if (!panel.classList.contains('open')) chatReturnFocus = document.activeElement;
     panel.classList.add('open');
     panel.setAttribute('aria-hidden', 'false');
     updateFabAria(true);
@@ -330,6 +333,11 @@
     panel.classList.remove('open');
     panel.setAttribute('aria-hidden', 'true');
     updateFabAria(false);
+    var returnFocus = chatReturnFocus;
+    chatReturnFocus = null;
+    if (returnFocus && document.contains(returnFocus) && typeof returnFocus.focus === 'function') {
+      setTimeout(function () { returnFocus.focus(); }, 0);
+    }
   }
 
   fab.addEventListener('click', function () {
@@ -340,6 +348,22 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && panel.classList.contains('open')) closePanel();
+    if (e.key !== 'Tab' || !panel.classList.contains('open')) return;
+    var focusable = Array.prototype.slice.call(panel.querySelectorAll(chatFocusableSelector))
+      .filter(function (el) {
+        var style = window.getComputedStyle(el);
+        return !el.hidden && style.display !== 'none' && style.visibility !== 'hidden' && el.getClientRects().length > 0;
+      });
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   });
 
   /* ---------- Online/Offline detection ---------- */
