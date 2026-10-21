@@ -1,18 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   ArrowRight,
   ArrowDown,
   Check,
-  CheckCheck,
-  ChevronDown,
   Code2,
   Bot,
   Boxes,
   Braces,
   Layers3,
-  ShieldCheck,
   Sparkles,
   Send,
   ShoppingBag,
@@ -28,10 +24,6 @@ import {
   LoaderCircle,
   ExternalLink,
   Zap,
-  Globe2,
-  Cpu,
-  MoveUpRight,
-  MessageSquare,
   CheckCircle2,
 } from "lucide-react";
 import pricing from "../shared/pricing.json";
@@ -44,6 +36,9 @@ const API_BASE =
     : "");
 
 const money = (v) => new Intl.NumberFormat("ru-RU").format(v);
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const projectIcons = {
   bot: Bot,
   miniapp: Layers3,
@@ -85,7 +80,7 @@ function Logo() {
 }
 function SectionIntro({ n, label, children, text }) {
   return (
-    <div className="section-intro">
+    <div className="section-intro" data-reveal>
       <div className="eyebrow">
         <span>{n} /</span> {label}
       </div>
@@ -93,6 +88,59 @@ function SectionIntro({ n, label, children, text }) {
       {text && <p>{text}</p>}
     </div>
   );
+}
+
+/**
+ * Progressive-enhancement reveal.
+ *
+ * The hidden state is only applied once `reveal-ready` is set on <html>, so a
+ * JavaScript failure can never leave the page unreadable. Only transform and
+ * opacity are animated and the text itself stays opaque.
+ */
+function useReveal() {
+  // Layout effect: the hidden state is applied before the first paint, so the
+  // page never flashes visible content and then hides it again.
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const targets = Array.from(document.querySelectorAll("[data-reveal]"));
+    if (!targets.length) return;
+    const revealAll = () =>
+      targets.forEach((el) => el.classList.add("is-in"));
+    if (
+      typeof IntersectionObserver === "undefined" ||
+      prefersReducedMotion()
+    ) {
+      revealAll();
+      return;
+    }
+    root.classList.add("reveal-ready");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-in");
+          observer.unobserve(entry.target);
+        });
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.08 },
+    );
+    targets.forEach((el) => observer.observe(el));
+    const fallback = () =>
+      targets.forEach((el) => {
+        if (el.classList.contains("is-in")) return;
+        if (el.getBoundingClientRect().top < window.innerHeight * 0.94)
+          el.classList.add("is-in");
+      });
+    window.addEventListener("scroll", fallback, { passive: true });
+    window.addEventListener("resize", fallback);
+    fallback();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", fallback);
+      window.removeEventListener("resize", fallback);
+      root.classList.remove("reveal-ready");
+    };
+  }, []);
 }
 
 function PhonePreview({ small = false }) {
@@ -297,7 +345,7 @@ function Calculator({ prefill, onPrivacy }) {
             </span>
           </div>
         </div>
-        <form className="calculator-grid" onSubmit={submit}>
+        <form className="calculator-grid" onSubmit={submit} data-reveal>
           <div className="configurator">
             <div className="form-step">
               <span>01</span>
@@ -755,23 +803,17 @@ function Modal({ title, onClose, children }) {
     };
   }, []);
   return (
-    <motion.div
+    <div
       className="modal-overlay"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <motion.div
+      <div
         className="modal"
         role="dialog"
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
         ref={ref}
-        initial={{ y: 16, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 16, opacity: 0 }}
       >
         <div className="modal-header">
           <h2>{title}</h2>
@@ -784,8 +826,8 @@ function Modal({ title, onClose, children }) {
           </button>
         </div>
         {children}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -795,7 +837,7 @@ export default function App() {
   const [privacy, setPrivacy] = useState(false);
   const [faq, setFaq] = useState(0);
   const [prefill, setPrefill] = useState(null);
-  const reduceMotion = useReducedMotion();
+  useReveal();
   const chooseProject = (type) => {
     const details = {
       shop: {
@@ -817,7 +859,9 @@ export default function App() {
       () =>
         document
           .getElementById("calculator")
-          .scrollIntoView({ behavior: reduceMotion ? "instant" : "smooth" }),
+          .scrollIntoView({
+            behavior: prefersReducedMotion() ? "instant" : "smooth",
+          }),
       40,
     );
   };
@@ -858,7 +902,14 @@ export default function App() {
         </div>
       </header>
       <main id="main">
-        <BackgroundPaths title={"Идеи становятся\nпродуктами."} />
+        <BackgroundPaths
+          title={"Идеи становятся\nпродуктами."}
+          facts={[
+            "Смета — до первого сообщения",
+            "Срок — от 3 рабочих дней",
+            "Исходный код передаём вам",
+          ]}
+        />
         <div className="stack-strip">
           <div className="container">
             <span className="mono">
@@ -892,9 +943,8 @@ export default function App() {
                 <span className="subtle">Больше вашего бизнеса.</span>
               </SectionIntro>
               <p className="section-aside">
-                Не просто пишем код. Убираем лишние действия
-                <br />
-                между вашим бизнесом и результатом.
+                Не просто пишем код. Убираем лишние действия между вашим
+                бизнесом и результатом.
               </p>
             </div>
             <div className="services-grid">
@@ -924,7 +974,12 @@ export default function App() {
                   price: "от 10 000 ₽",
                 },
               ].map(({ icon: Icon, ...s }) => (
-                <a href="#calculator" className="service-card" key={s.num}>
+                <a
+                  href="#calculator"
+                  className="service-card"
+                  key={s.num}
+                  data-reveal
+                >
                   <div className="service-top">
                     <Icon size={25} />
                     <span className="mono">/{s.num}</span>
@@ -955,13 +1010,12 @@ export default function App() {
                 <span className="subtle">А можно попробовать.</span>
               </SectionIntro>
               <p className="section-aside">
-                Три демо-концепта, которые можно потрогать.
-                <br />
-                Посмотрите, как может работать ваш продукт.
+                Три демо-концепта, которые можно потрогать. Посмотрите, как
+                может работать ваш продукт.
               </p>
             </div>
             <div className="work-grid">
-              <article className="work-card">
+              <article className="work-card" data-reveal>
                 <button
                   className="work-visual shop-visual"
                   onClick={() => setDemo("shop")}
@@ -989,7 +1043,7 @@ export default function App() {
                   </button>
                 </div>
               </article>
-              <article className="work-card">
+              <article className="work-card" data-reveal>
                 <button
                   className="work-visual booking-visual"
                   onClick={() => setDemo("booking")}
@@ -1052,7 +1106,7 @@ export default function App() {
                   </button>
                 </div>
               </article>
-              <article className="work-card">
+              <article className="work-card" data-reveal>
                 <button
                   className="work-visual ai-visual"
                   onClick={() => setDemo("ai")}
@@ -1150,7 +1204,7 @@ export default function App() {
                   "РЕЛИЗ → РЕЗУЛЬТАТ",
                 ],
               ].map(([n, title, text, tag]) => (
-                <div className="process-step" key={n}>
+                <div className="process-step" key={n} data-reveal>
                   <div className="process-number">
                     {n}
                     <ArrowRight size={18} />
@@ -1175,6 +1229,7 @@ export default function App() {
                 <div
                   className={`faq-item ${faq === i ? "expanded" : ""}`}
                   key={q}
+                  data-reveal
                 >
                   <h3>
                     <button
@@ -1184,14 +1239,17 @@ export default function App() {
                       onClick={() => setFaq(faq === i ? null : i)}
                     >
                       <span>{q}</span>
-                      {faq === i ? <Minus size={18} /> : <Plus size={18} />}
+                      <span className="faq-icon" aria-hidden="true">
+                        <Minus size={18} />
+                      </span>
                     </button>
                   </h3>
                   <div
                     id={`faq-${i}`}
                     role="region"
                     aria-labelledby={`faq-button-${i}`}
-                    hidden={faq !== i}
+                    className="faq-answer"
+                    data-open={faq === i ? "true" : "false"}
                   >
                     <p>{a}</p>
                   </div>
@@ -1226,6 +1284,15 @@ export default function App() {
           <div>
             <Logo />
             <p>Код, который работает на вас.</p>
+            <a
+              className="footer-telegram"
+              href="https://t.me/codwey_bot"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <Send size={14} /> @codwey_bot
+              <ExternalLink size={13} />
+            </a>
           </div>
           <div className="footer-links">
             <a href="#services">Услуги</a>
@@ -1245,6 +1312,10 @@ export default function App() {
           </span>
         </div>
       </footer>
+      <a className="mobile-cta" href="#calculator">
+        <span>Обсудить проект</span>
+        <ArrowUpRight size={18} />
+      </a>
       <>
         {demo && (
           <DemoModal

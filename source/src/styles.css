@@ -168,37 +168,66 @@ svg {
   display: none !important;
 }
 .paths-hero {
-  min-height: min(860px, calc(100svh - 94px));
-  padding: 120px 30px 148px;
+  min-height: min(880px, calc(100svh - 94px));
+  padding: 118px 30px 156px;
   isolation: isolate;
+  background: #09090b;
 }
+/* Static SVG geometry: no mask, no filter, no runtime animation.
+   A CSS mask on this layer used to invalidate the hero paint surface and the
+   headline could vanish for whole seconds, so the fade is painted separately. */
 .paths-canvas {
-  z-index: 0;
-  opacity: 0.52;
-  mask-image: linear-gradient(
-    to bottom,
-    #0009,
-    #000 25%,
-    #000 70%,
-    transparent
-  );
-}
-.paths-canvas::after {
-  content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    ellipse at center,
-    #09090b 7%,
-    #09090bd4 27%,
-    #09090b00 64%
-  );
+  z-index: 1;
+  opacity: 0.62;
+  pointer-events: none;
+  contain: strict;
 }
 .paths-layer {
-  color: #9c9ca1;
+  position: absolute;
+  inset: 0;
+  color: #6f6f7a;
 }
 .paths-layer svg {
-  min-height: 100%;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.paths-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      52% 42% at 50% 44%,
+      #191926 0%,
+      #111119 34%,
+      #09090b 72%
+    ),
+    radial-gradient(
+      28% 22% at 50% 38%,
+      #23233a 0%,
+      #09090b00 70%
+    );
+}
+.paths-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      #09090b 0%,
+      #09090b00 18%,
+      #09090b00 58%,
+      #09090b 96%
+    ),
+    linear-gradient(to right, #09090b 0%, #09090b00 14%, #09090b00 86%, #09090b 100%);
 }
 .paths-content {
   width: min(1080px, 100%);
@@ -210,43 +239,58 @@ svg {
   align-items: center;
   flex-wrap: wrap;
   gap: 11px;
-  font-size: 11px;
+  font-size: 12px;
   color: #b4b4b9;
-  margin-bottom: 38px;
+  margin-bottom: 34px;
   letter-spacing: 0.15px;
 }
 .status-dot {
   display: inline-block;
-  height: 5px;
-  width: 5px;
+  height: 6px;
+  width: 6px;
   border-radius: 50%;
   background: #3b3b43;
   flex-shrink: 0;
+}
+.paths-kicker .status-dot {
+  background: #9bad8e;
+  box-shadow: 0 0 0 4px #9bad8e1f;
+  animation: dot-pulse 2.6s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px #9bad8e14;
+  }
+  50% {
+    box-shadow: 0 0 0 6px #9bad8e26;
+  }
 }
 .kicker-separator {
   color: #9c9ca1;
   margin: 0 2px;
 }
 .paths-hero h1 {
-  font-size: clamp(66px, 7.8vw, 110px);
-  line-height: 1.045;
+  font-size: clamp(62px, 7.6vw, 108px);
+  line-height: 1.04;
   letter-spacing: -0.065em;
   font-weight: 550;
   margin: 0;
+  text-wrap: balance;
 }
 .paths-title-line {
   display: block;
 }
 /* Solid text avoids background-clip/filter repaint failures during scrolling. */
 .paths-title-line:last-child {
-  color: #9c9ca5;
+  color: #8f8f9b;
 }
 .paths-description {
   color: #b4b4b9;
-  font-size: 15px;
-  line-height: 1.9;
-  max-width: 500px;
-  margin: 28px auto 0;
+  font-size: 16px;
+  line-height: 1.85;
+  max-width: 520px;
+  margin: 26px auto 0;
   text-wrap: balance;
 }
 .paths-actions {
@@ -254,64 +298,103 @@ svg {
   align-items: center;
   justify-content: center;
   gap: 28px;
-  margin-top: 36px;
+  margin-top: 38px;
 }
 .paths-button-wrap {
   padding: 1px;
   border-radius: 19px;
-  box-shadow: 0 9px 25px #00000010;
+  background: linear-gradient(140deg, #3a3a44 0%, #1b1b20 55%, #2f2f38 100%);
+  box-shadow:
+    0 9px 28px #00000059,
+    0 0 0 1px #ffffff0a inset;
 }
 .paths-button {
   padding: 17px 25px;
   min-height: 58px;
   height: auto;
   border-radius: 18px;
-  gap: 28px;
-  font-size: 13px;
+  gap: 26px;
+  font-size: 13.5px;
   font-weight: 500;
-  border-color: #2b2b30;
-  background: #111113f5;
-  color: #eaeaef;
+  border: 0;
+  background: #17171a;
+  color: #f4f4f5;
+  transition:
+    background 0.25s,
+    transform 0.25s;
 }
 .paths-button:hover {
-  background: #111113;
+  background: #22222a;
+  transform: translateY(-1px);
+}
+.paths-button svg {
+  transition: transform 0.25s;
+}
+.paths-button:hover svg {
+  transform: translate(3px, -3px);
 }
 .paths-secondary {
   display: inline-flex;
   align-items: center;
   gap: 11px;
-  font-size: 12px;
+  font-size: 13px;
   color: #b4b4b9;
   transition: color 0.2s;
 }
 .paths-secondary:hover {
   color: #eaeaef;
 }
+.paths-secondary svg {
+  transition: transform 0.25s;
+}
+.paths-secondary:hover svg {
+  transform: translateY(3px);
+}
 .paths-caption {
-  margin-top: 32px;
+  margin-top: 30px;
   color: #9c9ca1;
-  font-size: 10px;
+  font-size: 11px;
   display: flex;
   gap: 10px;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
 }
 .caption-dot {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: #28282e;
+  background: #3a3a42;
+}
+.paths-facts {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+}
+.paths-facts li {
+  border: 1px solid #26262c;
+  background: #111113b3;
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 12px;
+  color: #b4b4b9;
+  white-space: nowrap;
 }
 .paths-bottom {
   position: absolute;
   bottom: 29px;
   left: 40px;
   right: 40px;
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 10px;
   color: #9c9ca1;
   letter-spacing: 1px;
 }
@@ -2634,9 +2717,6 @@ footer {
     max-width: 330px;
     line-height: 1.8;
   }
-  .section-aside br {
-    display: none;
-  }
   .section-intro > p {
     font-size: 13px;
     line-height: 1.8;
@@ -3163,8 +3243,8 @@ footer {
   from { transform: translateY(20px); }
   to { transform: none; }
 }
-.paths-layer svg { color: #d4d4d8; }
-.paths-button { background: #171719; color: #f4f4f5; border-color: #36363c; }
+.paths-layer svg { color: #6f6f7a; }
+.paths-button { background: #17171a; color: #f4f4f5; border-color: #36363c; }
 .paths-button:hover { background: #232326; }
 .paths-button-wrap { box-shadow: 0 9px 25px #0005; }
 .primary { background: #ededf0; color: #18181b; }
@@ -3183,3 +3263,474 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   .paths-title-line { animation: none; }
 }
+
+/* ======================================================================
+   CodWay polish layer
+   Legibility floor, scroll reveal, accordion, sticky mobile CTA.
+   ====================================================================== */
+
+/* --- Scroll reveal (progressive enhancement) -------------------------
+   The hidden state is only enabled once JS marks the document as ready,
+   so a script failure can never leave the page unreadable.            */
+.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 0.7, 0.2, 1),
+    transform 0.6s cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+.reveal-ready [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+.reveal-ready .services-grid [data-reveal]:nth-child(2),
+.reveal-ready .process-grid [data-reveal]:nth-child(2),
+.reveal-ready .work-grid [data-reveal]:nth-child(2) {
+  transition-delay: 0.08s;
+}
+.reveal-ready .services-grid [data-reveal]:nth-child(3),
+.reveal-ready .process-grid [data-reveal]:nth-child(3),
+.reveal-ready .work-grid [data-reveal]:nth-child(3) {
+  transition-delay: 0.16s;
+}
+.reveal-ready .process-grid [data-reveal]:nth-child(4) {
+  transition-delay: 0.24s;
+}
+
+/* --- FAQ accordion --------------------------------------------------- */
+.faq-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 1px solid #2b2b30;
+  border-radius: 50%;
+  color: #9c9ca1;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    color 0.2s,
+    border-color 0.2s,
+    background-color 0.2s;
+}
+.faq-icon svg {
+  stroke-width: 1.4;
+}
+.faq-item.expanded .faq-icon {
+  transform: rotate(180deg);
+  color: #f4f4f5;
+  border-color: #4a4a55;
+  background: #1b1b1f;
+}
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.42s cubic-bezier(0.22, 0.7, 0.2, 1),
+    visibility 0s linear 0.42s;
+}
+.faq-answer[data-open="true"] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 0.42s cubic-bezier(0.22, 0.7, 0.2, 1),
+    visibility 0s linear 0s;
+}
+.faq-answer > p {
+  overflow: hidden;
+  min-height: 0;
+  margin: 0;
+  padding-bottom: 0;
+  transition: padding-bottom 0.42s cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+.faq-answer[data-open="true"] > p {
+  padding-bottom: 25px;
+}
+
+/* --- Footer Telegram link -------------------------------------------- */
+.footer-telegram {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 7px 13px;
+  border: 1px solid #2b2b30;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #b4b4b9;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+.footer-telegram:hover {
+  color: #eaeaef;
+  border-color: #62626c;
+  transform: translateY(-1px);
+}
+.footer-telegram svg {
+  stroke-width: 1.6;
+}
+
+/* --- Sticky mobile CTA ------------------------------------------------ */
+.mobile-cta {
+  display: none;
+}
+
+/* --- Modal entrance ---------------------------------------------------- */
+@keyframes modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.modal-overlay {
+  animation: modal-fade 0.22s ease-out;
+}
+.modal {
+  animation: modal-rise 0.3s cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+
+/* --- Interactive polish ------------------------------------------------ */
+.service-card {
+  transition:
+    border-color 0.25s,
+    transform 0.25s;
+}
+.service-card:hover {
+  transform: translateY(-3px);
+}
+.service-card h3,
+.service-card p {
+  transition: color 0.25s;
+}
+.service-card:hover h3 {
+  color: #f4f4f5;
+}
+.faq-item h3 button {
+  transition:
+    color 0.2s,
+    padding-left 0.25s;
+}
+.faq-item h3 button:hover {
+  padding-left: 6px;
+}
+.project-option,
+.feature-option {
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+.feature-option:hover {
+  border-color: #35353c;
+}
+.project-option:focus-visible,
+.faq-item h3 button:focus-visible,
+.text-link:focus-visible,
+.icon-button:focus-visible {
+  outline: 2px solid #8b8b96;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.work-visual:focus-visible {
+  outline: 2px solid #8b8b96;
+  outline-offset: 3px;
+}
+h2,
+.section-intro h2 {
+  text-wrap: balance;
+}
+
+/* --- Legibility floor --------------------------------------------------
+   Micro labels stay monospaced but never drop below a readable size.   */
+.eyebrow,
+.section-intro .eyebrow {
+  font-size: 10px;
+}
+.service-top .mono {
+  font-size: 10px;
+}
+.tags > span {
+  font-size: 10px;
+}
+.work-meta > .mono {
+  font-size: 9px;
+}
+.work-meta .tags > span {
+  font-size: 8px;
+}
+.feature-option small {
+  font-size: 10px;
+}
+.feature-price {
+  font-size: 10px;
+}
+.config-note {
+  font-size: 10px;
+}
+.estimate-top .mono {
+  font-size: 9px;
+}
+.estimate-label {
+  font-size: 9px;
+}
+.estimate-disclaimer {
+  font-size: 10px;
+}
+.consent {
+  font-size: 10px;
+}
+.portfolio-note {
+  font-size: 10px;
+}
+.process-note {
+  font-size: 11px;
+}
+.process-step > .mono {
+  font-size: 8px;
+}
+.form-step > span {
+  font-size: 9px;
+}
+.visual-badge {
+  font-size: 9px;
+}
+.stack-strip .mono {
+  font-size: 9px;
+}
+.footer-bottom {
+  font-size: 10px;
+}
+.footer-bottom button {
+  font-size: 10px;
+}
+.footer-bottom .mono {
+  font-size: 8px;
+}
+.closing-coordinate {
+  font-size: 8px;
+}
+.modal-header h2 {
+  font-size: 13px;
+}
+.demo-notice {
+  font-size: 10px;
+}
+.work-meta .text-link {
+  font-size: 12px;
+}
+.small-note {
+  font-size: 12px;
+}
+.form-step small {
+  font-size: 10px;
+}
+
+@media (max-width: 1100px) {
+  .paths-hero h1 {
+    font-size: 82px;
+  }
+  .paths-description {
+    font-size: 15px;
+    max-width: 470px;
+  }
+}
+
+@media (max-width: 800px) {
+  .paths-hero {
+    align-items: flex-start;
+    padding-top: 92px;
+    min-height: max(620px, calc(100svh - 80px));
+  }
+  .paths-hero h1 {
+    font-size: clamp(52px, 8.6vw, 72px);
+  }
+  .paths-kicker {
+    font-size: 11px;
+    margin-bottom: 26px;
+  }
+  .paths-description {
+    font-size: 14px;
+    max-width: 460px;
+  }
+  .paths-actions {
+    margin-top: 30px;
+  }
+  .paths-caption {
+    font-size: 10px;
+  }
+  .paths-facts li {
+    font-size: 11px;
+    padding: 7px 13px;
+  }
+  .paths-bottom {
+    font-size: 8px;
+  }
+  .paths-bottom a {
+    font-size: 9px;
+    gap: 7px;
+  }
+  .stack-strip .container > div:last-child {
+    display: flex;
+  }
+  .stack-strip .mono {
+    font-size: 8px;
+  }
+  .work-meta .tags > span {
+    font-size: 8px;
+  }
+  .service-card .tags > span {
+    font-size: 8px;
+  }
+  .feature-price {
+    font-size: 9px;
+  }
+  .estimate-disclaimer {
+    font-size: 9px;
+  }
+  .consent {
+    font-size: 9px;
+  }
+  .portfolio-note {
+    font-size: 9px;
+  }
+  .process-step > .mono {
+    font-size: 7px;
+  }
+  .footer-bottom {
+    font-size: 9px;
+  }
+  .footer-bottom button {
+    font-size: 9px;
+  }
+  .footer-bottom .mono {
+    font-size: 7px;
+  }
+  .closing-coordinate {
+    font-size: 7px;
+  }
+  .mobile-cta {
+    position: fixed;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 15px 20px;
+    border: 1px solid #ffffff1f;
+    border-radius: 14px;
+    background: #ededf0;
+    color: #18181b;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 12px 34px #00000073;
+  }
+  .mobile-cta svg {
+    transition: transform 0.25s;
+  }
+  .mobile-cta:hover svg {
+    transform: translate(3px, -3px);
+  }
+  footer {
+    padding-bottom: 88px;
+  }
+}
+
+@media (max-width: 600px) {
+  .paths-hero {
+    align-items: flex-start;
+    padding-top: 74px;
+    padding-bottom: 120px;
+    min-height: max(600px, calc(100svh - 76px));
+  }
+  .paths-hero h1 {
+    font-size: clamp(42px, 9.4vw, 54px);
+  }
+  .paths-kicker {
+    font-size: 10px;
+    margin-bottom: 22px;
+  }
+  .paths-description {
+    font-size: 13px;
+    max-width: 340px;
+    margin-top: 20px;
+  }
+  .paths-actions {
+    margin-top: 26px;
+  }
+  .paths-caption {
+    font-size: 9px;
+    margin-top: 22px;
+  }
+  .paths-facts {
+    margin-top: 20px;
+    gap: 8px;
+  }
+  .paths-facts li {
+    font-size: 10px;
+    padding: 6px 11px;
+  }
+  .paths-bottom {
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+  .paths-bottom a {
+    font-size: 8px;
+  }
+  .stack-strip .mono {
+    font-size: 8px;
+  }
+  .visual-badge {
+    font-size: 8px;
+  }
+  .work-meta .tags > span {
+    font-size: 9px;
+  }
+  .service-card .tags > span {
+    font-size: 9px;
+  }
+  .feature-price {
+    font-size: 9px;
+  }
+  .estimate-disclaimer {
+    font-size: 9px;
+  }
+  .consent {
+    font-size: 10px;
+  }
+  .portfolio-note {
+    font-size: 10px;
+  }
+  .stack-strip .mono {
+    font-size: 7px;
+  }
+  .closing-coordinate {
+    font-size: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .paths-facts li {
+    font-size: 9px;
+  }
+  .paths-hero h1 {
+    font-size: 38px;
+  }
+}
+

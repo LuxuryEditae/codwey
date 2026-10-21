@@ -1,6 +1,7 @@
 {
-  "version": "dark-paths-v2",
+  "version": "dark-paths-v3",
   "domain": "codway.su",
   "theme": "dark",
-  "heading": "solid-text-scroll-fix"
+  "heading": "solid-text-static-paths",
+  "build": "2026-10-21"
 }
