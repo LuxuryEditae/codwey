@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://codway.su/sitemap.xml

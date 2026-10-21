@@ -1,0 +1,83 @@
+{
+  "projects": [
+    {
+      "id": "bot",
+      "label": "Telegram-бот",
+      "min": 15000,
+      "max": 30000,
+      "daysMin": 5,
+      "daysMax": 10
+    },
+    {
+      "id": "miniapp",
+      "label": "WebApp / Mini App",
+      "min": 40000,
+      "max": 80000,
+      "daysMin": 12,
+      "daysMax": 21
+    },
+    {
+      "id": "script",
+      "label": "Парсер / скрипт",
+      "min": 10000,
+      "max": 20000,
+      "daysMin": 3,
+      "daysMax": 7
+    },
+    {
+      "id": "system",
+      "label": "Комплексная система",
+      "min": 80000,
+      "max": 150000,
+      "daysMin": 21,
+      "daysMax": 40
+    }
+  ],
+  "features": [
+    {
+      "id": "payments",
+      "label": "Приём платежей",
+      "detail": "СБП, Crypto или ЮKassa",
+      "min": 8000,
+      "max": 15000,
+      "daysMin": 2,
+      "daysMax": 4
+    },
+    {
+      "id": "sheets",
+      "label": "Google Таблицы",
+      "detail": "Все данные под рукой",
+      "min": 4000,
+      "max": 8000,
+      "daysMin": 1,
+      "daysMax": 2
+    },
+    {
+      "id": "admin",
+      "label": "Админ-панель в Telegram",
+      "detail": "Управление без лишних окон",
+      "min": 7000,
+      "max": 12000,
+      "daysMin": 2,
+      "daysMax": 3
+    },
+    {
+      "id": "languages",
+      "label": "Несколько языков",
+      "detail": "Говорите с миром на одном языке",
+      "min": 5000,
+      "max": 10000,
+      "daysMin": 1,
+      "daysMax": 3
+    },
+    {
+      "id": "ai",
+      "label": "Интеграция с AI",
+      "detail": "Умный помощник для вашего бизнеса",
+      "min": 10000,
+      "max": 20000,
+      "daysMin": 3,
+      "daysMax": 5
+    }
+  ]
+}
