@@ -1,5 +1,6 @@
 {
-  "version": "background-paths-v1",
+  "version": "dark-paths-v2",
   "domain": "codway.su",
-  "source_commit": "1cc47b6c27c7b9d0fe3b9d4cd6118992d6065d69"
+  "theme": "dark",
+  "heading": "solid-text-scroll-fix"
 }

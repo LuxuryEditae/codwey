@@ -68,10 +68,9 @@ export function BackgroundPaths({
   ctaLabel = "Обсудить вашу идею",
   ctaHref = "#calculator",
 }: BackgroundPathsProps) {
-  const reduceMotion = useReducedMotion();
   return (
     <section
-      className="paths-hero relative w-full flex items-center justify-center overflow-hidden bg-white dark:bg-neutral-950"
+      className="paths-hero relative w-full flex items-center justify-center overflow-hidden"
       aria-labelledby="hero-title"
     >
       <div className="absolute inset-0 paths-canvas">
@@ -79,11 +78,7 @@ export function BackgroundPaths({
         <FloatingPaths position={-1} />
       </div>
       <div className="relative z-10 paths-content text-center">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
+        <div>
           <div className="paths-kicker">
             <span className="status-dot" /> Независимая digital-студия{" "}
             <span className="kicker-separator">/</span> CodWay
@@ -93,35 +88,8 @@ export function BackgroundPaths({
               <span
                 className="paths-title-line"
                 key={lineIndex}
-                aria-hidden="true"
               >
-                {line.split(" ").map((word, wordIndex) => (
-                  <span className="paths-word" key={wordIndex}>
-                    {Array.from(word).map((letter, letterIndex) => (
-                      <motion.span
-                        key={letterIndex}
-                        className="paths-letter inline-block text-transparent bg-clip-text bg-gradient-to-r from-neutral-900 to-neutral-700/80 dark:from-white dark:to-white/80"
-                        initial={
-                          reduceMotion
-                            ? false
-                            : { y: 65, opacity: 0, filter: "blur(5px)" }
-                        }
-                        animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-                        transition={{
-                          delay:
-                            lineIndex * 0.12 +
-                            wordIndex * 0.06 +
-                            letterIndex * 0.018,
-                          type: "spring",
-                          stiffness: 150,
-                          damping: 25,
-                        }}
-                      >
-                        {letter}
-                      </motion.span>
-                    ))}
-                  </span>
-                ))}
+                {line}
               </span>
             ))}
           </h1>
@@ -148,7 +116,7 @@ export function BackgroundPaths({
             <span className="caption-dot" />
             <span>От идеи до запуска</span>
           </div>
-        </motion.div>
+        </div>
       </div>
       <div className="paths-bottom">
         <span>DEVELOPMENT, WITH INTENTION.</span>
