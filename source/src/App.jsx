@@ -18,6 +18,8 @@ import {
   Menu,
   Terminal,
   CalendarDays,
+  Phone,
+  Mail,
   LockKeyhole,
   Clock3,
   CircleDot,
@@ -541,322 +543,6 @@ function Calculator({ prefill, onPrivacy }) {
   );
 }
 
-function DemoModal({ type, onClose, onProject }) {
-  const [cart, setCart] = useState(0);
-  const [size, setSize] = useState("M");
-  const [date, setDate] = useState("22");
-  const [slot, setSlot] = useState("12:00");
-  const [booked, setBooked] = useState(false);
-  const [chat, setChat] = useState([
-    {
-      role: "bot",
-      text: "Привет! Я демо-ассистент CodWay. Помогу найти ответ. Что вас интересует?",
-    },
-  ]);
-  const [question, setQuestion] = useState("");
-  const sendQuestion = (text) => {
-    if (!text.trim()) return;
-    const q = text.toLowerCase();
-    const answer = /цен|сто|смет/.test(q)
-      ? "Стоимость зависит от задачи. Telegram-бот — от 15 000 ₽, Mini App — от 40 000 ₽. Калькулятор на сайте поможет уточнить вилку."
-      : /срок|долг|быстр/.test(q)
-        ? "Базовый Telegram-бот занимает от 5 рабочих дней. Срок зависит от интеграций и согласованного функционала."
-        : /код|прав|доступ/.test(q)
-          ? "Исходный код, документацию и доступы передаём после полной оплаты. Условия фиксируем в договоре."
-          : "В рабочем проекте здесь будет ответ по вашей базе знаний. Эта демоверсия использует заранее подготовленные ответы: спросите о цене, сроках или исходном коде.";
-    setChat((prev) => [
-      ...prev,
-      { role: "user", text },
-      { role: "bot", text: answer },
-    ]);
-    setQuestion("");
-  };
-  const title = {
-    shop: "FORM / Mini App Store",
-    booking: "STUDIO / Запись онлайн",
-    ai: "CodWay / AI support",
-    video: "VideoDL / Скачивание видео",
-    coffee: "BEAN / Кофе",
-  }[type];
-  return (
-    <Modal onClose={onClose} title={title}>
-      <div className="demo-notice">
-        <Sparkles size={14} /> Интерактивный концепт · реальные заказы и оплаты
-        не выполняются
-      </div>
-      {type === "shop" && (
-        <div className="shop-demo">
-          <div className="demo-shop-head">
-            <b>FORM®</b>
-            <span>
-              <ShoppingBag size={17} /> {cart}
-            </span>
-          </div>
-          <div className="demo-product">
-            <div className="shirt">
-              <div className="shirt-print">
-                FORM
-                <br />
-                <small>EVERYDAY ESSENTIALS</small>
-              </div>
-            </div>
-          </div>
-          <div className="demo-product-info">
-            <span className="mono">EVERYDAY ESSENTIALS</span>
-            <h3>Oversize Tee / Graphite</h3>
-            <p>
-              Плотный хлопок. Свободный крой.
-              <br />
-              Базовая вещь для любого дня.
-            </p>
-            <div className="size-options">
-              {["S", "M", "L", "XL"].map((s) => (
-                <button
-                  key={s}
-                  className={size === s ? "active" : ""}
-                  onClick={() => setSize(s)}
-                  aria-pressed={size === s}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            <button
-              className="button primary"
-              onClick={() => setCart((c) => c + 1)}
-            >
-              {cart
-                ? `В корзине: ${cart} · ${money(cart * 3900)} ₽`
-                : "Добавить в корзину · 3 900 ₽"}
-              <Plus size={18} />
-            </button>
-            {cart > 0 && (
-              <button className="text-link" onClick={() => setCart(0)}>
-                Очистить демо-корзину
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-      {type === "booking" && (
-        <div className="booking-demo">
-          <span className="mono">STUDIO / BARBERSHOP</span>
-          <h3>
-            Ваше время.
-            <br />
-            Ваш стиль.
-          </h3>
-          <div className="booking-service">
-            <span>
-              Мужская стрижка<small>45 минут · мастер Алексей (демо)</small>
-            </span>
-            <b>1 800 ₽</b>
-          </div>
-          <label className="field-label">Выберите день (демо)</label>
-          <div className="date-options">
-            {["22", "23", "24", "25", "26"].map((d, i) => (
-              <button
-                key={d}
-                className={date === d ? "active" : ""}
-                onClick={() => {
-                  setDate(d);
-                  setBooked(false);
-                }}
-                aria-pressed={date === d}
-              >
-                <small>{["ПН", "ВТ", "СР", "ЧТ", "ПТ"][i]}</small>
-                {d}
-              </button>
-            ))}
-          </div>
-          <label className="field-label">Свободное время</label>
-          <div className="slot-options">
-            {["10:00", "12:00", "14:30", "17:00"].map((s) => (
-              <button
-                key={s}
-                className={slot === s ? "active" : ""}
-                onClick={() => {
-                  setSlot(s);
-                  setBooked(false);
-                }}
-                aria-pressed={slot === s}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-          <button className="button primary" onClick={() => setBooked(true)}>
-            {booked ? (
-              <>
-                <Check size={18} /> Демо-запись: {date}-го в {slot}
-              </>
-            ) : (
-              <>
-                Подтвердить запись <ArrowRight size={18} />
-              </>
-            )}
-          </button>
-          {booked && (
-            <p className="demo-booked" role="status">
-              В реальном боте клиент и мастер получат уведомление. Эта запись
-              демонстрационная.
-            </p>
-          )}
-        </div>
-      )}
-      {type === "ai" && (
-        <div className="chat-demo">
-          <div className="chat-agent">
-            <span>
-              <Sparkles size={20} />
-            </span>
-            <div>
-              CodWay Assistant
-              <small>
-                <i className="status-dot" /> Demo · готовые ответы
-              </small>
-            </div>
-          </div>
-          <div className="chat-messages" role="log" aria-live="polite">
-            {chat.map((m, i) => (
-              <div key={i} className={`chat-bubble ${m.role}`}>
-                {m.text}
-              </div>
-            ))}
-          </div>
-          <div className="quick-questions">
-            {[
-              "Сколько стоит бот?",
-              "Какие сроки?",
-              "Кому принадлежит код?",
-            ].map((q) => (
-              <button key={q} onClick={() => sendQuestion(q)}>
-                {q}
-              </button>
-            ))}
-          </div>
-          <form
-            className="chat-input"
-            onSubmit={(e) => {
-              e.preventDefault();
-              sendQuestion(question);
-            }}
-          >
-            <input
-              aria-label="Ваш вопрос"
-              placeholder="Напишите сообщение…"
-              value={question}
-              maxLength={500}
-              onChange={(e) => setQuestion(e.target.value)}
-            />
-            <button
-              aria-label="Отправить сообщение"
-              disabled={!question.trim()}
-            >
-              <Send size={18} />
-            </button>
-          </form>
-        </div>
-      )}
-      {type === "video" && (
-        <div className="video-demo">
-          <div className="video-demo-head">
-            <span className="video-demo-icon">
-              <ArrowDown size={20} />
-            </span>
-            <div>
-              <b>VideoDL · downloader</b>
-              <small>
-                <i className="status-dot" /> Demo · готовые ответы
-              </small>
-            </div>
-          </div>
-          <div className="video-demo-chat" role="log" aria-live="polite">
-            <div className="video-bubble user">
-              https://www.youtube.com/watch?v=dQw4w9WgXcQ
-            </div>
-            <div className="video-bubble bot">
-              <span className="video-platform yt">YouTube</span>
-              Определил видео · 3:32
-              <div className="video-options">
-                {["MP4 1080p · 84 МБ", "MP4 720p · 48 МБ", "MP3 · 3.4 МБ"].map(
-                  (o, i) => (
-                    <button
-                      key={o}
-                      className={i === 1 ? "active" : ""}
-                      type="button"
-                    >
-                      {o}
-                    </button>
-                  ),
-                )}
-              </div>
-            </div>
-            <div className="video-bubble bot success">
-              <CheckCircle2 size={16} /> Файл готов. Отправил в чат.
-            </div>
-          </div>
-          <div className="video-demo-platforms">
-            {["YouTube", "VK", "TikTok", "Rutube"].map((p) => (
-              <span key={p}>{p}</span>
-            ))}
-          </div>
-          <p className="demo-booked">
-            В реальном боте ссылка превращается в файл выбранного качества.
-            Эта демонстрация показывает интерфейс и сценарий.
-          </p>
-        </div>
-      )}
-      {type === "coffee" && (
-        <div className="coffee-demo">
-          <div className="coffee-demo-head">
-            <b>BEAN / coffee</b>
-            <span>
-              <ShoppingBag size={15} /> 2
-            </span>
-          </div>
-          <div className="coffee-demo-menu">
-            {[
-              { name: "Латте", price: 320, emoji: "☕" },
-              { name: "Капучино", price: 300, emoji: "☕" },
-              { name: "Раф ваниль", price: 380, emoji: "☕" },
-              { name: "Американо", price: 220, emoji: "☕" },
-            ].map((d) => (
-              <div key={d.name} className="coffee-demo-item">
-                <span className="coffee-emoji">{d.emoji}</span>
-                <div>
-                  <b>{d.name}</b>
-                  <small>M · овсяное молоко</small>
-                </div>
-                <span className="coffee-price">{money(d.price)} ₽</span>
-                <button type="button" aria-label={"Добавить " + d.name}>
-                  <Plus size={15} />
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="coffee-demo-cart">
-            <div>
-              <span>Итого</span>
-              <b>700 ₽</b>
-            </div>
-            <button className="button primary" type="button">
-              Оформить заказ <ArrowUpRight size={16} />
-            </button>
-          </div>
-          <p className="demo-booked">
-            В реальном Mini App заказ уходит бариста мгновенно. Эта
-            демонстрация показывает интерфейс и сценарий.
-          </p>
-        </div>
-      )}
-      <button className="text-link demo-cta" onClick={() => onProject(type)}>
-        Хочу похожий проект <ArrowUpRight size={16} />
-      </button>
-    </Modal>
-  );
-}
-
 function Modal({ title, onClose, children }) {
   const ref = useRef(null);
   const closeRef = useRef(onClose);
@@ -927,10 +613,70 @@ function Modal({ title, onClose, children }) {
 
 export default function App() {
   const [menu, setMenu] = useState(false);
-  const [demo, setDemo] = useState(null);
   const [privacy, setPrivacy] = useState(false);
   const [faq, setFaq] = useState(0);
   const [prefill, setPrefill] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [checkout, setCheckout] = useState(false);
+  const [payState, setPayState] = useState("idle");
+  const [payError, setPayError] = useState("");
+  const [payReceipt, setPayReceipt] = useState(null);
+  const addToCart = (item) => {
+    setCart((prev) => {
+      if (prev.some((p) => p.id === item.id)) return prev;
+      return [...prev, item];
+    });
+    setCheckout(true);
+  };
+  const removeFromCart = (id) =>
+    setCart((prev) => prev.filter((p) => p.id !== id));
+  const cartTotal = cart.reduce((n, p) => n + p.price, 0);
+  async function pay() {
+    if (payState === "sending" || !cart.length) return;
+    setPayError("");
+    setPayState("sending");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const submissionId =
+      typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : "10000000-1000-4000-8000-100000000000";
+    try {
+      const response = await fetch(`${API_BASE}/api/payment/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submission_id: submissionId,
+          items: cart.map((p) => ({ id: p.id, title: p.title, price: p.price })),
+          amount: cartTotal,
+          description: cart.map((p) => p.title).join(", "),
+          contact: "@codway_client",
+        }),
+        signal: controller.signal,
+      });
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : "Не удалось создать платёж. Попробуйте позже.",
+        );
+      setPayReceipt(data);
+      setPayState("success");
+      if (data.payment_url) window.location.href = data.payment_url;
+    } catch (err) {
+      setPayError(
+        err.name === "AbortError"
+          ? "Сервер отвечает дольше обычного. Повторите."
+          : err instanceof TypeError
+            ? "Не удалось связаться с сервером."
+            : err.message,
+      );
+      setPayState("idle");
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
   useReveal();
   const chooseProject = (type) => {
     const details = {
@@ -956,7 +702,6 @@ export default function App() {
       },
     };
     setPrefill({ ...details[type], time: Date.now() });
-    setDemo(null);
     setTimeout(
       () =>
         document
@@ -1120,8 +865,7 @@ export default function App() {
               <article className="work-card" data-reveal>
                 <button
                   className="work-visual shop-visual"
-                  onClick={() => setDemo("shop")}
-                  aria-label="Открыть демо Mini App магазина"
+                                    aria-label="Открыть демо Mini App магазина"
                 >
                   <span className="visual-badge">MINI APP</span>
                   <div className="portfolio-phone">
@@ -1140,16 +884,24 @@ export default function App() {
                     <span>Telegram WebApp</span>
                     <span>FastAPI</span>
                   </div>
-                  <button className="text-link" onClick={() => setDemo("shop")}>
-                    Тестировать демо <ArrowUpRight size={17} />
+                  <button
+                    className="text-link buy-link"
+                    onClick={() =>
+                      addToCart({
+                        id: "shop",
+                        title: "Mini App магазин",
+                        price: 40000,
+                      })
+                    }
+                  >
+                    Купить <ShoppingBag size={17} />
                   </button>
                 </div>
               </article>
               <article className="work-card" data-reveal>
                 <button
                   className="work-visual booking-visual"
-                  onClick={() => setDemo("booking")}
-                  aria-label="Открыть демо бота записи"
+                  bookingaria-label="Открыть демо бота записи"
                 >
                   <span className="visual-badge">TELEGRAM BOT</span>
                   <div className="booking-preview">
@@ -1201,18 +953,23 @@ export default function App() {
                     <span>SQLite</span>
                   </div>
                   <button
-                    className="text-link"
-                    onClick={() => setDemo("booking")}
+                    className="text-link buy-link"
+                    onClick={() =>
+                      addToCart({
+                        id: "booking",
+                        title: "Бот записи клиентов",
+                        price: 15000,
+                      })
+                    }
                   >
-                    Тестировать демо <ArrowUpRight size={17} />
+                    Купить <CalendarDays size={17} />
                   </button>
                 </div>
               </article>
               <article className="work-card" data-reveal>
                 <button
                   className="work-visual ai-visual"
-                  onClick={() => setDemo("ai")}
-                  aria-label="Открыть демо AI-поддержки"
+                  aiaria-label="Открыть демо AI-поддержки"
                 >
                   <span className="visual-badge">AI ASSISTANT</span>
                   <div className="ai-preview">
@@ -1254,16 +1011,15 @@ export default function App() {
                     <span>LLM API</span>
                     <span>RAG</span>
                   </div>
-                  <button className="text-link" onClick={() => setDemo("ai")}>
-                    Тестировать демо <ArrowUpRight size={17} />
+                  <button className="text-link buy-link" onClick={() => addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 })}>
+                    Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
               </article>
               <article className="work-card" data-reveal>
                 <button
                   className="work-visual video-visual"
-                  onClick={() => setDemo("video")}
-                  aria-label="Открыть демо бота скачивания видео"
+                  videoaria-label="Открыть демо бота скачивания видео"
                 >
                   <span className="visual-badge">TELEGRAM BOT</span>
                   <div className="video-preview">
@@ -1306,16 +1062,15 @@ export default function App() {
                     <span>Aiogram</span>
                     <span>yt-dlp</span>
                   </div>
-                  <button className="text-link" onClick={() => setDemo("video")}>
-                    Тестировать демо <ArrowUpRight size={17} />
+                  <button className="text-link buy-link" onClick={() => addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 })}>
+                    Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
               </article>
               <article className="work-card" data-reveal>
                 <button
                   className="work-visual coffee-visual"
-                  onClick={() => setDemo("coffee")}
-                  aria-label="Открыть демо Mini App доставки кофе"
+                  coffeearia-label="Открыть демо Mini App доставки кофе"
                 >
                   <span className="visual-badge">MINI APP</span>
                   <div className="coffee-preview">
@@ -1363,8 +1118,8 @@ export default function App() {
                     <span>Telegram WebApp</span>
                     <span>FastAPI</span>
                   </div>
-                  <button className="text-link" onClick={() => setDemo("coffee")}>
-                    Тестировать демо <ArrowUpRight size={17} />
+                  <button className="text-link buy-link" onClick={() => addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 })}>
+                    Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
               </article>
@@ -1498,15 +1253,22 @@ export default function App() {
           <div>
             <Logo />
             <p>Код, который работает на вас.</p>
-            <a
-              className="footer-telegram"
-              href="https://t.me/codwey_bot"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              <Send size={14} /> @codwey_bot
-              <ExternalLink size={13} />
-            </a>
+            <div className="footer-contacts">
+              <a
+                className="footer-telegram"
+                href="https://t.me/codwey_bot"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <Send size={14} /> Telegram: @codwey_bot
+              </a>
+              <a className="footer-contact" href="tel:+79991234567">
+                <Phone size={14} /> +7 999 123-45-67
+              </a>
+              <a className="footer-contact" href="mailto:hello@codway.su">
+                <Mail size={14} /> hello@codway.su
+              </a>
+            </div>
           </div>
           <div className="footer-links">
             <a href="#services">Услуги</a>
@@ -1530,16 +1292,86 @@ export default function App() {
         <span>Обсудить проект</span>
         <ArrowUpRight size={18} />
       </a>
-      <>
-        {demo && (
-          <DemoModal
-            key={demo}
-            type={demo}
-            onClose={() => setDemo(null)}
-            onProject={chooseProject}
-          />
-        )}
-      </>
+
+      {checkout && (
+        <Modal title="Корзина и оплата" onClose={() => setCheckout(false)}>
+          <div className="checkout-content">
+            {cart.length === 0 ? (
+              <p className="checkout-empty">
+                Корзина пуста. Добавьте готовое приложение кнопкой «Купить».
+              </p>
+            ) : (
+              <>
+                <ul className="checkout-items">
+                  {cart.map((item) => (
+                    <li key={item.id}>
+                      <span>{item.title}</span>
+                      <b>{money(item.price)} ₽</b>
+                      <button
+                        type="button"
+                        className="checkout-remove"
+                        onClick={() => removeFromCart(item.id)}
+                        aria-label={"Удалить " + item.title}
+                      >
+                        <X size={14} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="checkout-total">
+                  <span>Итого</span>
+                  <b>{money(cartTotal)} ₽</b>
+                </div>
+                <label className="field-label" htmlFor="pay-contact">
+                  Telegram или телефон для связи
+                </label>
+                <input
+                  id="pay-contact"
+                  className="text-field"
+                  placeholder="@username или +7 999 123-45-67"
+                  defaultValue="@codway_client"
+                />
+                <p className="checkout-note">
+                  Платёжный провайдер подключается в{" "}
+                  <code>/opt/codwey-backend/payment.py</code>. Сейчас форма
+                  создаёт заявку на оплату и сохраняет её на сервере; после
+                  подключения YooKassa/Stripe здесь появится переход к оплате.
+                </p>
+                {payError && (
+                  <div role="alert" className="form-error">
+                    {payError}
+                  </div>
+                )}
+                {payState === "success" && payReceipt && (
+                  <div role="status" className="form-error" style={{ background: "#1a2a1f", color: "#9bad8e", borderColor: "#2a4a35" }}>
+                    Заявка на оплату №{payReceipt.payment_id} создана.
+                    {payReceipt.payment_url
+                      ? " Переход к оплате…"
+                      : " Ожидает подключения платёжного провайдера."}
+                  </div>
+                )}
+                <button
+                  className="button primary submit-button"
+                  type="button"
+                  onClick={pay}
+                  disabled={payState === "sending" || !cart.length}
+                >
+                  {payState === "sending" ? (
+                    <>
+                      <LoaderCircle size={18} className="spin" /> Создаём платёж…
+                    </>
+                  ) : (
+                    <>
+                      Оплатить {money(cartTotal)} ₽ <ArrowUpRight size={19} />
+                    </>
+                  )}
+                </button>
+              </>
+            )}
+          </div>
+        </Modal>
+      )}
+
       <>
         {privacy && (
           <Modal

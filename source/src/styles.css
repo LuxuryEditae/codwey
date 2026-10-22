@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
@@ -4233,3 +4233,136 @@ h2,
   font-size: 12px;
 }
 
+/* ======================================================================
+   Cart / checkout + contacts (22.10.2026)
+   ====================================================================== */
+.buy-link {
+  color: #b4b4b9;
+}
+.buy-link:hover {
+  color: #f4f4f5;
+}
+.checkout-content {
+  padding: 6px 26px 26px;
+}
+.checkout-empty {
+  font-size: 13px;
+  color: #9c9ca1;
+  line-height: 1.8;
+}
+.checkout-items {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.checkout-items li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border: 1px solid #2b2b30;
+  border-radius: 8px;
+  background: #141416;
+  font-size: 12px;
+  color: #b4b4b9;
+}
+.checkout-items li > span {
+  flex: 1;
+}
+.checkout-items li > b {
+  color: #c9c9d1;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.checkout-remove {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #1b1b1f;
+  color: #9c9ca1;
+  flex-shrink: 0;
+}
+.checkout-remove:hover {
+  color: #f0a8bc;
+  background: #2a171d;
+}
+.checkout-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #2b2b30;
+  border-radius: 8px;
+  background: #111113;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #9c9ca1;
+}
+.checkout-total b {
+  font-size: 15px;
+  color: #c9c9d1;
+  font-weight: 500;
+}
+.checkout-note {
+  font-size: 10px;
+  color: #8a8a94;
+  line-height: 1.7;
+  margin: 12px 0 16px;
+}
+.checkout-note code {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #b4b4b9;
+  background: #1b1b1f;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.footer-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.footer-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border: 1px solid #2b2b30;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #b4b4b9;
+  transition: color 0.2s, border-color 0.2s, transform 0.2s;
+}
+.footer-contact:hover {
+  color: #eaeaef;
+  border-color: #62626c;
+  transform: translateY(-1px);
+}
+.footer-contact svg {
+  stroke-width: 1.6;
+}
+.footer-telegram {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border: 1px solid #2b2b30;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #b4b4b9;
+  transition: color 0.2s, border-color 0.2s, transform 0.2s;
+}
+.footer-telegram:hover {
+  color: #eaeaef;
+  border-color: #62626c;
+  transform: translateY(-1px);
+}
+.footer-telegram svg {
+  stroke-width: 1.6;
+}
