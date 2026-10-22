@@ -879,7 +879,7 @@ export default function App() {
                   </div>
                   <button
                     className="buy-button"
-                    onClick={() => { addToCart({ id: "shop", title: "Mini App магазин", price: 40000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}
+                    onClick={() => { addToCart({ id: "shop", title: "Mini App магазин", price: 40000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}
                   >
                     Купить <ShoppingBag size={17} />
                   </button>
@@ -942,7 +942,7 @@ export default function App() {
                   </div>
                   <button
                     className="buy-button"
-                    onClick={() => { addToCart({ id: "booking", title: "Бот записи клиентов", price: 15000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}
+                    onClick={() => { addToCart({ id: "booking", title: "Бот записи клиентов", price: 15000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}
                   >
                     Купить <CalendarDays size={17} />
                   </button>
@@ -994,7 +994,7 @@ export default function App() {
                     <span>LLM API</span>
                     <span>RAG</span>
                   </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1046,7 +1046,7 @@ export default function App() {
                     <span>Aiogram</span>
                     <span>yt-dlp</span>
                   </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1103,7 +1103,7 @@ export default function App() {
                     <span>Telegram WebApp</span>
                     <span>FastAPI</span>
                   </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1233,7 +1233,7 @@ export default function App() {
           </div>
         </section>
       </main>
-      <section className="section contact-section" id="contact">
+      <section className="section contact-section" id="contacts">
         <div className="container">
           <div className="contact-grid">
             <div className="contact-intro">
@@ -1246,64 +1246,6 @@ export default function App() {
                 Ответим в течение рабочего дня. Обсудим задачу, сроки и стоимость.
               </p>
             </div>
-            {cart.length > 0 && (
-              <div className="contact-cart">
-                <h3>Корзина</h3>
-                <ul className="checkout-items">
-                  {cart.map((item) => (
-                    <li key={item.id}>
-                      <span>{item.title}</span>
-                      <b>{money(item.price)} ₽</b>
-                      <button
-                        type="button"
-                        className="checkout-remove"
-                        onClick={() => removeFromCart(item.id)}
-                        aria-label={"Удалить " + item.title}
-                      >
-                        <X size={14} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <div className="checkout-total">
-                  <span>Итого</span>
-                  <b>{money(cartTotal)} ₽</b>
-                </div>
-                {payError && (
-                  <div role="alert" className="form-error">
-                    {payError}
-                  </div>
-                )}
-                {payState === "success" && payReceipt && (
-                  <div role="status" className="form-error" style={{ background: "#1a2a1f", color: "#9bad8e", borderColor: "#2a4a35" }}>
-                    Заявка на оплату №{payReceipt.payment_id} создана.
-                    {payReceipt.payment_url
-                      ? " Переход к оплате…"
-                      : " Ожидает подключения платёжного провайдера."}
-                  </div>
-                )}
-                <button
-                  className="button primary submit-button"
-                  type="button"
-                  onClick={pay}
-                  disabled={payState === "sending" || !cart.length}
-                >
-                  {payState === "sending" ? (
-                    <>
-                      <LoaderCircle size={18} className="spin" /> Создаём платёж…
-                    </>
-                  ) : (
-                    <>
-                      Оплатить {money(cartTotal)} ₽ <ArrowUpRight size={19} />
-                    </>
-                  )}
-                </button>
-                <p className="checkout-note">
-                  Платёжный провайдер подключается в{" "}
-                  <code>/opt/codwey-backend/payment.py</code>.
-                </p>
-              </div>
-            )}
             <div className="contact-cards">
               <a
                 className="contact-card"
@@ -1375,6 +1317,55 @@ export default function App() {
           </span>
         </div>
       </footer>
+
+      {cart.length > 0 && (
+        <div className="sticky-cart">
+          <div className="sticky-cart-inner">
+            <div className="sticky-cart-info">
+              <ShoppingBag size={18} />
+              <span>
+                Корзина: {cart.length}{" "}
+                {cart.length === 1 ? "товар" : cart.length < 5 ? "товара" : "товаров"} ·{" "}
+                {money(cartTotal)} ₽
+              </span>
+            </div>
+            <div className="sticky-cart-actions">
+              {payError && (
+                <span className="sticky-cart-error">{payError}</span>
+              )}
+              {payState === "success" && payReceipt && (
+                <span className="sticky-cart-success">
+                  №{payReceipt.payment_id} создана
+                </span>
+              )}
+              <button
+                className="button primary"
+                type="button"
+                onClick={pay}
+                disabled={payState === "sending"}
+              >
+                {payState === "sending" ? (
+                  <>
+                    <LoaderCircle size={16} className="spin" /> Создаём…
+                  </>
+                ) : (
+                  <>
+                    Оплатить {money(cartTotal)} ₽ <ArrowUpRight size={16} />
+                  </>
+                )}
+              </button>
+              <a
+                className="sticky-cart-tg"
+                href="https://t.me/codwey_bot"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <Send size={14} /> Telegram
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       <>
         {privacy && (

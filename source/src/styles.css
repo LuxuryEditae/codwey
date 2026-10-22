@@ -4473,3 +4473,76 @@ h2,
 .buy-button {
   margin-top: 14px;
 }
+/* ======================================================================
+   Sticky cart bar
+   ====================================================================== */
+.sticky-cart {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 10px 16px;
+  background: #0e0e12f2;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid #222228;
+}
+.sticky-cart-inner {
+  max-width: 1200px;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.sticky-cart-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #b4b4b9;
+}
+.sticky-cart-info svg {
+  color: #8a8a94;
+}
+.sticky-cart-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sticky-cart-error {
+  font-size: 11px;
+  color: #f0a8bc;
+}
+.sticky-cart-success {
+  font-size: 11px;
+  color: #9bad8e;
+}
+.sticky-cart .button.primary {
+  font-size: 12px;
+  padding: 10px 16px;
+}
+.sticky-cart-tg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #2b2b30;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #b4b4b9;
+  transition: color 0.2s, border-color 0.2s;
+}
+.sticky-cart-tg:hover {
+  color: #eaeaef;
+  border-color: #62626c;
+}
+.sticky-cart-tg svg {
+  stroke-width: 1.6;
+}
+/* Add bottom padding to body when cart is visible */
+body:has(.sticky-cart) {
+  padding-bottom: 72px;
+}
