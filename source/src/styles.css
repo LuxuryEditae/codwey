@@ -179,8 +179,8 @@ svg {
 .paths-canvas {
   position: absolute;
   inset: 0;
-  z-index: 1;
-  opacity: 0.62;
+  z-index: 0;
+  opacity: 0.3;
   pointer-events: none;
   contain: strict;
 }
@@ -196,39 +196,7 @@ svg {
   height: 100%;
   display: block;
 }
-.paths-glow {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      52% 42% at 50% 44%,
-      #191926 0%,
-      #111119 34%,
-      #09090b 72%
-    ),
-    radial-gradient(
-      28% 22% at 50% 38%,
-      #23233a 0%,
-      #09090b00 70%
-    );
-}
-.paths-vignette {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      to bottom,
-      #09090b 0%,
-      #09090b00 18%,
-      #09090b00 58%,
-      #09090b 96%
-    ),
-    linear-gradient(to right, #09090b 0%, #09090b00 14%, #09090b00 86%, #09090b 100%);
-}
+
 .paths-content {
   width: min(1080px, 100%);
   margin: auto;
@@ -4365,4 +4333,68 @@ h2,
 }
 .footer-telegram svg {
   stroke-width: 1.6;
+}
+/* ======================================================================
+   Contact section
+   ====================================================================== */
+.contact-section {
+  background: #09090b;
+  border-top: 1px solid #1a1a1f;
+}
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 60px;
+  align-items: start;
+}
+.contact-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 18px;
+  border: 1px solid #222228;
+  border-radius: 12px;
+  background: #0e0e12;
+  color: #b4b4b9;
+  transition: border-color 0.25s, transform 0.25s, background 0.25s;
+}
+.contact-card:hover {
+  border-color: #3a3a44;
+  background: #141418;
+  transform: translateY(-2px);
+}
+.contact-card svg {
+  color: #8a8a94;
+  flex-shrink: 0;
+}
+.contact-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.contact-card b {
+  font-size: 13px;
+  color: #d4d4d8;
+  font-weight: 500;
+}
+.contact-card span {
+  font-size: 12px;
+  color: #8a8a94;
+}
+@media (max-width: 800px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .contact-cards {
+    grid-template-columns: 1fr;
+  }
+  .contact-card {
+    padding: 16px;
+  }
 }

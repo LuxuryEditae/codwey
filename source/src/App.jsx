@@ -82,7 +82,7 @@ function Logo() {
 }
 function SectionIntro({ n, label, children, text }) {
   return (
-    <div className="section-intro" data-reveal>
+    <div className="section-intro">
       <div className="eyebrow">
         <span>{n} /</span> {label}
       </div>
@@ -347,7 +347,7 @@ function Calculator({ prefill, onPrivacy }) {
             </span>
           </div>
         </div>
-        <form className="calculator-grid" onSubmit={submit} data-reveal>
+        <form className="calculator-grid" onSubmit={submit}>
           <div className="configurator">
             <div className="form-step">
               <span>01</span>
@@ -677,7 +677,6 @@ export default function App() {
       clearTimeout(timeout);
     }
   }
-  useReveal();
   const chooseProject = (type) => {
     const details = {
       shop: {
@@ -749,14 +748,7 @@ export default function App() {
         </div>
       </header>
       <main id="main">
-        <BackgroundPaths
-          title={"Идеи становятся\nпродуктами."}
-          facts={[
-            "Смета — до первого сообщения",
-            "Срок — от 3 рабочих дней",
-            "Исходный код передаём вам",
-          ]}
-        />
+        <BackgroundPaths title={"Идеи становятся\nпродуктами."} />
         <div className="stack-strip">
           <div className="container">
             <span className="mono">
@@ -825,7 +817,7 @@ export default function App() {
                   href="#calculator"
                   className="service-card"
                   key={s.num}
-                  data-reveal
+                 
                 >
                   <div className="service-top">
                     <Icon size={25} />
@@ -862,7 +854,7 @@ export default function App() {
               </p>
             </div>
             <div className="work-grid">
-              <article className="work-card" data-reveal>
+              <article className="work-card">
                 <button
                   className="work-visual shop-visual"
                                     aria-label="Открыть демо Mini App магазина"
@@ -898,7 +890,7 @@ export default function App() {
                   </button>
                 </div>
               </article>
-              <article className="work-card" data-reveal>
+              <article className="work-card">
                 <button
                   className="work-visual booking-visual"
                   bookingaria-label="Открыть демо бота записи"
@@ -966,7 +958,7 @@ export default function App() {
                   </button>
                 </div>
               </article>
-              <article className="work-card" data-reveal>
+              <article className="work-card">
                 <button
                   className="work-visual ai-visual"
                   aiaria-label="Открыть демо AI-поддержки"
@@ -1016,7 +1008,7 @@ export default function App() {
                   </button>
                 </div>
               </article>
-              <article className="work-card" data-reveal>
+              <article className="work-card">
                 <button
                   className="work-visual video-visual"
                   videoaria-label="Открыть демо бота скачивания видео"
@@ -1067,7 +1059,7 @@ export default function App() {
                   </button>
                 </div>
               </article>
-              <article className="work-card" data-reveal>
+              <article className="work-card">
                 <button
                   className="work-visual coffee-visual"
                   coffeearia-label="Открыть демо Mini App доставки кофе"
@@ -1173,7 +1165,7 @@ export default function App() {
                   "РЕЛИЗ → РЕЗУЛЬТАТ",
                 ],
               ].map(([n, title, text, tag]) => (
-                <div className="process-step" key={n} data-reveal>
+                <div className="process-step" key={n}>
                   <div className="process-number">
                     {n}
                     <ArrowRight size={18} />
@@ -1198,7 +1190,7 @@ export default function App() {
                 <div
                   className={`faq-item ${faq === i ? "expanded" : ""}`}
                   key={q}
-                  data-reveal
+                 
                 >
                   <h3>
                     <button
@@ -1248,6 +1240,50 @@ export default function App() {
           </div>
         </section>
       </main>
+      <section className="section contact-section" id="contact">
+        <div className="container">
+          <div className="contact-grid">
+            <div className="contact-intro">
+              <SectionIntro n="06" label="КОНТАКТЫ">
+                Свяжитесь
+                <br />
+                <span className="subtle">с нами.</span>
+              </SectionIntro>
+              <p className="section-aside">
+                Ответим в течение рабочего дня. Обсудим задачу, сроки и стоимость.
+              </p>
+            </div>
+            <div className="contact-cards">
+              <a
+                className="contact-card"
+                href="https://t.me/codwey_bot"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <Send size={20} />
+                <div>
+                  <b>Telegram</b>
+                  <span>@codwey_bot</span>
+                </div>
+              </a>
+              <a className="contact-card" href="tel:+79991234567">
+                <Phone size={20} />
+                <div>
+                  <b>Телефон</b>
+                  <span>+7 999 123-45-67</span>
+                </div>
+              </a>
+              <a className="contact-card" href="mailto:hello@codway.su">
+                <Mail size={20} />
+                <div>
+                  <b>Email</b>
+                  <span>hello@codway.su</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
       <footer>
         <div className="container footer-main">
           <div>
@@ -1288,11 +1324,6 @@ export default function App() {
           </span>
         </div>
       </footer>
-      <a className="mobile-cta" href="#calculator">
-        <span>Обсудить проект</span>
-        <ArrowUpRight size={18} />
-      </a>
-
       {checkout && (
         <Modal title="Корзина и оплата" onClose={() => setCheckout(false)}>
           <div className="checkout-content">
