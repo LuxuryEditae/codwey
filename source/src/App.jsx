@@ -575,6 +575,8 @@ function DemoModal({ type, onClose, onProject }) {
     shop: "FORM / Mini App Store",
     booking: "STUDIO / Запись онлайн",
     ai: "CodWay / AI support",
+    video: "VideoDL / Скачивание видео",
+    coffee: "BEAN / Кофе",
   }[type];
   return (
     <Modal onClose={onClose} title={title}>
@@ -756,6 +758,98 @@ function DemoModal({ type, onClose, onProject }) {
           </form>
         </div>
       )}
+      {type === "video" && (
+        <div className="video-demo">
+          <div className="video-demo-head">
+            <span className="video-demo-icon">
+              <ArrowDown size={20} />
+            </span>
+            <div>
+              <b>VideoDL · downloader</b>
+              <small>
+                <i className="status-dot" /> Demo · готовые ответы
+              </small>
+            </div>
+          </div>
+          <div className="video-demo-chat" role="log" aria-live="polite">
+            <div className="video-bubble user">
+              https://www.youtube.com/watch?v=dQw4w9WgXcQ
+            </div>
+            <div className="video-bubble bot">
+              <span className="video-platform yt">YouTube</span>
+              Определил видео · 3:32
+              <div className="video-options">
+                {["MP4 1080p · 84 МБ", "MP4 720p · 48 МБ", "MP3 · 3.4 МБ"].map(
+                  (o, i) => (
+                    <button
+                      key={o}
+                      className={i === 1 ? "active" : ""}
+                      type="button"
+                    >
+                      {o}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+            <div className="video-bubble bot success">
+              <CheckCircle2 size={16} /> Файл готов. Отправил в чат.
+            </div>
+          </div>
+          <div className="video-demo-platforms">
+            {["YouTube", "VK", "TikTok", "Rutube"].map((p) => (
+              <span key={p}>{p}</span>
+            ))}
+          </div>
+          <p className="demo-booked">
+            В реальном боте ссылка превращается в файл выбранного качества.
+            Эта демонстрация показывает интерфейс и сценарий.
+          </p>
+        </div>
+      )}
+      {type === "coffee" && (
+        <div className="coffee-demo">
+          <div className="coffee-demo-head">
+            <b>BEAN / coffee</b>
+            <span>
+              <ShoppingBag size={15} /> 2
+            </span>
+          </div>
+          <div className="coffee-demo-menu">
+            {[
+              { name: "Латте", price: 320, emoji: "☕" },
+              { name: "Капучино", price: 300, emoji: "☕" },
+              { name: "Раф ваниль", price: 380, emoji: "☕" },
+              { name: "Американо", price: 220, emoji: "☕" },
+            ].map((d) => (
+              <div key={d.name} className="coffee-demo-item">
+                <span className="coffee-emoji">{d.emoji}</span>
+                <div>
+                  <b>{d.name}</b>
+                  <small>M · овсяное молоко</small>
+                </div>
+                <span className="coffee-price">{money(d.price)} ₽</span>
+                <button type="button" aria-label={"Добавить " + d.name}>
+                  <Plus size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="coffee-demo-cart">
+            <div>
+              <span>Итого</span>
+              <b>700 ₽</b>
+            </div>
+            <button className="button primary" type="button">
+              Оформить заказ <ArrowUpRight size={16} />
+            </button>
+          </div>
+          <p className="demo-booked">
+            В реальном Mini App заказ уходит бариста мгновенно. Эта
+            демонстрация показывает интерфейс и сценарий.
+          </p>
+        </div>
+      )}
       <button className="text-link demo-cta" onClick={() => onProject(type)}>
         Хочу похожий проект <ArrowUpRight size={16} />
       </button>
@@ -851,6 +945,14 @@ export default function App() {
       ai: {
         project: "bot",
         text: "Хочу AI-ассистента для ответов клиентам по базе знаний.",
+      },
+      video: {
+        project: "bot",
+        text: "Нужен Telegram-бот для скачивания видео с YouTube, VK, TikTok и Rutube с выбором качества и формата.",
+      },
+      coffee: {
+        project: "miniapp",
+        text: "Хочу Mini App для заказа кофе с меню, выбором размера и корзиной.",
       },
     };
     setPrefill({ ...details[type], time: Date.now() });
@@ -1157,8 +1259,120 @@ export default function App() {
                   </button>
                 </div>
               </article>
+              <article className="work-card" data-reveal>
+                <button
+                  className="work-visual video-visual"
+                  onClick={() => setDemo("video")}
+                  aria-label="Открыть демо бота скачивания видео"
+                >
+                  <span className="visual-badge">TELEGRAM BOT</span>
+                  <div className="video-preview">
+                    <div className="video-preview-head">
+                      <span className="video-avatar">DL</span>
+                      <div>
+                        VideoDL · downloader<small>бот</small>
+                      </div>
+                      <span>•••</span>
+                    </div>
+                    <div className="video-preview-msg user">
+                      https://youtu.be/dQw4w9WgXcQ
+                    </div>
+                    <div className="video-preview-msg bot">
+                      <span className="video-platform yt">YouTube</span>
+                      Определил видео · 1080p / 720p / MP3
+                    </div>
+                    <div className="video-preview-options">
+                      <span>MP4 1080p</span>
+                      <span className="picked">MP4 720p</span>
+                      <span>MP3</span>
+                    </div>
+                    <div className="video-preview-confirm">
+                      <Check size={13} /> Файл готов · 48.2 МБ
+                    </div>
+                  </div>
+                  <span className="work-visual-arrow">
+                    <ArrowUpRight size={23} />
+                  </span>
+                </button>
+                <div className="work-meta">
+                  <span className="mono">04 / MEDIA</span>
+                  <h3>Скачивание видео в один клик</h3>
+                  <p>
+                    Ссылка из любого мессенджера — файл в чате. YouTube, VK,
+                    TikTok, Rutube, выбор качества.
+                  </p>
+                  <div className="tags">
+                    <span>Python</span>
+                    <span>Aiogram</span>
+                    <span>yt-dlp</span>
+                  </div>
+                  <button className="text-link" onClick={() => setDemo("video")}>
+                    Тестировать демо <ArrowUpRight size={17} />
+                  </button>
+                </div>
+              </article>
+              <article className="work-card" data-reveal>
+                <button
+                  className="work-visual coffee-visual"
+                  onClick={() => setDemo("coffee")}
+                  aria-label="Открыть демо Mini App доставки кофе"
+                >
+                  <span className="visual-badge">MINI APP</span>
+                  <div className="coffee-preview">
+                    <div className="coffee-preview-head">
+                      <b>BEAN / coffee</b>
+                      <span>
+                        <ShoppingBag size={15} /> 2
+                      </span>
+                    </div>
+                    <div className="coffee-preview-items">
+                      <div>
+                        <span>☕</span>
+                        <div>
+                          Латте<small>M · овсяное молоко</small>
+                        </div>
+                        <b>320 ₽</b>
+                      </div>
+                      <div>
+                        <span>☕</span>
+                        <div>
+                          Раф<small>L · ваниль</small>
+                        </div>
+                        <b>380 ₽</b>
+                      </div>
+                    </div>
+                    <div className="coffee-preview-total">
+                      <span>Итого</span>
+                      <b>700 ₽</b>
+                    </div>
+                    <div className="coffee-preview-cta">Оформить заказ</div>
+                  </div>
+                  <span className="work-visual-arrow">
+                    <ArrowUpRight size={23} />
+                  </span>
+                </button>
+                <div className="work-meta">
+                  <span className="mono">05 / E-COMMERCE</span>
+                  <h3>Кофе в два тапа</h3>
+                  <p>
+                    Меню, размер, молоко и корзина — внутри Telegram. Заказ
+                    уходит бариста мгновенно.
+                  </p>
+                  <div className="tags">
+                    <span>React</span>
+                    <span>Telegram WebApp</span>
+                    <span>FastAPI</span>
+                  </div>
+                  <button className="text-link" onClick={() => setDemo("coffee")}>
+                    Тестировать демо <ArrowUpRight size={17} />
+                  </button>
+                </div>
+              </article>
             </div>
             <div className="portfolio-note">
+              <CircleDot size={13} /> Интерактивные демо-концепты: интерфейс и
+              сценарии работы. Это не клиентские кейсы; AI-демо отвечает
+              готовыми текстами.
               <CircleDot size={13} /> Концепты демонстрируют интерфейс и
               сценарии. Это не клиентские кейсы; AI-демо использует готовые
               ответы.

@@ -3404,6 +3404,40 @@ footer {
   animation: modal-rise 0.3s cubic-bezier(0.22, 0.7, 0.2, 1);
 }
 
+/* --- Pricing like Avito: small, plain, modest --------------------------- */
+.service-bottom span {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9c9ca1;
+  letter-spacing: 0;
+}
+.service-bottom svg {
+  color: #6f6f7a;
+}
+.estimate-price {
+  font-size: 26px;
+  font-weight: 400;
+  color: #c9c9d1;
+  letter-spacing: -1px;
+}
+.estimate-price > span {
+  color: #6f6f7a;
+  font-weight: 300;
+}
+.estimate-price > small {
+  color: #6f6f7a;
+  font-size: 16px;
+}
+.estimate-title {
+  font-size: 11px;
+  color: #8a8a94;
+}
+.feature-price {
+  font-size: 11px;
+  color: #8a8a94;
+  font-weight: 400;
+}
+
 /* --- Interactive polish ------------------------------------------------ */
 .service-card {
   transition:
@@ -3732,5 +3766,470 @@ h2,
   .paths-hero h1 {
     font-size: 38px;
   }
+}
+
+/* ======================================================================
+   New demo cards: video downloader + coffee mini app
+   ====================================================================== */
+.video-visual {
+  background: #141418;
+}
+.coffee-visual {
+  background: #161412;
+}
+.video-preview,
+.coffee-preview {
+  position: absolute;
+  top: 58px;
+  left: 50%;
+  transform: translateX(-50%) rotate(4deg);
+  width: 250px;
+  padding: 14px;
+  border: 1px solid #2b2b30;
+  border-radius: 10px;
+  background: #111113df;
+  box-shadow: 0 15px 25px #00000012;
+  transition: transform 0.35s;
+}
+.work-visual:hover .video-preview,
+.work-visual:hover .coffee-preview {
+  transform: translateX(-50%) rotate(2deg) translateY(-8px);
+}
+.video-preview-head,
+.coffee-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: #b4b4b9;
+}
+.video-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  background: #1b1b1f;
+  color: #b4b4b9;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.video-preview-head small,
+.coffee-preview-head small {
+  display: block;
+  font-size: 7px;
+  color: #9c9ca1;
+  margin-top: 3px;
+}
+.video-preview-head > span:last-child,
+.coffee-preview-head > span:last-child {
+  margin-left: auto;
+  color: #9c9ca1;
+}
+.video-preview-msg {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  font-size: 9px;
+  line-height: 1.6;
+  max-width: 210px;
+  overflow-wrap: anywhere;
+}
+.video-preview-msg.user {
+  background: #1b1b1f;
+  color: #9c9ca1;
+  border-radius: 9px 9px 0 9px;
+  margin-left: auto;
+}
+.video-preview-msg.bot {
+  background: #141416;
+  color: #9c9ca1;
+  border: 1px solid #2b2b30;
+  border-radius: 9px 9px 9px 0;
+}
+.video-platform {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  background: #1b1b1f;
+  color: #b4b4b9;
+}
+.video-platform.yt {
+  background: #2a171d;
+  color: #f0a8bc;
+}
+.video-preview-options {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 8px;
+}
+.video-preview-options span {
+  flex: 1;
+  text-align: center;
+  border: 1px solid #2b2b30;
+  border-radius: 4px;
+  padding: 5px 4px;
+  color: #9c9ca1;
+}
+.video-preview-options .picked {
+  background: #28282e;
+  color: #f4f4f5;
+  border-color: #62626c;
+}
+.video-preview-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 8px;
+  color: #9bad8e;
+}
+.coffee-preview {
+  transform: translateX(-50%) rotate(-4deg);
+}
+.work-visual:hover .coffee-preview {
+  transform: translateX(-50%) rotate(-2deg) translateY(-8px);
+}
+.coffee-preview-head {
+  justify-content: space-between;
+  font-size: 12px;
+  color: #b4b4b9;
+}
+.coffee-preview-head b {
+  font-size: 12px;
+  letter-spacing: -0.5px;
+}
+.coffee-preview-items {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.coffee-preview-items > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid #2b2b30;
+  border-radius: 6px;
+  background: #111113;
+  font-size: 10px;
+  color: #b4b4b9;
+}
+.coffee-preview-items span:first-child {
+  font-size: 14px;
+}
+.coffee-preview-items div > div {
+  flex: 1;
+}
+.coffee-preview-items small {
+  display: block;
+  font-size: 7px;
+  color: #9c9ca1;
+  margin-top: 2px;
+}
+.coffee-preview-items b {
+  font-size: 10px;
+  color: #9c9ca1;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.coffee-preview-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid #2b2b30;
+  font-size: 10px;
+  color: #9c9ca1;
+}
+.coffee-preview-total b {
+  color: #b4b4b9;
+  font-size: 11px;
+}
+.coffee-preview-cta {
+  margin-top: 9px;
+  padding: 8px;
+  text-align: center;
+  border-radius: 6px;
+  background: #28282e;
+  color: #f4f4f5;
+  font-size: 10px;
+}
+
+/* --- New demo modals -------------------------------------------------- */
+.video-demo {
+  padding: 24px;
+}
+.video-demo-head {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.video-demo-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  background: #141416;
+  border: 1px solid #2b2b30;
+  color: #9c9ca1;
+  border-radius: 12px;
+}
+.video-demo-head b {
+  font-size: 13px;
+  color: #b4b4b9;
+  display: block;
+}
+.video-demo-head small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  color: #9c9ca1;
+  margin-top: 6px;
+}
+.video-demo-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 320px;
+  overflow: auto;
+  padding: 4px 2px 12px;
+}
+.video-bubble {
+  max-width: 92%;
+  padding: 13px 15px;
+  font-size: 12px;
+  line-height: 1.7;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.video-bubble.user {
+  align-self: flex-end;
+  background: #1b1b1f;
+  color: #9c9ca1;
+  border-radius: 10px 10px 0 10px;
+}
+.video-bubble.bot {
+  align-self: flex-start;
+  background: #141416;
+  color: #9c9ca1;
+  border: 1px solid #2b2b30;
+  border-radius: 10px 10px 10px 0;
+}
+.video-bubble.bot.success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9bad8e;
+}
+.video-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.video-options button {
+  background: #111113;
+  border: 1px solid #2b2b30;
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: #9c9ca1;
+  font-size: 10px;
+}
+.video-options button.active {
+  background: #28282e;
+  color: #f4f4f5;
+  border-color: #62626c;
+}
+.video-demo-platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+.video-demo-platforms span {
+  border: 1px solid #2b2b30;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 9px;
+  color: #9c9ca1;
+  font-family: var(--mono);
+  letter-spacing: 0.4px;
+}
+.coffee-demo {
+  padding: 24px;
+}
+.coffee-demo-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  color: #b4b4b9;
+  margin-bottom: 16px;
+}
+.coffee-demo-head b {
+  font-size: 16px;
+  letter-spacing: -0.5px;
+}
+.coffee-demo-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.coffee-demo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #2b2b30;
+  border-radius: 8px;
+  background: #141416;
+  color: #b4b4b9;
+  font-size: 12px;
+}
+.coffee-emoji {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.coffee-demo-item > div {
+  flex: 1;
+}
+.coffee-demo-item small {
+  display: block;
+  font-size: 9px;
+  color: #9c9ca1;
+  margin-top: 3px;
+}
+.coffee-price {
+  font-size: 11px;
+  color: #9c9ca1;
+  white-space: nowrap;
+}
+.coffee-demo-item button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #28282e;
+  color: #f4f4f5;
+  flex-shrink: 0;
+}
+.coffee-demo-cart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #2b2b30;
+  border-radius: 8px;
+  background: #111113;
+}
+.coffee-demo-cart span {
+  font-size: 10px;
+  color: #9c9ca1;
+  display: block;
+}
+.coffee-demo-cart b {
+  font-size: 14px;
+  color: #b4b4b9;
+  margin-top: 3px;
+  display: block;
+}
+.coffee-demo-cart .button {
+  font-size: 12px;
+  padding: 10px 14px;
+}
+
+/* ======================================================================
+   Avito-style pricing + legibility pass 2 (22.10.2026)
+   ====================================================================== */
+.paths-bottom {
+  font-size: 11px;
+}
+.paths-bottom a {
+  font-size: 11px;
+}
+.paths-caption {
+  font-size: 12px;
+}
+.visual-badge {
+  font-size: 10px;
+}
+.feature-option small {
+  font-size: 11px;
+}
+.consent {
+  font-size: 11px;
+}
+.estimate-disclaimer {
+  font-size: 11px;
+}
+.config-note {
+  font-size: 11px;
+}
+.portfolio-note {
+  font-size: 11px;
+}
+.process-step > .mono {
+  font-size: 9px;
+}
+.footer-bottom {
+  font-size: 11px;
+}
+.footer-bottom button {
+  font-size: 11px;
+}
+.footer-bottom .mono {
+  font-size: 9px;
+}
+.closing-coordinate {
+  font-size: 9px;
+}
+.estimate-top .mono {
+  font-size: 10px;
+}
+.estimate-label {
+  font-size: 10px;
+}
+.work-meta > .mono {
+  font-size: 10px;
+}
+.work-meta .tags > span {
+  font-size: 9px;
+}
+.service-top .mono {
+  font-size: 11px;
+}
+.tags > span {
+  font-size: 11px;
+}
+.stack-strip .mono {
+  font-size: 10px;
+}
+.paths-kicker {
+  font-size: 13px;
+}
+.paths-facts li {
+  font-size: 13px;
+}
+.form-step small {
+  font-size: 11px;
+}
+.demo-notice {
+  font-size: 11px;
+}
+.small-note {
+  font-size: 12px;
 }
 
