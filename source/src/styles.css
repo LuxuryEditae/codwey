@@ -1,4 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
@@ -4577,4 +4577,37 @@ body:has(.sticky-cart) {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+}
+
+/* Product selection: one catalog ID from preview to the submitted request. */
+.solution-card-bottom { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:23px; }
+.solution-card-price { color:#f4f4f5; font-size:24px; letter-spacing:-.6px; white-space:nowrap; }
+.solution-card-price small { display:block; font-size:10px; color:#9c9ca5; letter-spacing:0; margin-top:5px; }
+.solution-card-bottom .buy-button { margin-top:0; }
+.solution-modal-preview { border:0; border-radius:0; cursor:default; }
+.solution-details { padding:26px; }
+.solution-details > p, .ready-summary > p { color:#b4b4bd; font-size:13px; line-height:1.8; }
+.solution-details .eyebrow { font-size:10px; margin-bottom:16px; }
+.solution-features { padding:0; margin:22px 0; list-style:none; display:grid; gap:13px; }
+.solution-features li { display:flex; align-items:flex-start; gap:10px; color:#d4d4db; font-size:12px; line-height:1.7; }
+.solution-features svg { color:#9bad8e; margin-top:2px; }
+.solution-detail-price { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; border-block:1px solid #2b2b30; padding:19px 0; }
+.solution-detail-price span { font-size:12px; color:#a1a1aa; }
+.solution-detail-price b { font-size:27px; font-weight:500; color:#f4f4f5; white-space:nowrap; }
+.solution-details .solution-detail-note, .solution-detail-note { font-size:11px; color:#a1a1aa; line-height:1.8; margin:18px 0; }
+.solution-discuss { width:100%; justify-content:space-between; }
+.solution-back { margin-top:19px; }
+.order-mode { display:grid; grid-template-columns:1fr 1fr; gap:6px; background:#09090b; border:1px solid #2b2b30; padding:5px; border-radius:10px; margin-bottom:30px; }
+.order-mode button { padding:12px 9px; border-radius:6px; background:transparent; color:#a1a1aa; font-size:12px; line-height:1.6; }
+.order-mode button[aria-pressed="true"] { background:#28282e; color:#f4f4f5; box-shadow:0 1px 5px #0005; }
+.ready-configurator select { cursor:pointer; }
+.ready-configurator select option { background:#171719; color:#f4f4f5; }
+.ready-summary { margin-top:27px; padding-top:25px; border-top:1px solid #2b2b30; }
+.ready-summary .eyebrow { font-size:9px; margin-bottom:13px; }
+.ready-summary h3 { font-size:22px; line-height:1.35; font-weight:450; margin:0 0 12px; letter-spacing:-.5px; }
+.estimate-price.estimate-empty { font-size:22px; white-space:normal; letter-spacing:-.5px; }
+@media (max-width:600px) {
+  .solution-details { padding:20px; }
+  .solution-modal-preview { height:275px; }
+  .order-mode button { font-size:11px; }
 }

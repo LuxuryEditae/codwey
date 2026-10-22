@@ -29,6 +29,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import pricing from "../shared/pricing.json";
+import solutions from "../shared/solutions.json";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 
 const API_BASE =
@@ -214,8 +215,166 @@ function PhonePreview({ small = false }) {
   );
 }
 
+function SolutionPreview({ id }) {
+  if (id === "shop") return (<>
+                  <span className="visual-badge">MINI APP</span>
+                  <div className="portfolio-phone">
+                    <PhonePreview small />
+                  </div>
+                  <span className="work-visual-arrow">
+                    <ArrowUpRight size={23} />
+                  </span>
+                </>);
+  if (id === "booking") return (<>
+                  <span className="visual-badge">TELEGRAM BOT</span>
+                  <div className="booking-preview">
+                    <div className="booking-preview-header">
+                      <span className="booking-avatar">S.</span>
+                      <div>
+                        STUDIO / booking<small>бот</small>
+                      </div>
+                      <span>•••</span>
+                    </div>
+                    <div className="preview-msg">
+                      Привет! Время для себя?
+                      <br />
+                      Выберите удобный день ✂
+                    </div>
+                    <div className="preview-calendar">
+                      <b>
+                        Выберите дату <CalendarDays size={14} />
+                      </b>
+                      <div>
+                        {["ПН", "ВТ", "СР", "ЧТ", "ПТ"].map((d, i) => (
+                          <span className={i === 2 ? "picked" : ""} key={d}>
+                            <small>{d}</small>
+                            {22 + i}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="preview-slots">
+                        <span>10:00</span>
+                        <span className="picked">12:00</span>
+                        <span>14:30</span>
+                      </div>
+                    </div>
+                    <div className="preview-confirm">
+                      <Check size={13} /> Вы записаны. До встречи!
+                    </div>
+                  </div>
+                  <span className="work-visual-arrow">
+                    <ArrowUpRight size={23} />
+                  </span>
+                </>);
+  if (id === "ai") return (<>
+                  <span className="visual-badge">AI ASSISTANT</span>
+                  <div className="ai-preview">
+                    <div className="ai-spark">
+                      <Sparkles size={30} />
+                    </div>
+                    <div className="ai-preview-title">
+                      На связи.
+                      <br />
+                      <span>В любое время.</span>
+                    </div>
+                    <div className="ai-question">
+                      Как подключить ваш сервис?
+                    </div>
+                    <div className="ai-answer">
+                      <Sparkles size={15} />
+                      <span>
+                        Помогу разобраться.
+                        <br />
+                        Начнём с простого…
+                      </span>
+                    </div>
+                    <div className="ai-sources">
+                      <span />
+                      <span />
+                      <span /> На основе вашей базы знаний
+                    </div>
+                  </div>
+                  <span className="work-visual-arrow">
+                    <ArrowUpRight size={23} />
+                  </span>
+                </>);
+  if (id === "video") return (<>
+                  <span className="visual-badge">TELEGRAM BOT</span>
+                  <div className="video-preview">
+                    <div className="video-preview-head">
+                      <span className="video-avatar">DL</span>
+                      <div>
+                        VideoDL · downloader<small>бот</small>
+                      </div>
+                      <span>•••</span>
+                    </div>
+                    <div className="video-preview-msg user">
+                      https://youtu.be/dQw4w9WgXcQ
+                    </div>
+                    <div className="video-preview-msg bot">
+                      <span className="video-platform yt">YouTube</span>
+                      Определил видео · 1080p / 720p / MP3
+                    </div>
+                    <div className="video-preview-options">
+                      <span>MP4 1080p</span>
+                      <span className="picked">MP4 720p</span>
+                      <span>MP3</span>
+                    </div>
+                    <div className="video-preview-confirm">
+                      <Check size={13} /> Файл готов · 48.2 МБ
+                    </div>
+                  </div>
+                  <span className="work-visual-arrow">
+                    <ArrowUpRight size={23} />
+                  </span>
+                </>);
+  if (id === "coffee") return (<>
+                  <span className="visual-badge">MINI APP</span>
+                  <div className="coffee-preview">
+                    <div className="coffee-preview-head">
+                      <b>BEAN / coffee</b>
+                      <span>
+                        <ShoppingBag size={15} /> 2
+                      </span>
+                    </div>
+                    <div className="coffee-preview-items">
+                      <div>
+                        <span>☕</span>
+                        <div>
+                          Латте<small>M · овсяное молоко</small>
+                        </div>
+                        <b>320 ₽</b>
+                      </div>
+                      <div>
+                        <span>☕</span>
+                        <div>
+                          Раф<small>L · ваниль</small>
+                        </div>
+                        <b>380 ₽</b>
+                      </div>
+                    </div>
+                    <div className="coffee-preview-total">
+                      <span>Итого</span>
+                      <b>700 ₽</b>
+                    </div>
+                    <div className="coffee-preview-cta">Оформить заказ</div>
+                  </div>
+                  <span className="work-visual-arrow">
+                    <ArrowUpRight size={23} />
+                  </span>
+                </>);
+  return null;
+}
+
+function solutionBrief(solution) {
+  return `Интересует готовое решение «${solution.title}» (${solution.id}), стоимость основы ${money(solution.price)} ₽. Хочу обсудить подключение и запуск для моего бизнеса.`;
+}
+
 function Calculator({ prefill, onPrivacy }) {
   const [project, setProject] = useState("bot");
+  const [mode, setMode] = useState("custom");
+  const [solutionId, setSolutionId] = useState("");
+  const solution = solutions.find(item => item.id === solutionId);
   const [features, setFeatures] = useState([]);
   const [contact, setContact] = useState("");
   const [description, setDescription] = useState("");
@@ -228,6 +387,10 @@ function Calculator({ prefill, onPrivacy }) {
   useEffect(() => {
     if (prefill) {
       setProject(prefill.project);
+      setMode("ready");
+      setSolutionId(prefill.solutionId);
+      setFeatures([]);
+      setError("");
       setDescription(prefill.text);
       setState("idle");
       setReceipt(null);
@@ -250,10 +413,32 @@ function Calculator({ prefill, onPrivacy }) {
         prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id],
       ),
     );
+  const selectSolution = (id) => change(() => {
+    const item = solutions.find(entry => entry.id === id);
+    setSolutionId(item?.id || "");
+    setProject(item?.project || "bot");
+    setFeatures([]);
+    setDescription(item ? solutionBrief(item) : "");
+  });
+  const switchMode = (nextMode) => {
+    if (nextMode === mode) return;
+    change(() => {
+      setMode(nextMode);
+      setSolutionId("");
+      setFeatures([]);
+      setDescription("");
+      setState("idle");
+      setReceipt(null);
+    });
+  };
   async function submit(e) {
     e.preventDefault();
     if (state === "sending") return;
     setError("");
+    if (mode === "ready" && !solution) {
+      setError("Выберите готовое решение, которое хотите обсудить.");
+      return;
+    }
     const contactValue = contact.trim();
     if (
       !/^@?[A-Za-z][A-Za-z0-9_]{4,31}$/.test(contactValue) &&
@@ -293,8 +478,9 @@ function Calculator({ prefill, onPrivacy }) {
         body: JSON.stringify({
           submission_id: requestId.current,
           contact: contactValue,
-          project,
-          features,
+          project: mode === "ready" ? solution.project : project,
+          features: mode === "ready" ? [] : features,
+          ...(mode === "ready" ? { solution_id: solution.id } : {}),
           description: description.trim(),
           consent,
           website,
@@ -330,13 +516,13 @@ function Calculator({ prefill, onPrivacy }) {
       <div className="container">
         <div className="calculator-intro">
           <SectionIntro
-            n="02"
-            label="КАЛЬКУЛЯТОР ПРОЕКТА"
-            text="Выберите формат и нужные возможности. Стоимость и сроки изменятся сразу — без регистрации и ожидания ответа."
+            n="03"
+            label="ВЫБЕРИТЕ СВОЙ ФОРМАТ"
+            text="Готовое решение или разработка с нуля — выберите свой путь. Расскажите о задаче, и мы обсудим запуск."
           >
-            Сколько стоит ваша идея?
+            Готовое или с нуля?
             <br />
-            <span className="subtle">Давайте посчитаем.</span>
+            <span className="subtle">Обсудим ваш проект.</span>
           </SectionIntro>
           <div className="small-note">
             <CircleDot size={16} />
@@ -349,6 +535,11 @@ function Calculator({ prefill, onPrivacy }) {
         </div>
         <form className="calculator-grid" onSubmit={submit}>
           <div className="configurator">
+            <div className="order-mode" role="group" aria-label="Формат заказа">
+              <button type="button" aria-pressed={mode === "custom"} onClick={() => switchMode("custom")}>Разработка на заказ</button>
+              <button type="button" aria-pressed={mode === "ready"} onClick={() => switchMode("ready")}>Готовое решение</button>
+            </div>
+            {mode === "custom" ? (<>
             <div className="form-step">
               <span>01</span>
               <h3>Что будем создавать?</h3>
@@ -400,6 +591,24 @@ function Calculator({ prefill, onPrivacy }) {
                 </label>
               ))}
             </div>
+            </>) : (
+              <div className="ready-configurator">
+                <div className="form-step"><span>01</span><h3>Какое решение вам нужно?</h3></div>
+                <label className="field-label" htmlFor="solution-select">Готовое решение</label>
+                <select id="solution-select" className="text-field" value={solutionId} onChange={e => selectSolution(e.target.value)} required>
+                  <option value="" disabled>Выберите решение</option>
+                  {solutions.map(item => <option value={item.id} key={item.id}>{item.title} — {money(item.price)} ₽</option>)}
+                </select>
+                {solution ? (
+                  <div className="ready-summary" data-selected-solution={solution.id}>
+                    <span className="eyebrow">ВЫ ВЫБРАЛИ</span>
+                    <h3>{solution.title}</h3><p>{solution.description}</p>
+                    <ul className="solution-features">{solution.features.map(feature => <li key={feature}><Check size={16} />{feature}</li>)}</ul>
+                    <p className="solution-detail-note">Основа — {money(solution.price)} ₽. Доработки и подключение сервисов обсудим отдельно.</p>
+                  </div>
+                ) : <p className="solution-detail-note">Выберите товар из списка — здесь появятся его состав и цена.</p>}
+              </div>
+            )}
             <div className="config-note">
               <LockKeyhole size={14} /> Исходный код и доступы передаём вам
             </div>
@@ -409,19 +618,14 @@ function Calculator({ prefill, onPrivacy }) {
               <span className="mono">ВАШ ПРОЕКТ / СМЕТА</span>
               <Terminal size={17} />
             </div>
-            <div className="estimate-title">Предварительная стоимость</div>
-            <div className="estimate-price" aria-live="polite">
-              {money(sum("min"))}
-              <span> — </span>
-              {money(sum("max"))}
-              <small>₽</small>
+            <div className="estimate-title">{mode === "ready" ? "Стоимость готовой основы" : "Предварительная стоимость"}</div>
+            <div className={`estimate-price ${mode === "ready" && !solution ? "estimate-empty" : ""}`} aria-live="polite">
+              {mode === "ready" ? (solution ? <>{money(solution.price)}<small>₽</small></> : "Выберите решение") : <>{money(sum("min"))}<span> — </span>{money(sum("max"))}<small>₽</small></>}
             </div>
             <div className="estimate-days">
               <Clock3 size={15} />
-              <span>
-                {sum("daysMin")}–{sum("daysMax")} рабочих дней
-              </span>
-              <span className="estimate-label">под ключ</span>
+              <span>{mode === "ready" ? "Срок подключения согласуем" : `${sum("daysMin")}–${sum("daysMax")} рабочих дней`}</span>
+              <span className="estimate-label">{mode === "ready" ? "готовая основа" : "под ключ"}</span>
             </div>
             <div className="estimate-divider" />
             {state === "success" ? (
@@ -449,8 +653,8 @@ function Calculator({ prefill, onPrivacy }) {
             ) : (
               <>
                 <div className="form-step contact-step">
-                  <span>03</span>
-                  <h3>Обсудим вашу идею</h3>
+                  <span>{mode === "ready" ? "02" : "03"}</span>
+                  <h3>{mode === "ready" ? "Обсудим выбранное решение" : "Обсудим вашу идею"}</h3>
                 </div>
                 <label className="field-label" htmlFor="contact">
                   Telegram или телефон
@@ -517,7 +721,7 @@ function Calculator({ prefill, onPrivacy }) {
                 <button
                   className="button primary submit-button"
                   type="submit"
-                  disabled={state === "sending"}
+                  disabled={state === "sending" || (mode === "ready" && !solution)}
                 >
                   {state === "sending" ? (
                     <>
@@ -616,102 +820,20 @@ export default function App() {
   const [privacy, setPrivacy] = useState(false);
   const [faq, setFaq] = useState(0);
   const [prefill, setPrefill] = useState(null);
-  const [cart, setCart] = useState([]);
-  const [checkout, setCheckout] = useState(false);
-  const [payState, setPayState] = useState("idle");
-  const [payError, setPayError] = useState("");
-  const [payReceipt, setPayReceipt] = useState(null);
-  const [toast, setToast] = useState(null);
-  const addToCart = (item) => {
-    setCart((prev) => {
-      if (prev.some((p) => p.id === item.id)) return prev;
-      return [...prev, item];
+  useEffect(() => {
+    if (!prefill) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById("calculator")?.scrollIntoView({ behavior: prefersReducedMotion() ? "instant" : "smooth" });
     });
-    setToast(item.title + " добавлен в корзину");
-    setTimeout(() => setToast(null), 2500);
-  };
-  const removeFromCart = (id) =>
-    setCart((prev) => prev.filter((p) => p.id !== id));
-  const cartTotal = cart.reduce((n, p) => n + p.price, 0);
-  async function pay() {
-    if (payState === "sending" || !cart.length) return;
-    setPayError("");
-    setPayState("sending");
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const submissionId =
-      typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID()
-        : "10000000-1000-4000-8000-100000000000";
-    try {
-      const response = await fetch(`${API_BASE}/api/payment/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submission_id: submissionId,
-          items: cart.map((p) => ({ id: p.id, title: p.title, price: p.price })),
-          amount: cartTotal,
-          description: cart.map((p) => p.title).join(", "),
-          contact: "@codway_client",
-        }),
-        signal: controller.signal,
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(
-          typeof data.detail === "string"
-            ? data.detail
-            : "Не удалось создать платёж. Попробуйте позже.",
-        );
-      setPayReceipt(data);
-      setPayState("success");
-      if (data.payment_url) window.location.href = data.payment_url;
-    } catch (err) {
-      setPayError(
-        err.name === "AbortError"
-          ? "Сервер отвечает дольше обычного. Повторите."
-          : err instanceof TypeError
-            ? "Не удалось связаться с сервером."
-            : err.message,
-      );
-      setPayState("idle");
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-  const chooseProject = (type) => {
-    const details = {
-      shop: {
-        project: "miniapp",
-        text: "Хочу Mini App магазин с каталогом товаров и корзиной.",
-      },
-      booking: {
-        project: "bot",
-        text: "Нужен бот для записи клиентов с выбором времени и уведомлениями.",
-      },
-      ai: {
-        project: "bot",
-        text: "Хочу AI-ассистента для ответов клиентам по базе знаний.",
-      },
-      video: {
-        project: "bot",
-        text: "Нужен Telegram-бот для скачивания видео с YouTube, VK, TikTok и Rutube с выбором качества и формата.",
-      },
-      coffee: {
-        project: "miniapp",
-        text: "Хочу Mini App для заказа кофе с меню, выбором размера и корзиной.",
-      },
-    };
-    setPrefill({ ...details[type], time: Date.now() });
-    setTimeout(
-      () =>
-        document
-          .getElementById("calculator")
-          .scrollIntoView({
-            behavior: prefersReducedMotion() ? "instant" : "smooth",
-          }),
-      40,
-    );
+    return () => cancelAnimationFrame(frame);
+  }, [prefill]);
+  const [selectedSolution, setSelectedSolution] = useState(null);
+  const activeSolution = solutions.find(item => item.id === selectedSolution);
+  const chooseProject = (id) => {
+    const solution = solutions.find(item => item.id === id);
+    if (!solution) return;
+    setSelectedSolution(null);
+    setPrefill({ solutionId: solution.id, project: solution.project, text: solutionBrief(solution), time: Date.now() });
   };
   return (
     <>
@@ -727,7 +849,7 @@ export default function App() {
           >
             {[
               ["#services", "Что создаём"],
-              ["#work", "Демо-проекты"],
+              ["#work", "Готовые решения"],
               ["#process", "Процесс"],
               ["#faq", "FAQ"],
             ].map(([href, label]) => (
@@ -841,286 +963,53 @@ export default function App() {
             </div>
           </div>
         </section>
-        <Calculator prefill={prefill} onPrivacy={() => setPrivacy(true)} />
         <section className="section work-section" id="work">
           <div className="container">
             <div className="section-heading">
-              <SectionIntro n="03" label="ПОПРОБУЙТЕ В ДЕЛЕ">
-                Можно посмотреть.
-                <br />
-                <span className="subtle">А можно попробовать.</span>
+              <SectionIntro n="02" label="ГОТОВЫЕ РЕШЕНИЯ">
+                Необязательно с нуля.<br />
+                <span className="subtle">Выберите готовую основу.</span>
               </SectionIntro>
               <p className="section-aside">
-                Три демо-концепта, которые можно потрогать. Посмотрите, как
-                может работать ваш продукт.
+                Боты и Mini Apps для конкретных задач. Откройте решение,
+                посмотрите состав и обсудите запуск под ваш бизнес.
               </p>
             </div>
             <div className="work-grid">
-              <article className="work-card">
-                <button
-                  className="work-visual shop-visual"
-                                    aria-label="Открыть демо Mini App магазина"
-                >
-                  <span className="visual-badge">MINI APP</span>
-                  <div className="portfolio-phone">
-                    <PhonePreview small />
-                  </div>
-                  <span className="work-visual-arrow">
-                    <ArrowUpRight size={23} />
-                  </span>
-                </button>
-                <div className="work-meta">
-                  <span className="mono">01 / E-COMMERCE</span>
-                  <h3>Магазин в вашем кармане</h3>
-                  <p>Каталог, размеры, корзина. Всё внутри Telegram.</p>
-                  <div className="tags">
-                    <span className="tag-ready">Готово</span>
-                    <span>React</span>
-                    <span>Telegram WebApp</span>
-                    <span>FastAPI</span>
-                  </div>
-                  <button
-                    className="buy-button"
-                    onClick={() => { addToCart({ id: "shop", title: "Mini App магазин", price: 40000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}
-                  >
-                    Купить <ShoppingBag size={17} />
+              {solutions.map((solution, index) => (
+                <article className="work-card" key={solution.id} data-solution-id={solution.id}>
+                  <button type="button" className={`work-visual ${solution.visual}`}
+                    aria-label={`Подробнее: ${solution.title}`}
+                    onClick={() => setSelectedSolution(solution.id)}>
+                    <SolutionPreview id={solution.id} />
                   </button>
-                </div>
-              </article>
-              <article className="work-card">
-                <button
-                  className="work-visual booking-visual"
-                  bookingaria-label="Открыть демо бота записи"
-                >
-                  <span className="visual-badge">TELEGRAM BOT</span>
-                  <div className="booking-preview">
-                    <div className="booking-preview-header">
-                      <span className="booking-avatar">S.</span>
-                      <div>
-                        STUDIO / booking<small>бот</small>
-                      </div>
-                      <span>•••</span>
+                  <div className="work-meta">
+                    <span className="mono">{String(index + 1).padStart(2, "0")} / {solution.category}</span>
+                    <h3>{solution.title}</h3>
+                    <p>{solution.description}</p>
+                    <div className="tags">
+                      <span className="tag-ready">Готовое решение</span>
+                      {solution.stack.map(tag => <span key={tag}>{tag}</span>)}
                     </div>
-                    <div className="preview-msg">
-                      Привет! Время для себя?
-                      <br />
-                      Выберите удобный день ✂
-                    </div>
-                    <div className="preview-calendar">
-                      <b>
-                        Выберите дату <CalendarDays size={14} />
-                      </b>
-                      <div>
-                        {["ПН", "ВТ", "СР", "ЧТ", "ПТ"].map((d, i) => (
-                          <span className={i === 2 ? "picked" : ""} key={d}>
-                            <small>{d}</small>
-                            {22 + i}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="preview-slots">
-                        <span>10:00</span>
-                        <span className="picked">12:00</span>
-                        <span>14:30</span>
-                      </div>
-                    </div>
-                    <div className="preview-confirm">
-                      <Check size={13} /> Вы записаны. До встречи!
+                    <div className="solution-card-bottom">
+                      <span className="solution-card-price">{money(solution.price)} ₽<small>стоимость основы</small></span>
+                      <button type="button" className="buy-button"
+                        aria-label={`Купить: ${solution.title}`}
+                        onClick={() => setSelectedSolution(solution.id)}>
+                        Купить <ArrowUpRight size={17} />
+                      </button>
                     </div>
                   </div>
-                  <span className="work-visual-arrow">
-                    <ArrowUpRight size={23} />
-                  </span>
-                </button>
-                <div className="work-meta">
-                  <span className="mono">02 / SERVICES</span>
-                  <h3>Запись без переписок</h3>
-                  <p>Свободные слоты, запись и напоминания клиентам.</p>
-                  <div className="tags">
-                    <span className="tag-ready">Готово</span>
-                    <span>Python</span>
-                    <span>Aiogram</span>
-                    <span>SQLite</span>
-                  </div>
-                  <button
-                    className="buy-button"
-                    onClick={() => { addToCart({ id: "booking", title: "Бот записи клиентов", price: 15000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}
-                  >
-                    Купить <CalendarDays size={17} />
-                  </button>
-                </div>
-              </article>
-              <article className="work-card">
-                <button
-                  className="work-visual ai-visual"
-                  aiaria-label="Открыть демо AI-поддержки"
-                >
-                  <span className="visual-badge">AI ASSISTANT</span>
-                  <div className="ai-preview">
-                    <div className="ai-spark">
-                      <Sparkles size={30} />
-                    </div>
-                    <div className="ai-preview-title">
-                      На связи.
-                      <br />
-                      <span>В любое время.</span>
-                    </div>
-                    <div className="ai-question">
-                      Как подключить ваш сервис?
-                    </div>
-                    <div className="ai-answer">
-                      <Sparkles size={15} />
-                      <span>
-                        Помогу разобраться.
-                        <br />
-                        Начнём с простого…
-                      </span>
-                    </div>
-                    <div className="ai-sources">
-                      <span />
-                      <span />
-                      <span /> На основе вашей базы знаний
-                    </div>
-                  </div>
-                  <span className="work-visual-arrow">
-                    <ArrowUpRight size={23} />
-                  </span>
-                </button>
-                <div className="work-meta">
-                  <span className="mono">03 / AI & AUTOMATION</span>
-                  <h3>Поддержка с интеллектом</h3>
-                  <p>Ответы по базе знаний и помощь вашим клиентам.</p>
-                  <div className="tags">
-                    <span className="tag-ready">Готово</span>
-                    <span>Python</span>
-                    <span>LLM API</span>
-                    <span>RAG</span>
-                  </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}>
-                    Купить <ArrowUpRight size={17} />
-                  </button>
-                </div>
-              </article>
-              <article className="work-card">
-                <button
-                  className="work-visual video-visual"
-                  videoaria-label="Открыть демо бота скачивания видео"
-                >
-                  <span className="visual-badge">TELEGRAM BOT</span>
-                  <div className="video-preview">
-                    <div className="video-preview-head">
-                      <span className="video-avatar">DL</span>
-                      <div>
-                        VideoDL · downloader<small>бот</small>
-                      </div>
-                      <span>•••</span>
-                    </div>
-                    <div className="video-preview-msg user">
-                      https://youtu.be/dQw4w9WgXcQ
-                    </div>
-                    <div className="video-preview-msg bot">
-                      <span className="video-platform yt">YouTube</span>
-                      Определил видео · 1080p / 720p / MP3
-                    </div>
-                    <div className="video-preview-options">
-                      <span>MP4 1080p</span>
-                      <span className="picked">MP4 720p</span>
-                      <span>MP3</span>
-                    </div>
-                    <div className="video-preview-confirm">
-                      <Check size={13} /> Файл готов · 48.2 МБ
-                    </div>
-                  </div>
-                  <span className="work-visual-arrow">
-                    <ArrowUpRight size={23} />
-                  </span>
-                </button>
-                <div className="work-meta">
-                  <span className="mono">04 / MEDIA</span>
-                  <h3>Скачивание видео в один клик</h3>
-                  <p>
-                    Ссылка из любого мессенджера — файл в чате. YouTube, VK,
-                    TikTok, Rutube, выбор качества.
-                  </p>
-                  <div className="tags">
-                    <span className="tag-ready">Готово</span>
-                    <span>Python</span>
-                    <span>Aiogram</span>
-                    <span>yt-dlp</span>
-                  </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}>
-                    Купить <ArrowUpRight size={17} />
-                  </button>
-                </div>
-              </article>
-              <article className="work-card">
-                <button
-                  className="work-visual coffee-visual"
-                  coffeearia-label="Открыть демо Mini App доставки кофе"
-                >
-                  <span className="visual-badge">MINI APP</span>
-                  <div className="coffee-preview">
-                    <div className="coffee-preview-head">
-                      <b>BEAN / coffee</b>
-                      <span>
-                        <ShoppingBag size={15} /> 2
-                      </span>
-                    </div>
-                    <div className="coffee-preview-items">
-                      <div>
-                        <span>☕</span>
-                        <div>
-                          Латте<small>M · овсяное молоко</small>
-                        </div>
-                        <b>320 ₽</b>
-                      </div>
-                      <div>
-                        <span>☕</span>
-                        <div>
-                          Раф<small>L · ваниль</small>
-                        </div>
-                        <b>380 ₽</b>
-                      </div>
-                    </div>
-                    <div className="coffee-preview-total">
-                      <span>Итого</span>
-                      <b>700 ₽</b>
-                    </div>
-                    <div className="coffee-preview-cta">Оформить заказ</div>
-                  </div>
-                  <span className="work-visual-arrow">
-                    <ArrowUpRight size={23} />
-                  </span>
-                </button>
-                <div className="work-meta">
-                  <span className="mono">05 / E-COMMERCE</span>
-                  <h3>Кофе в два тапа</h3>
-                  <p>
-                    Меню, размер, молоко и корзина — внутри Telegram. Заказ
-                    уходит бариста мгновенно.
-                  </p>
-                  <div className="tags">
-                    <span className="tag-ready">Готово</span>
-                    <span>React</span>
-                    <span>Telegram WebApp</span>
-                    <span>FastAPI</span>
-                  </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contacts"); if (el) { const top = el.getBoundingClientRect().top + window.pageYOffset; window.scrollTo({ top: Math.max(0, top - 60), behavior: "instant" }); } }, 300); }}>
-                    Купить <ArrowUpRight size={17} />
-                  </button>
-                </div>
-              </article>
+                </article>
+              ))}
             </div>
-            <div className="portfolio-note">
-              <CircleDot size={13} /> Интерактивные демо-концепты: интерфейс и
-              сценарии работы. Это не клиентские кейсы; AI-демо отвечает
-              готовыми текстами.
-              <CircleDot size={13} /> Концепты демонстрируют интерфейс и
-              сценарии. Это не клиентские кейсы; AI-демо использует готовые
-              ответы.
-            </div>
+            <p className="portfolio-note">
+              <CircleDot size={13} /> На превью показан интерфейс решения.
+              Подключение сервисов, доработки и запуск согласуем перед заказом.
+            </p>
           </div>
         </section>
+        <Calculator prefill={prefill} onPrivacy={() => setPrivacy(true)} />
         <section className="section process-section" id="process">
           <div className="container">
             <div className="section-heading">
@@ -1303,7 +1192,7 @@ export default function App() {
           </div>
           <div className="footer-links">
             <a href="#services">Услуги</a>
-            <a href="#work">Демо-проекты</a>
+            <a href="#work">Готовые решения</a>
             <a href="#calculator">
               Обсудить проект <ArrowUpRight size={14} />
             </a>
@@ -1320,59 +1209,25 @@ export default function App() {
         </div>
       </footer>
 
-      {cart.length > 0 && (
-        <div className="sticky-cart">
-          <div className="sticky-cart-inner">
-            <div className="sticky-cart-info">
-              <ShoppingBag size={18} />
-              <span>
-                Корзина: {cart.length}{" "}
-                {cart.length === 1 ? "товар" : cart.length < 5 ? "товара" : "товаров"} ·{" "}
-                {money(cartTotal)} ₽
-              </span>
-            </div>
-            <div className="sticky-cart-actions">
-              {payError && (
-                <span className="sticky-cart-error">{payError}</span>
-              )}
-              {payState === "success" && payReceipt && (
-                <span className="sticky-cart-success">
-                  №{payReceipt.payment_id} создана
-                </span>
-              )}
-              <button
-                className="button primary"
-                type="button"
-                onClick={pay}
-                disabled={payState === "sending"}
-              >
-                {payState === "sending" ? (
-                  <>
-                    <LoaderCircle size={16} className="spin" /> Создаём…
-                  </>
-                ) : (
-                  <>
-                    Оплатить {money(cartTotal)} ₽ <ArrowUpRight size={16} />
-                  </>
-                )}
-              </button>
-              <a
-                className="sticky-cart-tg"
-                href="https://t.me/codwey_bot"
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                <Send size={14} /> Telegram
-              </a>
-            </div>
+      {activeSolution && (
+        <Modal title={activeSolution.title} onClose={() => setSelectedSolution(null)}>
+          <div className={`work-visual solution-modal-preview ${activeSolution.visual}`} aria-hidden="true">
+            <SolutionPreview id={activeSolution.id} />
           </div>
-        </div>
-      )}
-
-      {toast && (
-        <div className="toast" role="status">
-          <Check size={16} /> {toast}
-        </div>
+          <div className="solution-details">
+            <span className="eyebrow">ГОТОВОЕ РЕШЕНИЕ / {activeSolution.format}</span>
+            <p>{activeSolution.description}</p>
+            <ul className="solution-features">
+              {activeSolution.features.map(feature => <li key={feature}><Check size={16} />{feature}</li>)}
+            </ul>
+            <div className="solution-detail-price"><span>Стоимость основы</span><b>{money(activeSolution.price)} ₽</b></div>
+            <p className="solution-detail-note">Состав поставки, подключение сервисов и доработки согласуем до заказа. Превью показывает интерфейс.{activeSolution.id === "ai" && " AI-пример содержит готовые ответы."}</p>
+            <button type="button" className="button primary solution-discuss" onClick={() => chooseProject(activeSolution.id)}>
+              Обсудить проект <ArrowUpRight size={18} />
+            </button>
+            <button type="button" className="text-link solution-back" onClick={() => setSelectedSolution(null)}>Вернуться к решениям</button>
+          </div>
+        </Modal>
       )}
 
       <>

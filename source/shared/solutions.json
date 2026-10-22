@@ -1,0 +1,37 @@
+[
+  {
+    "id": "shop", "title": "Mini App магазин", "project": "miniapp", "price": 40000,
+    "category": "E-COMMERCE", "format": "MINI APP", "visual": "shop-visual",
+    "description": "Каталог товаров, выбор вариантов и корзина внутри Telegram.",
+    "features": ["Каталог с карточками товаров", "Выбор вариантов и размеров", "Корзина и оформление заказа"],
+    "stack": ["React", "Telegram WebApp", "FastAPI"]
+  },
+  {
+    "id": "booking", "title": "Бот записи клиентов", "project": "bot", "price": 15000,
+    "category": "SERVICES", "format": "TELEGRAM BOT", "visual": "booking-visual",
+    "description": "Выбор услуги, свободного дня и времени без долгой переписки.",
+    "features": ["Выбор услуги и даты", "Запись на свободное время", "Подтверждения и напоминания"],
+    "stack": ["Python", "Aiogram", "SQLite"]
+  },
+  {
+    "id": "ai", "title": "AI-ассистент поддержки", "project": "bot", "price": 25000,
+    "category": "AI & AUTOMATION", "format": "AI ASSISTANT", "visual": "ai-visual",
+    "description": "Помощник для ответов клиентам по вашей базе знаний.",
+    "features": ["Диалог с клиентом в Telegram", "Ответы по материалам компании", "Подключение выбранной модели AI"],
+    "stack": ["Python", "LLM API", "RAG"]
+  },
+  {
+    "id": "video", "title": "Бот скачивания видео", "project": "bot", "price": 20000,
+    "category": "MEDIA", "format": "TELEGRAM BOT", "visual": "video-visual",
+    "description": "Ссылка на видео, выбор качества или аудио — и файл в чате.",
+    "features": ["Приём ссылки на видео", "Выбор качества и формата", "Отправка файла в Telegram"],
+    "stack": ["Python", "Aiogram", "yt-dlp"]
+  },
+  {
+    "id": "coffee", "title": "Mini App доставки кофе", "project": "miniapp", "price": 35000,
+    "category": "E-COMMERCE", "format": "MINI APP", "visual": "coffee-visual",
+    "description": "Меню напитков, размеры, добавки и корзина прямо в Telegram.",
+    "features": ["Меню с вариантами напитков", "Выбор размера, молока и добавок", "Корзина и передача заказа бариста"],
+    "stack": ["React", "Telegram WebApp", "FastAPI"]
+  }
+]
