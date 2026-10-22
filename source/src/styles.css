@@ -4469,3 +4469,7 @@ h2,
   color: #9bad8e !important;
   border-color: #2a4a35 !important;
 }
+/* buy button spacing fix */
+.buy-button {
+  margin-top: 14px;
+}

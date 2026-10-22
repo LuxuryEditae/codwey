@@ -879,7 +879,7 @@ export default function App() {
                   </div>
                   <button
                     className="buy-button"
-                    onClick={() => { addToCart({ id: "shop", title: "Mini App магазин", price: 40000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}
+                    onClick={() => { addToCart({ id: "shop", title: "Mini App магазин", price: 40000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}
                   >
                     Купить <ShoppingBag size={17} />
                   </button>
@@ -942,7 +942,7 @@ export default function App() {
                   </div>
                   <button
                     className="buy-button"
-                    onClick={() => { addToCart({ id: "booking", title: "Бот записи клиентов", price: 15000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}
+                    onClick={() => { addToCart({ id: "booking", title: "Бот записи клиентов", price: 15000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}
                   >
                     Купить <CalendarDays size={17} />
                   </button>
@@ -994,7 +994,7 @@ export default function App() {
                     <span>LLM API</span>
                     <span>RAG</span>
                   </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1046,7 +1046,7 @@ export default function App() {
                     <span>Aiogram</span>
                     <span>yt-dlp</span>
                   </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1103,7 +1103,7 @@ export default function App() {
                     <span>Telegram WebApp</span>
                     <span>FastAPI</span>
                   </div>
-                  <button className="buy-button" onClick={() => { addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 }); setTimeout(() => { const el = document.querySelector(".contact-cart") || document.getElementById("contact"); if (el) window.scrollTo({ top: Math.max(0, el.offsetTop - 100), behavior: "smooth" }); }, 180); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
