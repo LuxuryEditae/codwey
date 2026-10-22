@@ -859,6 +859,7 @@ export default function App() {
                   className="work-visual shop-visual"
                                     aria-label="Открыть демо Mini App магазина"
                 >
+                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">MINI APP</span>
                   <div className="portfolio-phone">
                     <PhonePreview small />
@@ -877,7 +878,7 @@ export default function App() {
                     <span>FastAPI</span>
                   </div>
                   <button
-                    className="text-link buy-link"
+                    className="buy-button"
                     onClick={() =>
                       addToCart({
                         id: "shop",
@@ -895,6 +896,7 @@ export default function App() {
                   className="work-visual booking-visual"
                   bookingaria-label="Открыть демо бота записи"
                 >
+                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">TELEGRAM BOT</span>
                   <div className="booking-preview">
                     <div className="booking-preview-header">
@@ -945,7 +947,7 @@ export default function App() {
                     <span>SQLite</span>
                   </div>
                   <button
-                    className="text-link buy-link"
+                    className="buy-button"
                     onClick={() =>
                       addToCart({
                         id: "booking",
@@ -963,6 +965,7 @@ export default function App() {
                   className="work-visual ai-visual"
                   aiaria-label="Открыть демо AI-поддержки"
                 >
+                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">AI ASSISTANT</span>
                   <div className="ai-preview">
                     <div className="ai-spark">
@@ -1003,7 +1006,7 @@ export default function App() {
                     <span>LLM API</span>
                     <span>RAG</span>
                   </div>
-                  <button className="text-link buy-link" onClick={() => addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 })}>
+                  <button className="buy-button" onClick={() => addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 })}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1013,6 +1016,7 @@ export default function App() {
                   className="work-visual video-visual"
                   videoaria-label="Открыть демо бота скачивания видео"
                 >
+                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">TELEGRAM BOT</span>
                   <div className="video-preview">
                     <div className="video-preview-head">
@@ -1054,7 +1058,7 @@ export default function App() {
                     <span>Aiogram</span>
                     <span>yt-dlp</span>
                   </div>
-                  <button className="text-link buy-link" onClick={() => addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 })}>
+                  <button className="buy-button" onClick={() => addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 })}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1064,6 +1068,7 @@ export default function App() {
                   className="work-visual coffee-visual"
                   coffeearia-label="Открыть демо Mini App доставки кофе"
                 >
+                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">MINI APP</span>
                   <div className="coffee-preview">
                     <div className="coffee-preview-head">
@@ -1110,7 +1115,7 @@ export default function App() {
                     <span>Telegram WebApp</span>
                     <span>FastAPI</span>
                   </div>
-                  <button className="text-link buy-link" onClick={() => addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 })}>
+                  <button className="buy-button" onClick={() => addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 })}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>

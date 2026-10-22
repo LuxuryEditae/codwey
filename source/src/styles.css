@@ -4398,3 +4398,39 @@ h2,
     padding: 16px;
   }
 }
+/* ======================================================================
+   Buy button + ready badge
+   ====================================================================== */
+.buy-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid #3a3a44;
+  border-radius: 8px;
+  background: #1a1a20;
+  color: #d4d4d8;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+}
+.buy-button:hover {
+  background: #2a2a32;
+  border-color: #62626c;
+  color: #f4f4f5;
+  transform: translateY(-1px);
+}
+.ready-badge {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.8px;
+  padding: 4px 8px;
+  border: 1px solid #3a5a3a;
+  background: #1a2a1f;
+  border-radius: 4px;
+  color: #9bad8e;
+  z-index: 2;
+}
