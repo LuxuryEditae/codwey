@@ -4434,3 +4434,38 @@ h2,
   color: #9bad8e;
   z-index: 2;
 }
+/* ======================================================================
+   Inline cart in contact section
+   ====================================================================== */
+.contact-cart {
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid #222228;
+  border-radius: 12px;
+  background: #0e0e12;
+}
+.contact-cart h3 {
+  font-size: 14px;
+  color: #d4d4d8;
+  margin: 0 0 12px;
+  font-weight: 500;
+}
+.contact-cart .checkout-note {
+  font-size: 10px;
+  color: #8a8a94;
+  line-height: 1.7;
+  margin: 12px 0 16px;
+}
+.contact-cart .checkout-note code {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #b4b4b9;
+  background: #1b1b1f;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.tag-ready {
+  background: #1a2a1f !important;
+  color: #9bad8e !important;
+  border-color: #2a4a35 !important;
+}

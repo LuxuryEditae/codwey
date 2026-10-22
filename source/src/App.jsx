@@ -859,7 +859,6 @@ export default function App() {
                   className="work-visual shop-visual"
                                     aria-label="Открыть демо Mini App магазина"
                 >
-                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">MINI APP</span>
                   <div className="portfolio-phone">
                     <PhonePreview small />
@@ -873,19 +872,14 @@ export default function App() {
                   <h3>Магазин в вашем кармане</h3>
                   <p>Каталог, размеры, корзина. Всё внутри Telegram.</p>
                   <div className="tags">
+                    <span className="tag-ready">Готово</span>
                     <span>React</span>
                     <span>Telegram WebApp</span>
                     <span>FastAPI</span>
                   </div>
                   <button
                     className="buy-button"
-                    onClick={() =>
-                      addToCart({
-                        id: "shop",
-                        title: "Mini App магазин",
-                        price: 40000,
-                      })
-                    }
+                    onClick={() => { addToCart({ id: "shop", title: "Mini App магазин", price: 40000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}
                   >
                     Купить <ShoppingBag size={17} />
                   </button>
@@ -896,7 +890,6 @@ export default function App() {
                   className="work-visual booking-visual"
                   bookingaria-label="Открыть демо бота записи"
                 >
-                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">TELEGRAM BOT</span>
                   <div className="booking-preview">
                     <div className="booking-preview-header">
@@ -942,19 +935,14 @@ export default function App() {
                   <h3>Запись без переписок</h3>
                   <p>Свободные слоты, запись и напоминания клиентам.</p>
                   <div className="tags">
+                    <span className="tag-ready">Готово</span>
                     <span>Python</span>
                     <span>Aiogram</span>
                     <span>SQLite</span>
                   </div>
                   <button
                     className="buy-button"
-                    onClick={() =>
-                      addToCart({
-                        id: "booking",
-                        title: "Бот записи клиентов",
-                        price: 15000,
-                      })
-                    }
+                    onClick={() => { addToCart({ id: "booking", title: "Бот записи клиентов", price: 15000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}
                   >
                     Купить <CalendarDays size={17} />
                   </button>
@@ -965,7 +953,6 @@ export default function App() {
                   className="work-visual ai-visual"
                   aiaria-label="Открыть демо AI-поддержки"
                 >
-                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">AI ASSISTANT</span>
                   <div className="ai-preview">
                     <div className="ai-spark">
@@ -1002,11 +989,12 @@ export default function App() {
                   <h3>Поддержка с интеллектом</h3>
                   <p>Ответы по базе знаний и помощь вашим клиентам.</p>
                   <div className="tags">
+                    <span className="tag-ready">Готово</span>
                     <span>Python</span>
                     <span>LLM API</span>
                     <span>RAG</span>
                   </div>
-                  <button className="buy-button" onClick={() => addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 })}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "ai", title: "AI-ассистент поддержки", price: 25000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1016,7 +1004,6 @@ export default function App() {
                   className="work-visual video-visual"
                   videoaria-label="Открыть демо бота скачивания видео"
                 >
-                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">TELEGRAM BOT</span>
                   <div className="video-preview">
                     <div className="video-preview-head">
@@ -1054,11 +1041,12 @@ export default function App() {
                     TikTok, Rutube, выбор качества.
                   </p>
                   <div className="tags">
+                    <span className="tag-ready">Готово</span>
                     <span>Python</span>
                     <span>Aiogram</span>
                     <span>yt-dlp</span>
                   </div>
-                  <button className="buy-button" onClick={() => addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 })}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "video", title: "Бот скачивания видео", price: 20000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1068,7 +1056,6 @@ export default function App() {
                   className="work-visual coffee-visual"
                   coffeearia-label="Открыть демо Mini App доставки кофе"
                 >
-                  <span className="ready-badge">Готово</span>
                   <span className="visual-badge">MINI APP</span>
                   <div className="coffee-preview">
                     <div className="coffee-preview-head">
@@ -1111,11 +1098,12 @@ export default function App() {
                     уходит бариста мгновенно.
                   </p>
                   <div className="tags">
+                    <span className="tag-ready">Готово</span>
                     <span>React</span>
                     <span>Telegram WebApp</span>
                     <span>FastAPI</span>
                   </div>
-                  <button className="buy-button" onClick={() => addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 })}>
+                  <button className="buy-button" onClick={() => { addToCart({ id: "coffee", title: "Mini App доставки кофе", price: 35000 }); setTimeout(() => { const el = document.getElementById("contact"); if (el) window.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }, 120); }}>
                     Купить <ArrowUpRight size={17} />
                   </button>
                 </div>
@@ -1258,6 +1246,64 @@ export default function App() {
                 Ответим в течение рабочего дня. Обсудим задачу, сроки и стоимость.
               </p>
             </div>
+            {cart.length > 0 && (
+              <div className="contact-cart">
+                <h3>Корзина</h3>
+                <ul className="checkout-items">
+                  {cart.map((item) => (
+                    <li key={item.id}>
+                      <span>{item.title}</span>
+                      <b>{money(item.price)} ₽</b>
+                      <button
+                        type="button"
+                        className="checkout-remove"
+                        onClick={() => removeFromCart(item.id)}
+                        aria-label={"Удалить " + item.title}
+                      >
+                        <X size={14} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="checkout-total">
+                  <span>Итого</span>
+                  <b>{money(cartTotal)} ₽</b>
+                </div>
+                {payError && (
+                  <div role="alert" className="form-error">
+                    {payError}
+                  </div>
+                )}
+                {payState === "success" && payReceipt && (
+                  <div role="status" className="form-error" style={{ background: "#1a2a1f", color: "#9bad8e", borderColor: "#2a4a35" }}>
+                    Заявка на оплату №{payReceipt.payment_id} создана.
+                    {payReceipt.payment_url
+                      ? " Переход к оплате…"
+                      : " Ожидает подключения платёжного провайдера."}
+                  </div>
+                )}
+                <button
+                  className="button primary submit-button"
+                  type="button"
+                  onClick={pay}
+                  disabled={payState === "sending" || !cart.length}
+                >
+                  {payState === "sending" ? (
+                    <>
+                      <LoaderCircle size={18} className="spin" /> Создаём платёж…
+                    </>
+                  ) : (
+                    <>
+                      Оплатить {money(cartTotal)} ₽ <ArrowUpRight size={19} />
+                    </>
+                  )}
+                </button>
+                <p className="checkout-note">
+                  Платёжный провайдер подключается в{" "}
+                  <code>/opt/codwey-backend/payment.py</code>.
+                </p>
+              </div>
+            )}
             <div className="contact-cards">
               <a
                 className="contact-card"
@@ -1329,84 +1375,6 @@ export default function App() {
           </span>
         </div>
       </footer>
-      {checkout && (
-        <Modal title="Корзина и оплата" onClose={() => setCheckout(false)}>
-          <div className="checkout-content">
-            {cart.length === 0 ? (
-              <p className="checkout-empty">
-                Корзина пуста. Добавьте готовое приложение кнопкой «Купить».
-              </p>
-            ) : (
-              <>
-                <ul className="checkout-items">
-                  {cart.map((item) => (
-                    <li key={item.id}>
-                      <span>{item.title}</span>
-                      <b>{money(item.price)} ₽</b>
-                      <button
-                        type="button"
-                        className="checkout-remove"
-                        onClick={() => removeFromCart(item.id)}
-                        aria-label={"Удалить " + item.title}
-                      >
-                        <X size={14} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <div className="checkout-total">
-                  <span>Итого</span>
-                  <b>{money(cartTotal)} ₽</b>
-                </div>
-                <label className="field-label" htmlFor="pay-contact">
-                  Telegram или телефон для связи
-                </label>
-                <input
-                  id="pay-contact"
-                  className="text-field"
-                  placeholder="@username или +7 999 123-45-67"
-                  defaultValue="@codway_client"
-                />
-                <p className="checkout-note">
-                  Платёжный провайдер подключается в{" "}
-                  <code>/opt/codwey-backend/payment.py</code>. Сейчас форма
-                  создаёт заявку на оплату и сохраняет её на сервере; после
-                  подключения YooKassa/Stripe здесь появится переход к оплате.
-                </p>
-                {payError && (
-                  <div role="alert" className="form-error">
-                    {payError}
-                  </div>
-                )}
-                {payState === "success" && payReceipt && (
-                  <div role="status" className="form-error" style={{ background: "#1a2a1f", color: "#9bad8e", borderColor: "#2a4a35" }}>
-                    Заявка на оплату №{payReceipt.payment_id} создана.
-                    {payReceipt.payment_url
-                      ? " Переход к оплате…"
-                      : " Ожидает подключения платёжного провайдера."}
-                  </div>
-                )}
-                <button
-                  className="button primary submit-button"
-                  type="button"
-                  onClick={pay}
-                  disabled={payState === "sending" || !cart.length}
-                >
-                  {payState === "sending" ? (
-                    <>
-                      <LoaderCircle size={18} className="spin" /> Создаём платёж…
-                    </>
-                  ) : (
-                    <>
-                      Оплатить {money(cartTotal)} ₽ <ArrowUpRight size={19} />
-                    </>
-                  )}
-                </button>
-              </>
-            )}
-          </div>
-        </Modal>
-      )}
 
       <>
         {privacy && (
