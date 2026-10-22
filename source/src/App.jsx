@@ -621,12 +621,14 @@ export default function App() {
   const [payState, setPayState] = useState("idle");
   const [payError, setPayError] = useState("");
   const [payReceipt, setPayReceipt] = useState(null);
+  const [toast, setToast] = useState(null);
   const addToCart = (item) => {
     setCart((prev) => {
       if (prev.some((p) => p.id === item.id)) return prev;
       return [...prev, item];
     });
-    setCheckout(true);
+    setToast(item.title + " добавлен в корзину");
+    setTimeout(() => setToast(null), 2500);
   };
   const removeFromCart = (id) =>
     setCart((prev) => prev.filter((p) => p.id !== id));
@@ -1364,6 +1366,12 @@ export default function App() {
               </a>
             </div>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="toast" role="status">
+          <Check size={16} /> {toast}
         </div>
       )}
 

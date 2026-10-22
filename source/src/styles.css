@@ -4546,3 +4546,35 @@ h2,
 body:has(.sticky-cart) {
   padding-bottom: 72px;
 }
+/* Toast notification */
+.toast {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid #2a4a35;
+  border-radius: 10px;
+  background: #1a2a1f;
+  color: #9bad8e;
+  font-size: 13px;
+  box-shadow: 0 8px 24px #00000059;
+  animation: toast-in 0.3s ease-out;
+}
+.toast svg {
+  flex-shrink: 0;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
