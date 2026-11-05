@@ -49,7 +49,7 @@
     const say = (t, ok) => { msg.textContent = t; msg.className = "form-msg " + (ok ? "ok" : "err"); };
     const contact = normContact(f.contact.value), description = f.description.value.trim();
     if (description.length < 10) return say("Опишите задачу хотя бы парой предложений.");
-    if (!contact) return say("Укажите Telegram @username (от 5 символов) или телефон, например +7 960 000-00-00.");
+    if (!contact) return say("Укажите Telegram @username (от 5 символов) или телефон, например +7 900 000-00-00.");
     if (!f.consent.checked) return say("Отметьте согласие на обработку контактов.");
     const body = { submission_id: sid, contact, project: f.project.value, description, consent: true, website: f.website.value,
       features: solution ? [] : [...f.querySelectorAll('[name=features]:checked')].map((i) => i.value) };

@@ -61,7 +61,7 @@ ALERT_EMAIL = os.getenv("ALERT_EMAIL", "coddweyy@gmail.com")
 RATE_SALT = hashlib.sha256((BOT_TOKEN or "local-development").encode()).digest()
 MSK = ZoneInfo("Europe/Moscow")
 DELAY_NOTE_AFTER = 300
-CONTACTS = ("📞 <b>Контакты CodWay</b>\n\nТелефон: +7 960 753-61-62\nTelegram: @mexciti\nПочта: coddweyy@gmail.com\n"
+CONTACTS = ("📞 <b>Контакты CodWay</b>\n\nБот для заявок: @codwey_bot\nTelegram: @mexciti\nПочта: coddweyy@gmail.com\n"
             "Сайт: https://codway.su\n\nОтвечаем 9:00–22:00 МСК, обычно в течение часа.")
 SERVICE_LABELS = {**{k: v["label"] for k, v in PROJECTS.items()}, "other": "Другое / консультация", "question": "Вопрос"}
 bot: Bot | None = None
@@ -433,9 +433,11 @@ class Req(StatesGroup):
     description = State()
     files = State()
 
+CATALOG_BTN = "🧩 Готовые решения"
 MENU = ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True, keyboard=[
-    [KeyboardButton(text="📝 Оставить заявку"), KeyboardButton(text="💬 Написать менеджеру")],
-    [KeyboardButton(text="💰 Цены"), KeyboardButton(text="📂 Мои заявки"), KeyboardButton(text="📞 Контакты")]])
+    [KeyboardButton(text="📝 Оставить заявку"), KeyboardButton(text=CATALOG_BTN)],
+    [KeyboardButton(text="💬 Написать менеджеру"), KeyboardButton(text="💰 Цены")],
+    [KeyboardButton(text="📂 Мои заявки"), KeyboardButton(text="📞 Контакты")]])
 FILES_KB = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [KeyboardButton(text="✅ Готово")], [KeyboardButton(text="📱 Поделиться телефоном", request_contact=True)]])
 
@@ -498,6 +500,55 @@ def prices_text():
     lines.append("\nОплата 50/50, 30 дней бесплатных правок, код передаём вам.\nПодробно: https://codway.su/ceny")
     return "\n".join(lines)
 
+# ---------------------------------------------------------------- bot: ready-made catalog (same items as codway.su)
+SITE_URL = "https://codway.su"
+CATALOG_GROUPS = (("bot", "🤖", "Telegram-боты"), ("miniapp", "📱", "Mini Apps"), ("site", "🌐", "Сайты"))
+GROUP_ICON = {g: i for g, i, _ in CATALOG_GROUPS}
+SOL_RE = re.compile(r"[a-z0-9_]{1,40}")
+
+def demo_url(s):
+    return f"{SITE_URL}/demo/{s['id']}/"
+
+def catalog_text():
+    lines = ["🧩 <b>Готовые решения CodWay</b>\n", "Уже собранная основа — подстроим под ваш бизнес за 1–3 дня. "
+             "Выберите решение, чтобы открыть демо или оставить заявку.\n"]
+    for g, icon, title in CATALOG_GROUPS:
+        items = [x for x in SOLUTIONS.values() if x["project"] == g]
+        if items:
+            lines.append(f"{icon} <b>{title}</b>")
+            lines += [f"• {escape(x['title'])} — {money(x['price'])} ₽" for x in items]
+            lines.append("")
+    lines.append("Нужно что-то своё? Нажмите «📝 Оставить заявку».")
+    return "\n".join(lines)
+
+def catalog_kb():
+    rows = [[InlineKeyboardButton(text=f"{GROUP_ICON.get(x['project'], '•')} {x['title']} · {money(x['price'])} ₽", callback_data=f"cat:item:{x['id']}")]
+            for g, _, _ in CATALOG_GROUPS for x in SOLUTIONS.values() if x["project"] == g]
+    rows.append([InlineKeyboardButton(text="📝 Нужно своё — заказная разработка", callback_data="cat:custom")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+def item_text(x):
+    feats = "\n".join(f"✓ {escape(f)}" for f in x.get("features", []))
+    return (f"{GROUP_ICON.get(x['project'], '🧩')} <b>{escape(x['title'])}</b>\n"
+            f"<b>{money(x['price'])} ₽</b> · запуск за 1–3 дня\n\n{escape(x['description'])}\n\n{feats}\n\n"
+            "Откройте демо, чтобы попробовать, или нажмите «Хочу такой» — менеджер свяжется с вами здесь.")
+
+def item_kb(x):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔗 Открыть демо", url=demo_url(x))],
+        [InlineKeyboardButton(text="✅ Хочу такой", callback_data=f"cat:want:{x['id']}")],
+        [InlineKeyboardButton(text="« Назад", callback_data="cat:list")]])
+
+async def show_screen(q: CallbackQuery, text, kb):
+    """Edit the catalog message in place; fall back to a new message if it can't be edited."""
+    try:
+        await q.message.edit_text(text, reply_markup=kb, disable_web_page_preview=True)
+    except TelegramBadRequest as exc:
+        if "not modified" not in str(exc):
+            await bot.send_message(q.from_user.id, text, reply_markup=kb, disable_web_page_preview=True)
+    except AttributeError:  # InaccessibleMessage (older than 48 h) can't be edited
+        await bot.send_message(q.from_user.id, text, reply_markup=kb, disable_web_page_preview=True)
+
 def services_kb():
     rows = [[InlineKeyboardButton(text=p["label"], callback_data=f"svc:{p['id']}")] for p in PRICING["projects"]]
     rows.append([InlineKeyboardButton(text="Другое / не знаю", callback_data="svc:other")])
@@ -524,8 +575,14 @@ async def start(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("Здравствуйте! Это <b>CodWay</b> — делаем Telegram-ботов, Mini Apps, сайты и парсеры. "
                          "Бот от 4 900 ₽, Mini App от 14 900 ₽, сайт от 9 900 ₽, оплата 50/50.\n\n"
-                         "Нажмите «📝 Оставить заявку» или просто напишите вопрос — ответит живой разработчик.", reply_markup=MENU)
-    if arg.startswith("sol_") and arg[4:] in SOLUTIONS:
+                         f"«{CATALOG_BTN}» — боты, Mini Apps и сайты с демо, которые можно запустить за 1–3 дня. "
+                         "«📝 Оставить заявку» — разработка под вашу задачу. Или просто напишите вопрос — ответит живой разработчик.", reply_markup=MENU)
+    if arg.startswith("demo_") and arg[5:] in SOLUTIONS:  # visitor came from a demo on codway.su
+        s = SOLUTIONS[arg[5:]]
+        await message.answer(item_text(s), reply_markup=item_kb(s), disable_web_page_preview=True)
+    elif arg == "catalog":
+        await message.answer(catalog_text(), reply_markup=catalog_kb(), disable_web_page_preview=True)
+    elif arg.startswith("sol_") and arg[4:] in SOLUTIONS:
         s = SOLUTIONS[arg[4:]]
         await state.update_data(service=s["project"], solution_id=s["id"])
         await state.set_state(Req.description)
@@ -664,6 +721,56 @@ async def req_service(q: CallbackQuery, state: FSMContext):
     with suppress(Exception):
         await q.message.edit_text(f"Услуга: <b>{escape(SERVICE_LABELS.get(svc, 'Другое'))}</b>")
     await q.message.answer("Опишите задачу: что должен уметь продукт, для кого, есть ли примеры. Можно текстом или голосовым.")
+
+@dispatcher.message(F.chat.type == "private", F.text == CATALOG_BTN)
+@dispatcher.message(F.chat.type == "private", Command("catalog"))
+async def catalog(m: Message, state: FSMContext):
+    if await blocked(m): return
+    await state.clear()
+    await m.answer(catalog_text(), reply_markup=catalog_kb(), disable_web_page_preview=True)
+
+@dispatcher.callback_query(F.data.startswith("cat:"))
+async def catalog_action(q: CallbackQuery, state: FSMContext):
+    if not q.message or q.message.chat.type != "private":
+        await q.answer(); return
+    if touch_user(q.from_user)["blocked"]:
+        await q.answer(); return
+    action, _, sid = q.data[4:].partition(":")
+    if action == "list":
+        await q.answer()
+        await show_screen(q, catalog_text(), catalog_kb())
+        return
+    if action == "custom":
+        await q.answer()
+        await state.clear(); await state.set_state(Req.service)
+        await bot.send_message(q.from_user.id, "Что нужно сделать?", reply_markup=services_kb())
+        return
+    x = SOLUTIONS.get(sid) if SOL_RE.fullmatch(sid or "") else None
+    if not x:
+        await q.answer("Это решение больше не доступно", show_alert=True)
+        await show_screen(q, catalog_text(), catalog_kb())
+        return
+    if action == "item":
+        await q.answer()
+        await show_screen(q, item_text(x), item_kb(x))
+        return
+    if action != "want":
+        await q.answer(); return
+    if is_admin(q.from_user.id):
+        await q.answer("Это ваш бот — заявки от владельца не создаются", show_alert=True); return
+    with db() as conn:
+        dup = conn.execute("SELECT id FROM tickets WHERE user_id=? AND solution_id=? AND status!='closed' AND created_at>? ORDER BY id DESC LIMIT 1",
+                           (q.from_user.id, x["id"], time.time() - 86400)).fetchone()
+        tid = dup["id"] if dup else new_ticket(conn, q.from_user, x["project"], x["id"],
+                                                f"Хочу готовое решение «{x['title']}» — {money(x['price'])} ₽ (из каталога бота, демо: {demo_url(x)})", time.time())
+    await q.answer("Заявка уже у менеджера" if dup else "Заявка отправлена ✅")
+    await state.clear()
+    await state.update_data(ticket_id=tid, service=x["project"], solution_id=x["id"]); await state.set_state(Req.files)
+    head = (f"Заявка <b>#{tid}</b> на «{escape(x['title'])}» уже у менеджера." if dup else
+            f"✅ Заявка <b>#{tid}</b> на «<b>{escape(x['title'])}</b>» — {money(x['price'])} ₽ передана менеджеру.")
+    await bot.send_message(q.from_user.id, head + " Ответим здесь в течение часа (9:00–22:00 МСК).\n\n"
+                           "Если хотите, расскажите о вашем бизнесе или пришлите примеры — я всё передам. Когда закончите, нажмите «✅ Готово».",
+                           reply_markup=FILES_KB)
 
 @dispatcher.message(F.chat.type == "private", F.text == "💰 Цены")
 async def prices(m: Message):
