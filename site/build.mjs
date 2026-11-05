@@ -20,27 +20,63 @@ const NAV = [
 const botLink = (start = "") => `https://t.me/${C.bot}${start ? "?start=" + start : ""}`;
 const tgIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.9 4.3 18.8 19c-.2 1-.8 1.3-1.7.8l-4.7-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.8 8.8-7.9c.4-.3-.1-.5-.6-.2L6.8 13 2.2 11.6c-1-.3-1-1 .2-1.5L20.5 3c.8-.3 1.6.2 1.4 1.3z"/></svg>`;
 
-// ---------- mockups (hero visuals) ----------
-function chat(lines, title = "CodWay · бот") {
-  return `<div class="phone" aria-hidden="true"><div class="phone-top"><span class="ava">CW</span><div><b>${title}</b><small>бот · онлайн</small></div></div><div class="phone-body">${lines
-    .map(([who, t]) => who === "kb" ? `<div class="kb">${t.map((b) => `<span>${b}</span>`).join("")}</div>` : `<div class="msg ${who}">${t}</div>`)
-    .join("")}</div></div>`;
+// ---------- mockups (hero visuals): faithful Telegram iOS UI ----------
+const I = {
+  chev: `<svg viewBox="0 0 12 20" width="11" height="19"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  clip: `<svg viewBox="0 0 24 24" width="25" height="25"><path d="M20.5 11.2 12.3 19.4a5.2 5.2 0 0 1-7.4-7.4l8.6-8.6a3.5 3.5 0 0 1 4.9 4.9l-8.5 8.5a1.7 1.7 0 0 1-2.5-2.5l7.9-7.9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+  mic: `<svg viewBox="0 0 24 24" width="25" height="25"><rect x="8.6" y="2.8" width="6.8" height="11.6" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5.3 11a6.7 6.7 0 0 0 13.4 0M12 17.8v3.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+  kbd: `<svg viewBox="0 0 24 24" width="22" height="22"><rect x="2.5" y="6" width="19" height="12" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 9.6h1M9.5 9.6h1M13 9.6h1M16.5 9.6h1.4M6 12.4h1M9.5 12.4h1M13 12.4h1M16.5 12.4h1.4M8 15h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  checks: `<svg class="ck" viewBox="0 0 19 11" width="17" height="10"><path d="M1.2 5.8 4.6 9.2 11.6 1.6M7.4 9.2 14.4 1.6" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  link: `<svg class="ar" viewBox="0 0 10 10" width="8" height="8"><path d="M2.5 1.5h6v6M8.5 1.5 1.5 8.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+  sb: `<span class="sb-ic"><svg viewBox="0 0 18 12" width="17" height="11"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 16 12" width="15" height="11"><path d="M8 11.5 5.6 9a3.4 3.4 0 0 1 4.8 0zM3.6 7a6.2 6.2 0 0 1 8.8 0l-1.3 1.3a4.4 4.4 0 0 0-6.2 0zM1.4 4.8a9.3 9.3 0 0 1 13.2 0l-1.3 1.3a7.5 7.5 0 0 0-10.6 0z" fill="currentColor"/></svg><svg viewBox="0 0 27 13" width="25" height="12"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2.4" fill="currentColor"/><path d="M25 4.5v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2z" fill="currentColor" opacity=".45"/></svg></span>`,
+};
+const device = (screen, cls = "", theme = "dark") => `<div class="device ${cls}" aria-hidden="true"><div class="device-screen ${theme}"><div class="sb"><span>9:41</span><i class="island"></i>${I.sb}</div>${screen}<i class="home-ind"></i></div></div>`;
+// lines: ["in"|"out", html, time, inlineKeyboardRows?] or ["date", text]
+function chat({ name = "CodWay", ava = "CW", lines, reply }) {
+  let d = 0;
+  const body = lines.map(([who, t, time, kb]) => {
+    d += 1;
+    if (who === "date") return `<div class="tg-svc" style="--d:${d}">${t}</div>`;
+    const meta = `<span class="tg-meta">${time}${who === "out" ? I.checks : ""}</span>`;
+    const keys = kb ? `<div class="tg-ikb">${kb.map((row) => `<div>${row.map((b) => `<span>${b.replace(/\^$/, "")}${b.endsWith("^") ? I.link : ""}</span>`).join("")}</div>`).join("")}</div>` : "";
+    const tail = kb ? "" : `<svg class="tail" viewBox="0 0 11 17" width="11" height="17"><path d="M11 0v17H0c5.5-1 9.6-5.4 11-11z" fill="currentColor"/></svg>`;
+    return `<div class="tg-m ${who}" style="--d:${d}"><div class="tg-b">${t}${meta}${tail}</div>${keys}</div>`;
+  }).join("");
+  const rk = reply ? `<div class="tg-rk">${reply.map((row) => `<div>${row.map((b) => `<span>${b}</span>`).join("")}</div>`).join("")}</div>` : "";
+  return device(`<div class="tg"><div class="tg-head"><span class="tg-back">${I.chev}Чаты</span><div class="tg-title"><b>${name}</b><small>бот</small></div><span class="tg-ava">${ava}</span></div><div class="tg-wall"><div class="tg-list">${body}</div></div><div class="tg-bottom"><div class="tg-input"><span class="ic">${I.clip}</span><div class="tg-field"><span>Сообщение</span><span class="ic sm">${I.kbd}</span></div><span class="ic">${I.mic}</span></div>${rk}</div></div>`, "phone-chat");
+}
+function miniApp({ title, items, cats, main }) {
+  return device(`<div class="ma"><div class="ma-head"><span class="ma-close">Закрыть</span><div class="ma-title"><b>${title}</b><small>мини-приложение</small></div><span class="ma-more"><i></i><i></i><i></i></span></div><div class="ma-body"><div class="ma-search"><svg viewBox="0 0 16 16" width="13" height="13"><circle cx="7" cy="7" r="5.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m11 11 3.6 3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Поиск</div><div class="ma-cats">${cats.map((c, i) => `<span${i ? "" : ' class="on"'}>${c}</span>`).join("")}</div><div class="ma-grid">${items.map(([e, n, p, q]) => `<div class="ma-item"><div class="ma-pic">${e}${q ? `<b class="ma-q">${q}</b>` : ""}</div><span>${n}</span><small>${p}</small><em${q ? ' class="in"' : ""}>${q ? "−&nbsp;&nbsp;" + q + "&nbsp;&nbsp;+" : "Добавить"}</em></div>`).join("")}</div></div><div class="ma-main">${main}</div></div>`, "phone-app", "light");
 }
 const MOCK = {
-  home: () => `<div class="stage">${chat([
-    ["me", "Здравствуйте! Нужен бот для записи в барбершоп 💈"],
-    ["bot", "Привет! Принял заявку <b>#128</b>. Пару вопросов, чтобы назвать точную цену:"],
-    ["kb", ["Сколько мастеров?", "Нужна оплата?"]],
-    ["me", "3 мастера, предоплата через СБП"],
-    ["bot", "Готово: <b>от 14 800 ₽</b>, 5 дней. Отправил смету менеджеру ✅"],
-  ])}<div class="float card-mini"><div class="mini-h">☕ Mini App · Кофейня</div><div class="mini-row"><span>Капучино 0,3</span><b>220 ₽</b></div><div class="mini-row"><span>+ овсяное молоко</span><b>40 ₽</b></div><div class="mini-btn">Заказать к 9:30</div></div></div>`,
-  bot: () => `<div class="stage">${chat([
-    ["bot", "Выберите услугу 👇"], ["kb", ["Стрижка — 1 200 ₽", "Борода — 700 ₽", "Комплекс — 1 700 ₽"]],
-    ["me", "Комплекс"], ["bot", "Свободно завтра: <b>11:00 · 14:30 · 18:00</b>"], ["me", "18:00"],
-    ["bot", "Записал вас на завтра 18:00 ✅ Напомню за 2 часа."],
-  ], "Barber · запись")}</div>`,
-  miniapp: () => `<div class="stage"><div class="phone app" aria-hidden="true"><div class="phone-top"><span class="ava">🛍</span><div><b>Shop</b><small>mini app</small></div></div><div class="app-body"><div class="app-search">Поиск по каталогу</div><div class="app-grid">${["Худи · 3 490 ₽", "Кепка · 1 290 ₽", "Футболка · 1 990 ₽", "Шоппер · 890 ₽"].map((x, i) => `<div class="app-item"><i class="g${i}"></i><span>${x}</span></div>`).join("")}</div><div class="mini-btn">Корзина · 2 товара · 5 480 ₽</div></div></div></div>`,
-  site: () => `<div class="stage"><div class="browser" aria-hidden="true"><div class="b-bar"><i></i><i></i><i></i><span>your-brand.ru</span></div><div class="b-body"><div class="b-h"></div><div class="b-l w80"></div><div class="b-l w60"></div><div class="b-cta">Оставить заявку</div><div class="b-cards"><span></span><span></span><span></span></div></div></div><div class="float card-stat"><small>PageSpeed</small><b>98</b></div></div>`,
+  home: () => `<div class="stage stage-duo">${miniApp({
+    title: "Зерно", cats: ["Кофе", "Выпечка", "Десерты"],
+    items: [["☕", "Капучино 0,3", "220 ₽", 1], ["🥐", "Круассан", "180 ₽", 0], ["🧋", "Раф лавандовый", "290 ₽", 1], ["🍰", "Чизкейк", "260 ₽", 0]],
+    main: "Заказать к 9:30 · 510 ₽" })}${chat({
+    lines: [
+      ["date", "Сегодня"],
+      ["out", "/start", "14:20"],
+      ["in", "Привет! 👋 Я бот <b>CodWay</b>.<br>Что будем делать?", "14:20", [["🤖 Бот", "📱 Mini App"], ["🌐 Сайт", "📊 Парсер"]]],
+      ["out", "Бот для записи в барбершоп: 3 мастера, предоплата через СБП", "14:21"],
+      ["in", "Заявка <b>#128</b> принята ✅<br>Ориентир: <b>от 14 800 ₽</b>, 5–7 дней. Менеджер ответит здесь в течение часа.", "14:21"],
+    ],
+    reply: [["📝 Оставить заявку", "💬 Написать менеджеру"], ["💰 Цены", "📂 Мои заявки"]],
+  })}</div>`,
+  bot: () => `<div class="stage">${chat({ name: "Barber Club", ava: "BC",
+    lines: [
+      ["in", "Выберите услугу 👇", "11:02", [["Стрижка · 1 200 ₽"], ["Борода · 700 ₽", "Комплекс · 1 700 ₽"]]],
+      ["out", "Комплекс", "11:02"],
+      ["in", "Свободно завтра: <b>11:00 · 14:30 · 18:00</b>", "11:02"],
+      ["out", "18:00", "11:03"],
+      ["in", "Записал вас на завтра, 18:00 ✅<br>Напомню за 2 часа.", "11:03", [["Оплатить предоплату^"]]],
+    ],
+    reply: [["📅 Записаться", "💈 Услуги"], ["📍 Как добраться", "👤 Мои записи"]],
+  })}</div>`,
+  miniapp: () => `<div class="stage">${miniApp({
+    title: "Shop", cats: ["Все", "Одежда", "Аксессуары"],
+    items: [["👕", "Футболка", "1 990 ₽", 1], ["🧢", "Кепка", "1 290 ₽", 0], ["🧥", "Худи", "3 490 ₽", 1], ["👜", "Шоппер", "890 ₽", 0]],
+    main: "Корзина · 2 товара · 5 480 ₽" })}</div>`,
+  site: () => `<div class="stage"><div class="browser" aria-hidden="true"><div class="b-bar"><i></i><i></i><i></i><span>your-brand.ru</span></div><div class="b-body"><div class="b-nav"><b></b><span></span><span></span><span></span></div><div class="b-h"></div><div class="b-l w80"></div><div class="b-l w60"></div><div class="b-cta">Оставить заявку</div><div class="b-cards"><span></span><span></span><span></span></div></div></div></div>`,
   script: () => `<div class="stage"><div class="term" aria-hidden="true"><div class="b-bar"><i></i><i></i><i></i><span>parser.py</span></div><pre>$ python parser.py --source wb --query "кроссовки"
 <span class="ok">✓</span> страниц обработано: 42
 <span class="ok">✓</span> товаров собрано: 1 286
@@ -59,12 +95,12 @@ const head = (pg) => {
     offers: { "@type": "Offer", priceCurrency: "RUB", price: pg.service.price, url } });
   if (pg.faq?.length) ld.push({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: pg.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) });
   if (pg.path !== "/") ld.push({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Главная", item: SITE + "/" }, { "@type": "ListItem", position: 2, name: pg.crumb, item: url }] });
-  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(pg.title)}</title><meta name="description" content="${esc(pg.desc)}"><link rel="canonical" href="${url}"><meta name="theme-color" content="#0c0d10"><meta property="og:type" content="website"><meta property="og:site_name" content="CodWay"><meta property="og:locale" content="ru_RU"><meta property="og:title" content="${esc(pg.title)}"><meta property="og:description" content="${esc(pg.desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;600;700&display=swap"><link rel="stylesheet" href="/assets/style.css?v=${BUILD}">${ld.map((j) => `<script type="application/ld+json">${JSON.stringify(j)}</script>`).join("")}</head><body>`;
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(pg.title)}</title><meta name="description" content="${esc(pg.desc)}"><link rel="canonical" href="${url}"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website"><meta property="og:site_name" content="CodWay"><meta property="og:locale" content="ru_RU"><meta property="og:title" content="${esc(pg.title)}"><meta property="og:description" content="${esc(pg.desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/assets/style.css?v=${BUILD}">${ld.map((j) => `<script type="application/ld+json">${JSON.stringify(j)}</script>`).join("")}</head><body>`;
 };
 const header = (active) => `<header class="top"><div class="wrap top-in"><a class="logo" href="/" aria-label="CodWay — на главную"><span class="logo-mark">&lt;/&gt;</span>CodWay</a><nav class="nav" id="nav">${NAV.map(([h, t]) => `<a href="${h}"${h === active ? ' aria-current="page"' : ""}>${t}</a>`).join("")}</nav><a class="btn btn-tg sm hide-m" href="${botLink("site")}" target="_blank" rel="noopener">${tgIcon}Написать в бот</a><button class="burger" aria-label="Меню" aria-controls="nav" aria-expanded="false"><span></span><span></span></button></div></header><main>`;
 const footer = () => `</main><footer class="foot"><div class="wrap foot-in"><div><a class="logo" href="/"><span class="logo-mark">&lt;/&gt;</span>CodWay</a><p>Небольшая студия разработки. Telegram-боты, Mini Apps, сайты и парсеры для малого бизнеса и экспертов.</p></div><div><h3>Услуги</h3>${NAV.slice(0, 4).map(([h, t]) => `<a href="${h}">${t} на заказ</a>`).join("")}<a href="/ceny">Цены</a></div><div><h3>Связь</h3><a href="tel:${C.tel}">${C.phone}</a><a href="https://t.me/${C.tg}" target="_blank" rel="noopener">Telegram @${C.tg}</a><a href="mailto:${C.email}">${C.email}</a><a href="${botLink("site")}" target="_blank" rel="noopener">Бот @${C.bot}</a></div></div><div class="wrap foot-bottom">© ${new Date().getFullYear()} CodWay · codway.su · Отвечаем ежедневно с 9:00 до 22:00 (МСК)</div></footer><div class="mbar"><a class="btn btn-tg" href="${botLink("site")}" target="_blank" rel="noopener">${tgIcon}В бот</a><a class="btn btn-ghost" href="#zayavka">Заявка</a></div><script src="/assets/app.js?v=${BUILD}" defer></script></body></html>`;
 
-const hero = (pg) => `<section class="hero"><div class="wrap hero-in"><div class="hero-txt">${pg.path !== "/" ? `<nav class="crumbs" aria-label="Хлебные крошки"><a href="/">Главная</a> / <span>${pg.crumb}</span></nav>` : ""}<p class="kicker">${pg.kicker}</p><h1>${pg.h1}</h1><p class="lead">${pg.lead}</p><div class="cta"><a class="btn btn-acc" href="#zayavka">Рассчитать и оставить заявку</a><a class="btn btn-tg" href="${botLink(pg.start || "site")}" target="_blank" rel="noopener">${tgIcon}Написать в бот</a></div><ul class="facts"><li><b>50/50</b>оплата: половина до старта</li><li><b>30 дней</b>бесплатных правок</li><li><b>Код ваш</b>передаём исходники</li></ul></div><div class="hero-vis">${MOCK[pg.mock]()}</div></div></section>`;
+const hero = (pg) => `<section class="hero"><div class="wrap hero-in"><div class="hero-txt">${pg.path !== "/" ? `<nav class="crumbs" aria-label="Хлебные крошки"><a href="/">Главная</a> / <span>${pg.crumb}</span></nav>` : ""}<p class="kicker">${pg.kicker}</p><h1>${pg.h1.replace(/(\d) (\d)/g, "$1&nbsp;$2").replace(/ ₽/g, "&nbsp;₽")}</h1><p class="lead">${pg.lead}</p><div class="cta"><a class="btn btn-acc" href="#zayavka">Рассчитать и оставить заявку</a><a class="btn btn-tg" href="${botLink(pg.start || "site")}" target="_blank" rel="noopener">${tgIcon}Написать в бот</a></div><ul class="facts"><li><b>50/50</b>оплата: половина до старта</li><li><b>30 дней</b>бесплатных правок</li><li><b>Код ваш</b>передаём исходники</li></ul></div><div class="hero-vis">${MOCK[pg.mock]()}</div></div></section>`;
 
 const services = () => `<section class="sec"><div class="wrap"><h2 class="h2">Что делаем</h2><div class="svc">${[
   ["/telegram-bot-na-zakaz", "bot", "Telegram-боты", "Запись, приём заявок, оплата, магазины, рассылки, поддержка с AI."],

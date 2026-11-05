@@ -1,4 +1,11 @@
 (() => {
+  const d = document.documentElement; d.classList.add("js");
+  const els = document.querySelectorAll(".sec .h2, .sec .muted, .svc-card, .sol-card, .steps, .cmp-tbl, .ptbl, .fcard, .ccard, .calc, .faq");
+  if (!("IntersectionObserver" in window)) return els.forEach((e) => e.classList.add("on"));
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+  els.forEach((e, i) => { e.classList.add("rv"); e.style.transitionDelay = (i % 4) * 60 + "ms"; io.observe(e); });
+})();
+(() => {
   const b = document.querySelector(".burger"), nav = document.getElementById("nav");
   b && b.addEventListener("click", () => { const o = nav.classList.toggle("open"); b.setAttribute("aria-expanded", o); });
   const CW = window.CW, f = document.getElementById("order-form");
