@@ -6,7 +6,7 @@
   var MARK = '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M50 8 86 29v42L50 92 14 71V29z"/><path d="m41 40-9 10 9 10M59 40l9 10-9 10"/></svg>';
   // floating demo badge
   var bar = d.createElement("div"); bar.className = "cw-bar";
-  bar.innerHTML = MARK + '<span><b>Демо-сайт</b><span class="cw-long"> от CodWay · ' + (S.price || "") + '</span></span><a href="' + S.link + '" target="_blank" rel="noopener">Хочу такой →</a><button type="button" aria-label="Скрыть">×</button>';
+  bar.innerHTML = MARK + '<a class="cw-home" href="/sajt-na-zakaz/#demo-sajty" title="Все демо-сайты на codway.su"><b>Демо-сайт</b><span class="cw-long"> от CodWay · ' + (S.price || "") + '</span></a><a href="' + S.link + '" target="_blank" rel="noopener">Хочу такой →</a><button type="button" aria-label="Скрыть">×</button>';
   bar.lastChild.onclick = function () { bar.remove(); };
   d.body.appendChild(bar);
   // final modal

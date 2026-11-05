@@ -686,6 +686,9 @@ async def legacy_order_action(q: CallbackQuery):  # buttons on cards sent before
 @dispatcher.message(admin_only)
 async def admin_message(message: Message):
     r = message.reply_to_message
+    if not r and message.text in (CATALOG_BTN, "/catalog"):  # owner can preview the client catalog
+        await message.answer(catalog_text(), reply_markup=catalog_kb(), disable_web_page_preview=True)
+        return
     if not r:
         await message.answer("Чтобы ответить клиенту, сделайте <b>Reply</b> на его сообщение или карточку тикета. /tickets — список.")
         return
@@ -747,7 +750,7 @@ async def catalog_action(q: CallbackQuery, state: FSMContext):
         return
     x = SOLUTIONS.get(sid) if SOL_RE.fullmatch(sid or "") else None
     if not x:
-        await q.answer("Это решение больше не доступно", show_alert=True)
+        await q.answer("Это решение больше недоступно", show_alert=True)
         await show_screen(q, catalog_text(), catalog_kb())
         return
     if action == "item":

@@ -15,3 +15,6 @@
 .cw-x{display:block;width:100%;margin-top:8px;padding:12px;border:0;background:none;color:#8f8f97;font:500 14.5px Inter,system-ui,sans-serif;cursor:pointer}
 @media (max-width:600px){.cw-bar{bottom:10px;gap:8px;padding:6px 6px 6px 12px;font-size:12.5px}.cw-bar .cw-long{display:none}}
 body.lock .cw-bar{opacity:0;visibility:hidden}
+
+.cw-bar a.cw-home{display:inline;padding:0;background:none;color:inherit;font-weight:500;opacity:.8;overflow:hidden;text-overflow:ellipsis;text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:3px}.cw-bar a.cw-home:hover{opacity:1}
+.cw-bar button{min-width:36px;min-height:36px;margin:-4px -2px -4px 0}

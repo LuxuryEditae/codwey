@@ -48,9 +48,11 @@
     e.preventDefault(); if (busy) return;
     const say = (t, ok) => { msg.textContent = t; msg.className = "form-msg " + (ok ? "ok" : "err"); };
     const contact = normContact(f.contact.value), description = f.description.value.trim();
-    if (description.length < 10) return say("Опишите задачу хотя бы парой предложений.");
-    if (!contact) return say("Укажите Telegram @username (от 5 символов) или телефон, например +7 900 000-00-00.");
-    if (!f.consent.checked) return say("Отметьте согласие на обработку контактов.");
+    const bad = (el, t) => { f.querySelectorAll("[aria-invalid]").forEach((x) => x.removeAttribute("aria-invalid")); el.setAttribute("aria-invalid", "true"); el.focus({ preventScroll: true }); el.scrollIntoView({ block: "center", behavior: "smooth" }); say(t); };
+    if (description.length < 10) return bad(f.description, "Опишите задачу хотя бы парой предложений.");
+    if (!contact) return bad(f.contact, "Укажите Telegram @username (от 5 символов) или телефон, например +7 900 000-00-00.");
+    if (!f.consent.checked) return bad(f.consent, "Отметьте согласие на обработку контактов.");
+    f.querySelectorAll("[aria-invalid]").forEach((x) => x.removeAttribute("aria-invalid"));
     const body = { submission_id: sid, contact, project: f.project.value, description, consent: true, website: f.website.value,
       features: solution ? [] : [...f.querySelectorAll('[name=features]:checked')].map((i) => i.value) };
     if (solution) body.solution_id = solution.id;
@@ -72,4 +74,10 @@
     } finally { busy = false; btn.disabled = false; }
   });
   calc();
+})();
+(() => { // mobile bottom bar: hide it while the order form or footer is on screen so it never covers the form or its messages
+  const bar = document.querySelector(".mbar"); if (!bar || !("IntersectionObserver" in window)) return;
+  const seen = new Set();
+  const io = new IntersectionObserver((es) => { es.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target))); bar.classList.toggle("off", seen.size > 0); });
+  document.querySelectorAll("#zayavka, .foot").forEach((el) => io.observe(el));
 })();

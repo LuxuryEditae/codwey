@@ -54,9 +54,9 @@ function miniApp({ title, items, cats, main }) {
 }
 // Demo sites shown in the /sajt-na-zakaz hero: real clickable cards (no fake browser UI)
 const DEMO_SITES = [
-  { id: "cafe", name: "«Очаг»", kind: "Ресторан и кафе", line: "Меню с вкладками, бронь стола и банкеты", img: "hero" },
-  { id: "beauty", name: "Lumière", kind: "Салон красоты", line: "Прайс, мастера и онлайн-запись в 4 шага", img: "hero" },
-  { id: "remont", name: "«Квадрат»", kind: "Ремонт квартир", line: "Калькулятор сметы и портфолио с фильтром", img: "hero" },
+  { id: "cafe", name: "«Очаг»", kind: "Ресторан и кафе", line: "Меню с вкладками, бронь стола и банкеты", img: "thumb" },
+  { id: "beauty", name: "Lumière", kind: "Салон красоты", line: "Прайс, мастера и онлайн-запись в 4 шага", img: "thumb" },
+  { id: "remont", name: "«Квадрат»", kind: "Ремонт квартир", line: "Калькулятор сметы и портфолио с фильтром", img: "thumb" },
 ];
 const MOCK = {
   home: () => `<div class="stage stage-duo"><div class="glow" aria-hidden="true"></div>${miniApp({
@@ -86,7 +86,7 @@ const MOCK = {
     title: "Shop", cats: ["Все", "Одежда", "Аксессуары"],
     items: [["tee", "Футболка", "1 990 ₽", 1], ["cap", "Кепка", "1 290 ₽", 0], ["hoodie", "Худи", "3 490 ₽", 1], ["tote", "Шоппер", "890 ₽", 0]],
     main: "Корзина · 2 товара · 5 480 ₽" })}</div>`,
-  site: () => `<div class="stage"><div class="dsl"><p class="dsl-k">Демо-сайты — откройте и полистайте</p>${DEMO_SITES.map((d) => `<a class="dcard" href="/demo/${d.id}/" target="_blank" rel="noopener"><span class="dcard-pic"><img src="/demo/${d.id}/img/${d.img}.webp" alt="" width="240" height="180" decoding="async"></span><span class="dcard-tx"><small>${d.kind}</small><b>${d.name}</b><span>${d.line}</span></span><span class="dcard-go">Открыть демо<i aria-hidden="true">→</i></span></a>`).join("")}</div></div>`,
+  site: () => `<div class="stage"><div class="dsl"><p class="dsl-k">Демо-сайты — откройте и полистайте</p>${DEMO_SITES.map((d) => `<a class="dcard" href="/demo/${d.id}/" target="_blank" rel="noopener"><span class="dcard-pic"><img src="/demo/${d.id}/img/${d.img}.webp" alt="" width="360" height="270" decoding="async"></span><span class="dcard-tx"><small>${d.kind}</small><b>${d.name}</b><span>${d.line}</span></span><span class="dcard-go">Открыть демо<i aria-hidden="true">→</i></span></a>`).join("")}</div></div>`,
   script: () => `<div class="stage"><div class="term" aria-hidden="true"><div class="b-bar"><i></i><i></i><i></i><span>parser.py</span></div><pre>$ python parser.py --source wb --query "кроссовки"
 <span class="ok">✓</span> страниц обработано: 42
 <span class="ok">✓</span> товаров собрано: 1 286
@@ -233,5 +233,5 @@ for (const s of S) {
 }
 fs.writeFileSync(path.join(out, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map((p) => `  <url><loc>${SITE}${p.path}</loc><lastmod>${BUILD}</lastmod><priority>${p.path === "/" ? "1.0" : "0.8"}</priority></url>`).concat(S.map((x) => `  <url><loc>${SITE}/demo/${x.id}/</loc><lastmod>${BUILD}</lastmod><priority>0.5</priority></url>`)).join("\n")}\n</urlset>\n`);
 fs.writeFileSync(path.join(out, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /404.html\n\nHost: codway.su\nSitemap: ${SITE}/sitemap.xml\n`);
-fs.writeFileSync(path.join(out, "release.json"), JSON.stringify({ version: "static-v8", build: BUILD, pages: pages.map((p) => p.path) }, null, 2));
+fs.writeFileSync(path.join(out, "release.json"), JSON.stringify({ version: "static-v9", build: BUILD, pages: pages.map((p) => p.path) }, null, 2));
 console.log("built", pages.length, "pages →", out);
