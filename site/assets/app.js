@@ -73,3 +73,12 @@
   });
   calc();
 })();
+(() => { // hero demo-site preview on /sajt-na-zakaz: switch between the three demo sites
+  const bp = document.querySelector(".bp"); if (!bp) return;
+  const tabs = bp.querySelectorAll("[data-bp]"), panes = bp.querySelectorAll("[data-bp-pane]"), go = bp.querySelector("[data-bp-open]");
+  tabs.forEach((t) => t.addEventListener("click", () => {
+    tabs.forEach((x) => { x.classList.toggle("on", x === t); x.setAttribute("aria-selected", x === t); });
+    panes.forEach((p) => { p.hidden = p.dataset.bpPane !== t.dataset.bp; });
+    go.href = "/demo/" + t.dataset.bp + "/"; go.firstChild.textContent = "Открыть демо-сайт «" + t.textContent.replace(t.querySelector("small").textContent, "") + "»";
+  }));
+})();
