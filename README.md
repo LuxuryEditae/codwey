@@ -1,23 +1,11 @@
 # CodWay — codway.su
 
-The repository root is the compiled GitHub Pages website; custom domain: https://codway.su.
-Frontend source is in `source/` (Vite, React, TypeScript, Tailwind CSS, shadcn-style `components/ui`).
+Static site, prerendered by a zero-dependency Node generator.
 
-The previous website is preserved on branch `backup/pre-paths-redesign-20261021`.
+- `site/build.mjs` — pages, texts, SEO (title/description/canonical/og, JSON-LD Organization/Service/FAQPage/Breadcrumb), sitemap.xml, robots.txt
+- `site/data/pricing.json`, `site/data/solutions.json` — prices (keep in sync with `/opt/codwey-backend/*.json` on the VDS)
+- `site/assets/` — style.css, app.js (calculator + lead form → https://api.codway.su/api/order)
+- `site/static/` — CNAME, .nojekyll, favicon, og.png, Google/Yandex verification files (copied as is)
+- `infra/telegram-relay-worker.js` — optional Cloudflare Worker relay for api.telegram.org
 
-## Development
-
-```sh
-cd source
-pnpm install --frozen-lockfile
-pnpm dev
-pnpm typecheck
-pnpm build
-```
-
-Reusable components: `source/components/ui/background-paths.tsx` and `button.tsx`.
-Styles: `source/src/styles.css`. Pricing: `source/shared/pricing.json`.
-
-The order form on codway.su sends requests to https://api.codway.su/api/order.
-Backend and Telegram credentials are stored only on the VDS. Future static
-deployments must retain CNAME, .nojekyll, and the search engine verification files.
+Build locally: `node site/build.mjs` → `dist/`. Deploy: push to `main`, GitHub Actions builds and publishes to Pages.

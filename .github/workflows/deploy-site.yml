@@ -17,18 +17,22 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/configure-pages@v5
-      - name: Prepare static website
-        run: |
-          mkdir _site
-          cp index.html 404.html favicon.svg robots.txt sitemap.xml CNAME release.json _site/
-          cp -R assets _site/
-          touch _site/.nojekyll
-          cp google*.html yandex_*.html _site/
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          path: _site
+          node-version: 22
+      - uses: actions/configure-pages@v5
+      - name: Build static site (SSG)
+        run: node site/build.mjs
+      - name: Check pages contain real content
+        run: |
+          for p in index telegram-bot-na-zakaz telegram-mini-app-na-zakaz sajt-na-zakaz parser-na-zakaz ceny kontakty; do
+            grep -q "<h1>" dist/$p.html && grep -q "+7 960 753-61-62" dist/$p.html || { echo "bad $p"; exit 1; }
+          done
+          test -f dist/CNAME && test -f dist/.nojekyll && ls dist/google*.html dist/yandex_*.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4
