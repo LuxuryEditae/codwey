@@ -56,7 +56,13 @@
     if (solution) body.solution_id = solution.id;
     busy = true; const btn = f.querySelector("[type=submit]"); btn.disabled = true; say("Отправляем…", true);
     try {
-      const r = await fetch(CW.api, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const send = (b) => fetch(CW.api, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
+      let r = await send(body);
+      if (r.status === 422 && body.solution_id) { // backend may not know a newer solution yet: send it as a regular request
+        const sol = solution; delete body.solution_id; body.submission_id = uuid();
+        body.description = `[Готовое решение: ${sol.title}${sol.price ? " — " + Number(sol.price).toLocaleString("ru-RU") + " ₽" : ""}] ` + description;
+        r = await send(body);
+      }
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(typeof j.detail === "string" ? j.detail : "Проверьте поля формы и попробуйте ещё раз.");
       say(`Заявка №${j.id} принята ✅ Ответим в течение часа (9:00–22:00 МСК). Быстрее — в боте @codwey_bot.`, true);

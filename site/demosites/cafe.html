@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Очаг — ресторан-пекарня с дровяной печью · демо-сайт CodWay</title>
+<meta name="description" content="Демо-сайт ресторана от CodWay: меню с вкладками, бронирование стола, банкеты, отзывы и контакты. Такой сайт для кафе — под ключ за 5–7 дней.">
+<link rel="canonical" href="https://codway.su/demo/cafe/">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#1c1410">
+<meta property="og:title" content="Очаг — демо-сайт ресторана от CodWay">
+<meta property="og:description" content="Меню, бронь стола и банкеты — пример сайта для кафе и ресторана.">
+<meta property="og:image" content="https://codway.su/demo/cafe/img/hero.webp">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23c4532d'/%3E%3Cpath d='M32 14c6 8 12 12 12 22a12 12 0 0 1-24 0c0-6 4-9 6-14 2 4 4 5 6 5-2-5 0-9 0-13z' fill='%23f6ecdc'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap">
+<link rel="preload" as="image" href="/demo/cafe/img/hero.webp">
+<style>
+:root{--bg:#f6ecdc;--bg2:#efe2cc;--ink:#2a1d15;--mut:#6f5a4b;--dk:#1c1410;--dk2:#271c16;--tc:#c4532d;--tc2:#a8431f;--oc:#d9a441;--ln:rgba(42,29,21,.14);--r:18px;--serif:"Playfair Display",Georgia,serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:80px}body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}body.lock{overflow:hidden}
+img{display:block;max-width:100%;height:auto}a{color:inherit}h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.08;margin:0;letter-spacing:-.01em}
+.w{width:min(1200px,100% - 40px);margin-inline:auto}section{padding:110px 0}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font:600 12px/1 Inter,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--tc)}.eyebrow:before{content:"";width:28px;height:1px;background:currentColor}
+.h2{font-size:clamp(34px,4.6vw,56px);margin:16px 0 18px}.lead{font-size:18px;color:var(--mut);max-width:560px;margin:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:15px 26px;border-radius:999px;border:0;background:var(--tc);color:#fff;font:600 15px/1 Inter,sans-serif;text-decoration:none;cursor:pointer;transition:.25s;box-shadow:0 10px 30px -12px rgba(196,83,45,.7)}.btn:hover{background:var(--tc2);transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}.btn.ghost:hover{background:rgba(255,255,255,.12)}
+.btn.dark{background:var(--dk);box-shadow:none}
+/* header */
+.hdr{position:fixed;inset:0 0 auto;z-index:50;color:#fff;transition:.3s}.hdr.scr{background:rgba(28,20,16,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.hdr .w{display:flex;align-items:center;gap:36px;height:78px}.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 25px/1 var(--serif);letter-spacing:.06em}.logo svg{width:30px;height:30px;color:var(--oc)}
+.nav{display:flex;gap:28px;margin-left:auto}.nav a{text-decoration:none;font-size:14.5px;opacity:.85}.nav a:hover{opacity:1;color:var(--oc)}
+.hdr .tel{text-decoration:none;font-weight:600;font-size:15px;white-space:nowrap}.hdr .btn{padding:12px 20px;font-size:14px}.burger{display:none;margin-left:auto;width:44px;height:44px;border:0;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}.burger svg{width:22px;height:22px}
+/* hero */
+.hero{position:relative;min-height:100svh;display:flex;align-items:flex-end;padding:140px 0 70px;color:#fff;background:var(--dk) url(/demo/cafe/img/hero.webp) center/cover no-repeat}
+.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,13,9,.55) 0%,rgba(20,13,9,.25) 40%,rgba(20,13,9,.88) 100%)}
+.hero .w{position:relative}.hero .eyebrow{color:var(--oc)}.hero h1{font-size:clamp(46px,8vw,104px);max-width:900px;margin:22px 0 24px}.hero h1 em{color:var(--oc);font-weight:500}
+.hero p{font-size:clamp(17px,1.6vw,20px);max-width:560px;margin:0 0 34px;color:rgba(255,255,255,.86)}.hero .acts{display:flex;gap:14px;flex-wrap:wrap}
+.hero-info{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:70px;border-top:1px solid rgba(255,255,255,.2)}.hero-info div{padding:22px 24px 0 0}.hero-info b{display:block;font:600 22px/1.2 var(--serif)}.hero-info span{font-size:14px;color:rgba(255,255,255,.7)}
+/* about */
+.about .w{display:grid;grid-template-columns:1.05fr 1fr;gap:80px;align-items:center}.about-ph{position:relative}.about-ph img{border-radius:var(--r);aspect-ratio:4/5;object-fit:cover;width:100%}
+.about-ph .badge{position:absolute;right:-28px;bottom:40px;width:150px;height:150px;border-radius:50%;background:var(--tc);color:#fff;display:grid;place-items:center;text-align:center;font:500 14px/1.3 Inter;box-shadow:0 20px 40px -14px rgba(0,0,0,.4)}.about-ph .badge b{display:block;font:600 40px/1 var(--serif)}
+.about p{color:var(--mut);margin:0 0 16px;font-size:17px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:36px;padding-top:30px;border-top:1px solid var(--ln)}.stats b{display:block;font:600 40px/1 var(--serif);color:var(--tc)}.stats span{font-size:14px;color:var(--mut)}
+/* menu */
+.menu{background:var(--dk);color:#f3e7d6}.menu .lead{color:#b9a48f}.menu .eyebrow{color:var(--oc)}.mhead{display:flex;justify-content:space-between;align-items:end;gap:30px;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:44px 0 36px}.tabs button{padding:12px 22px;border-radius:999px;border:1px solid rgba(243,231,214,.2);background:none;color:#e9dcc8;font:500 15px Inter;cursor:pointer;transition:.2s}.tabs button:hover{border-color:var(--oc)}.tabs button.on{background:var(--oc);border-color:var(--oc);color:var(--dk)}
+.dishes{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.dish{background:var(--dk2);border-radius:var(--r);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);transition:.3s}.dish:hover{transform:translateY(-4px)}
+.dish img{aspect-ratio:4/3;object-fit:cover;width:100%}.dish div{padding:20px 22px 22px}.dish h3{font-size:22px;display:flex;justify-content:space-between;gap:12px}.dish h3 span{font:600 18px Inter;color:var(--oc);white-space:nowrap}.dish p{margin:8px 0 0;font-size:14.5px;color:#b9a48f}.dish small{display:inline-block;margin-top:12px;font-size:12px;color:#8d7a68;letter-spacing:.04em}
+.tag{display:inline-block;margin-left:8px;padding:3px 9px;border-radius:999px;background:rgba(217,164,65,.16);color:var(--oc);font:600 11px/1.4 Inter;vertical-align:middle;letter-spacing:.03em}
+.mlist{display:grid;grid-template-columns:1fr 1fr;gap:0 60px;margin-top:34px}.mlist div{display:flex;align-items:baseline;gap:12px;padding:16px 0;border-bottom:1px dashed rgba(243,231,214,.16)}.mlist b{font-weight:500}.mlist i{flex:1;border-bottom:1px dotted rgba(243,231,214,.25);transform:translateY(-4px)}.mlist span{color:var(--oc);font-weight:600}.mlist em{display:block;font-style:normal;font-size:13px;color:#8d7a68}
+.mnote{margin-top:30px;font-size:14px;color:#8d7a68}
+/* oven */
+.oven{padding:0;background:var(--dk)}.oven .w{display:grid;grid-template-columns:1fr 1fr;min-height:600px;width:100%}.oven-ph{background:url(/demo/cafe/img/pizzaoven.webp) center/cover}.oven-tx{padding:90px clamp(30px,6vw,100px);background:var(--tc);color:#fff;display:flex;flex-direction:column;justify-content:center}
+.oven-tx .eyebrow{color:#ffe2b8}.oven-tx blockquote{margin:20px 0 30px;font:500 italic clamp(26px,2.8vw,38px)/1.25 var(--serif)}.chef{display:flex;align-items:center;gap:16px}.chef img{width:64px;height:64px;border-radius:50%;object-fit:cover}.chef b{display:block}.chef span{font-size:14px;opacity:.8}
+/* events */
+.ev .w{display:grid;grid-template-columns:1fr 1.1fr;gap:70px;align-items:center}.ev-ph{display:grid;grid-template-columns:1fr 1fr;gap:16px}.ev-ph img{border-radius:var(--r);object-fit:cover;width:100%;height:100%}.ev-ph img:first-child{grid-row:span 2;aspect-ratio:3/4.6}.ev-ph img:not(:first-child){aspect-ratio:1}
+.ev ul{list-style:none;padding:0;margin:30px 0 34px;display:grid;gap:14px}.ev li{display:flex;gap:14px;align-items:flex-start;font-size:16px}.ev li:before{content:"";flex:none;width:22px;height:22px;margin-top:2px;border-radius:50%;background:var(--tc) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center/13px no-repeat}
+.ev .pr{display:flex;gap:40px;margin-bottom:30px}.ev .pr b{display:block;font:600 30px/1 var(--serif)}.ev .pr span{font-size:14px;color:var(--mut)}
+/* reviews */
+.rev{background:var(--bg2)}.rhead{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:20px;margin-bottom:46px}.score{display:flex;align-items:center;gap:16px}.score b{font:600 56px/1 var(--serif)}.score span{font-size:14px;color:var(--mut)}.stars{color:var(--oc);letter-spacing:2px}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.rc{background:var(--bg);border-radius:var(--r);padding:28px;box-shadow:0 1px 0 var(--ln)}.rc p{margin:14px 0 22px;font-size:15.5px}.rc .who{display:flex;align-items:center;gap:12px;font-size:14px}.rc .av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--tc);color:#fff;font-weight:600}.rc .who span{display:block;color:var(--mut);font-size:13px}
+/* booking */
+.bk .w{display:grid;grid-template-columns:1fr 1.15fr;gap:70px;align-items:start}.bk-info{position:sticky;top:110px}.hours{margin:34px 0;display:grid;gap:10px}.hours div{display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--ln)}.hours span{color:var(--mut)}
+.form{background:#fffaf2;border-radius:24px;padding:38px;box-shadow:0 30px 60px -30px rgba(42,29,21,.25),0 0 0 1px var(--ln)}.form h3{font-size:30px;margin-bottom:6px}.form>p{margin:0 0 26px;color:var(--mut);font-size:15px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.row3{grid-template-columns:1.2fr 1fr 1fr}label{display:block;margin-bottom:14px;font-size:13px;font-weight:500;color:var(--mut)}
+input,select,textarea{display:block;width:100%;margin-top:6px;padding:14px 16px;border:1px solid var(--ln);border-radius:12px;background:#fff;color:var(--ink);font:400 16px Inter,sans-serif;transition:.2s}input:focus,select:focus,textarea:focus{outline:0;border-color:var(--tc);box-shadow:0 0 0 3px rgba(196,83,45,.15)}.bad{border-color:#d33!important;box-shadow:0 0 0 3px rgba(221,51,51,.12)!important}
+.stp{display:flex;align-items:center;margin-top:6px;border:1px solid var(--ln);border-radius:12px;background:#fff}.stp button{width:46px;height:48px;border:0;background:none;font-size:20px;color:var(--tc);cursor:pointer}.stp input{margin:0;border:0;text-align:center;padding:0;box-shadow:none!important;-moz-appearance:textfield}.stp input::-webkit-inner-spin-button{display:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 18px}.chips label{margin:0}.chips input{display:none}.chips span{display:inline-block;padding:9px 15px;border-radius:999px;border:1px solid var(--ln);background:#fff;font-size:14px;color:var(--ink);cursor:pointer}.chips input:checked+span{background:var(--dk);color:#fff;border-color:var(--dk)}
+.form .btn{width:100%;margin-top:8px;padding:17px}.agree{font-size:12.5px;color:var(--mut);margin:12px 0 0;text-align:center}
+/* contacts */
+.ct{padding:0 0 110px}.ct .w{display:grid;grid-template-columns:1fr 1.3fr;border-radius:24px;overflow:hidden;background:var(--dk);color:#f3e7d6}.ct-tx{padding:50px}.ct-tx h2{font-size:40px;margin-bottom:28px}.ct-tx dl{margin:0;display:grid;gap:20px}.ct-tx dt{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--oc)}.ct-tx dd{margin:4px 0 0;font-size:17px}
+.map{position:relative;min-height:380px;background:#2a1f19;overflow:hidden}.map svg{position:absolute;inset:0;width:100%;height:100%}.pin{position:absolute;left:54%;top:46%;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center}.pin b{padding:10px 16px;border-radius:12px;background:var(--tc);color:#fff;font:600 14px Inter;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.4)}.pin i{width:14px;height:14px;margin-top:-7px;background:var(--tc);transform:rotate(45deg)}.pin:after{content:"";width:18px;height:18px;margin-top:10px;border-radius:50%;background:rgba(196,83,45,.35);box-shadow:0 0 0 10px rgba(196,83,45,.15)}
+footer{background:var(--dk);color:#a8937f;padding:50px 0 90px;font-size:14px}footer .w{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;align-items:center}footer .logo{color:#f3e7d6}footer nav{display:flex;gap:24px;flex-wrap:wrap}footer a{text-decoration:none}footer a:hover{color:var(--oc)}
+/* modal */
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:rgba(20,13,9,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);opacity:0;visibility:hidden;transition:.25s}.modal.on{opacity:1;visibility:visible}.modal .form{position:relative;width:min(560px,100%);max-height:calc(100svh - 32px);overflow:auto}.mx{position:absolute;right:14px;top:14px;width:40px;height:40px;border:0;border-radius:50%;background:var(--bg2);font-size:22px;cursor:pointer;color:var(--ink)}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s,transform .8s}.rv.in{opacity:1;transform:none}
+@media (max-width:1000px){.nav,.hdr .tel,.hdr .btn{display:none}.burger{display:grid;place-items:center}
+ .nav-on .nav{display:flex;position:fixed;inset:78px 0 auto;flex-direction:column;gap:0;padding:10px 20px 24px;background:var(--dk)}.nav-on .nav a{padding:14px 0;font-size:18px;border-bottom:1px solid rgba(255,255,255,.08)}.nav-on .hdr{background:var(--dk)}
+ .about .w,.ev .w,.bk .w,.ct .w{grid-template-columns:1fr;gap:44px}.oven .w{grid-template-columns:1fr}.oven-ph{min-height:320px}.dishes,.rgrid{grid-template-columns:1fr 1fr}.bk-info{position:static}.about-ph .badge{right:16px}}
+@media (max-width:640px){section{padding:76px 0}.w{width:calc(100% - 32px)}.hero{padding-bottom:40px}.hero-info{grid-template-columns:1fr 1fr;margin-top:44px}.hero-info div{padding:16px 10px 0 0}.hero-info b{font-size:18px}
+ .dishes,.rgrid,.mlist{grid-template-columns:1fr}.dishes{gap:16px}.dish{display:grid;grid-template-columns:120px 1fr}.dish img{height:100%;aspect-ratio:auto}.dish div{padding:14px 16px}.dish h3{font-size:18px;flex-direction:column;gap:4px}.dish h3 span{font-size:16px}.dish p{font-size:13.5px}
+ .tabs{flex-wrap:nowrap;overflow-x:auto;margin:30px -16px 24px;padding:0 16px;scrollbar-width:none}.tabs button{flex:none}.stats b{font-size:30px}.row,.row3{grid-template-columns:1fr 1fr}.row3 label:first-child{grid-column:span 2}.form{padding:26px 20px}.ct-tx{padding:34px 24px}.map{min-height:280px}.ev .pr{gap:24px}.oven-tx{padding:60px 24px}}
+.modal .form h3{padding-right:44px}
+</style>
+</head>
+<body>
+<header class="hdr"><div class="w">
+ <a class="logo" href="#top"><svg viewBox="0 0 32 32" fill="currentColor"><path d="M16 3c4 5 8 8 8 14a8 8 0 0 1-16 0c0-4 2.5-6 4-9.5 1.3 2.6 2.6 3.3 4 3.3C14.7 7.5 16 5.5 16 3z"/></svg>ОЧАГ</a>
+ <nav class="nav"><a href="#about">О нас</a><a href="#menu">Меню</a><a href="#events">Банкеты</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a></nav>
+ <a class="tel" href="tel:+74950000000">+7 (495) 000-00-00</a><a class="btn" href="#book" data-open="bm">Забронировать</a>
+ <button class="burger" data-burger aria-label="Меню"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+</div></header>
+
+<section class="hero" id="top"><div class="w">
+ <span class="eyebrow">Ресторан-пекарня · с 2016 года</span>
+ <h1>Хлеб, огонь и&nbsp;<em>долгие</em> ужины</h1>
+ <p>Неаполитанская пицца из дровяной печи, паста ручной работы и хлеб на закваске, который мы печём каждое утро в 6:00.</p>
+ <div class="acts"><a class="btn" href="#book" data-open="bm">Забронировать стол</a><a class="btn ghost" href="#menu">Смотреть меню</a></div>
+ <div class="hero-info"><div><b>8:00 — 24:00</b><span>каждый день</span></div><div><b>Печь 450°</b><span>пицца за 90 секунд</span></div><div><b>Завтраки</b><span>весь день</span></div><div><b>Покровка, 17</b><span>5 минут от м. Китай-город</span></div></div>
+</div></section>
+
+<section class="about" id="about"><div class="w">
+ <div class="about-ph rv"><img src="/demo/cafe/img/interior.webp" width="900" height="640" alt="Зал ресторана Очаг" loading="lazy"><div class="badge"><div><b>4.9</b>Яндекс&nbsp;Карты</div></div></div>
+ <div class="rv"><span class="eyebrow">О нас</span><h2 class="h2">Место, где всегда пахнет свежим хлебом</h2>
+  <p>«Очаг» начинался как маленькая пекарня на 12 мест. Сегодня это ресторан с открытой кухней, дровяной печью из Неаполя и залом, куда приходят на завтрак с ноутбуком и на ужин большой компанией.</p>
+  <p>Муку мы берём у фермеров из Алтая, сыры — у сыроварни в Тверской области, а закваске «Марусе» уже девять лет.</p>
+  <div class="stats"><div><b>9 лет</b><span>живёт наша закваска</span></div><div><b>64</b><span>места в зале и на веранде</span></div><div><b>12</b><span>видов хлеба каждый день</span></div></div>
+ </div>
+</div></section>
+
+<section class="menu" id="menu" data-tabs-root><div class="w">
+ <div class="mhead"><div><span class="eyebrow">Меню</span><h2 class="h2">Готовим из того, что любим сами</h2></div><p class="lead">Меню обновляем каждый сезон. Сейчас — осеннее: тыква, белые грибы и тёплые десерты.</p></div>
+ <div class="tabs" role="tablist"><button class="on" data-tab="br" role="tab" aria-selected="true">Завтраки</button><button data-tab="pz" role="tab">Пицца</button><button data-tab="ps" role="tab">Паста</button><button data-tab="ds" role="tab">Десерты</button><button data-tab="dr" role="tab">Бар</button></div>
+
+ <div data-panel="br"><div class="dishes">
+  <article class="dish"><img src="/demo/cafe/img/eggs.webp" width="640" height="480" alt="Яйца бенедикт" loading="lazy"><div><h3>Бенедикт с лососем <span>590 ₽</span></h3><p>Бриошь собственной выпечки, яйца пашот, голландский соус, шпинат.</p><small>280 г</small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/shakshuka.webp" width="640" height="480" alt="Шакшука" loading="lazy"><div><h3>Шакшука <span class="">490 ₽</span></h3><p>Томаты, сладкий перец, три яйца, фета и зелень. Подаём с хлебом из печи.</p><small>350 г <i class="tag">хит</i></small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/breakfast.webp" width="640" height="480" alt="Завтрак Очага" loading="lazy"><div><h3>Завтрак «Очаг» <span>650 ₽</span></h3><p>Скрэмбл, авокадо, печёные томаты, бекон, хлеб на закваске и масло.</p><small>390 г</small></div></article>
+ </div><div class="mlist">
+  <div><b>Сырники со сметаной<em>и ягодным соусом</em></b><i></i><span>420 ₽</span></div><div><b>Овсяная каша на кокосовом молоке<em>с карамелизированной грушей</em></b><i></i><span>360 ₽</span></div>
+  <div><b>Круассан с ветчиной и сыром</b><i></i><span>340 ₽</span></div><div><b>Тост с авокадо и яйцом пашот</b><i></i><span>480 ₽</span></div>
+ </div></div>
+
+ <div data-panel="pz" hidden><div class="dishes">
+  <article class="dish"><img src="/demo/cafe/img/pizza.webp" width="640" height="480" alt="Пицца Маргарита" loading="lazy"><div><h3>Маргарита <span>620 ₽</span></h3><p>Томаты Сан-Марцано, фиор ди латте, базилик, оливковое масло.</p><small>32 см <i class="tag">классика</i></small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/pizza2.webp" width="640" height="480" alt="Пицца Дьябола" loading="lazy"><div><h3>Дьявола <span>760 ₽</span></h3><p>Острая салями наполи, моцарелла, томатный соус, мёд с чили.</p><small>32 см <i class="tag">острая</i></small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/pizzaoven.webp" width="900" height="640" alt="Пицца из печи" loading="lazy"><div><h3>Белые грибы и трюфель <span>890 ₽</span></h3><p>Белый соус, белые грибы, моцарелла, пармезан, трюфельное масло.</p><small>32 см <i class="tag">сезон</i></small></div></article>
+ </div><div class="mlist">
+  <div><b>Четыре сыра<em>горгонзола, таледжо, пармезан, моцарелла</em></b><i></i><span>790 ₽</span></div><div><b>Мортаделла и фисташка</b><i></i><span>820 ₽</span></div>
+  <div><b>Тыква, бекон, шалфей</b><i></i><span>740 ₽</span></div><div><b>Кальцоне с рикоттой</b><i></i><span>690 ₽</span></div>
+ </div></div>
+
+ <div data-panel="ps" hidden><div class="dishes">
+  <article class="dish"><img src="/demo/cafe/img/pasta.webp" width="640" height="480" alt="Паста карбонара" loading="lazy"><div><h3>Карбонара <span>640 ₽</span></h3><p>Спагетти, гуанчиале, желток, пекорино романо, чёрный перец.</p><small>300 г <i class="tag">хит</i></small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/pasta2.webp" width="640" height="480" alt="Тальятелле" loading="lazy"><div><h3>Тальятелле с белыми грибами <span>720 ₽</span></h3><p>Свежая паста ручной работы, сливочный соус, белые грибы, тимьян.</p><small>320 г</small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/pasta3.webp" width="640" height="480" alt="Паста с томатами" loading="lazy"><div><h3>Паккери с томатами <span>560 ₽</span></h3><p>Томаты черри, страчателла, базилик и оливковое масло.</p><small>300 г <i class="tag">вег</i></small></div></article>
+ </div><div class="mlist">
+  <div><b>Лингвини с креветками<em>чеснок, чили, белое вино</em></b><i></i><span>790 ₽</span></div><div><b>Лазанья болоньезе</b><i></i><span>620 ₽</span></div>
+  <div><b>Ньокки с тыквой и шалфеем</b><i></i><span>590 ₽</span></div><div><b>Равиоли с рикоттой и шпинатом</b><i></i><span>610 ₽</span></div>
+ </div></div>
+
+ <div data-panel="ds" hidden><div class="dishes">
+  <article class="dish"><img src="/demo/cafe/img/tiramisu.webp" width="640" height="480" alt="Тирамису" loading="lazy"><div><h3>Тирамису <span>420 ₽</span></h3><p>Маскарпоне, савоярди, эспрессо и какао. Готовим каждое утро.</p><small>160 г <i class="tag">хит</i></small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/cheesecake.webp" width="640" height="480" alt="Чизкейк" loading="lazy"><div><h3>Баскский чизкейк <span>450 ₽</span></h3><p>Карамельная корочка, нежная середина и соус из солёной карамели.</p><small>150 г</small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/dessert.webp" width="640" height="480" alt="Десерт" loading="lazy"><div><h3>Тёплый яблочный тарт <span>390 ₽</span></h3><p>Песочное тесто, печёные яблоки, шарик ванильного джелато.</p><small>180 г <i class="tag">сезон</i></small></div></article>
+ </div><div class="mlist">
+  <div><b>Панна-котта с облепихой</b><i></i><span>360 ₽</span></div><div><b>Канноли с рикоттой и фисташкой</b><i></i><span>340 ₽</span></div>
+  <div><b>Джелато, 1 шарик<em>ваниль · фисташка · шоколад</em></b><i></i><span>190 ₽</span></div><div><b>Круассан с миндальным кремом</b><i></i><span>290 ₽</span></div>
+ </div></div>
+
+ <div data-panel="dr" hidden><div class="dishes">
+  <article class="dish"><img src="/demo/cafe/img/cocktail.webp" width="640" height="480" alt="Коктейль" loading="lazy"><div><h3>Апероль шприц <span>590 ₽</span></h3><p>Апероль, просекко, содовая и долька апельсина.</p><small>250 мл</small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/whisky.webp" width="640" height="480" alt="Олд фэшн" loading="lazy"><div><h3>Олд фэшн на копчёном меду <span>690 ₽</span></h3><p>Бурбон, мёд, ангостура, дымок вишнёвой щепы.</p><small>90 мл</small></div></article>
+  <article class="dish"><img src="/demo/cafe/img/toast.webp" width="900" height="640" alt="Вино" loading="lazy"><div><h3>Вино по бокалам <span>от 450 ₽</span></h3><p>24 позиции: Италия, Грузия, Крым. Сомелье поможет с выбором.</p><small>150 мл</small></div></article>
+ </div><div class="mlist">
+  <div><b>Капучино<em>на зерне собственной обжарки</em></b><i></i><span>260 ₽</span></div><div><b>Раф с халвой</b><i></i><span>320 ₽</span></div>
+  <div><b>Домашний лимонад<em>облепиха-розмарин, клубника-базилик</em></b><i></i><span>290 ₽</span></div><div><b>Чай в чайнике</b><i></i><span>350 ₽</span></div>
+ </div></div>
+ <p class="mnote">Цены указаны в рублях. Сервисный сбор не взимается. Сообщите официанту об аллергии — подберём замену.</p>
+</div></section>
+
+<section class="oven"><div class="w">
+ <div class="oven-ph" role="img" aria-label="Дровяная печь"></div>
+ <div class="oven-tx rv"><span class="eyebrow">Шеф-повар</span>
+  <blockquote>«Хорошей пицце нужны три вещи: тесто, которое отдыхало 48 часов, жар в 450 градусов и человек, который никуда не торопится».</blockquote>
+  <div class="chef"><img src="/demo/cafe/img/chef.webp" width="900" height="640" alt="Шеф-повар" loading="lazy"><div><b>Артём Волков</b><span>шеф «Очага», 14 лет на кухне</span></div></div>
+ </div>
+</div></section>
+
+<section class="ev" id="events"><div class="w">
+ <div class="ev-ph rv"><img src="/demo/cafe/img/table.webp" width="900" height="640" alt="Банкетный стол" loading="lazy"><img src="/demo/cafe/img/toast.webp" width="900" height="640" alt="Праздник в ресторане" loading="lazy"><img src="/demo/cafe/img/pizza.webp" width="640" height="480" alt="Пицца на компанию" loading="lazy"></div>
+ <div class="rv"><span class="eyebrow">Банкеты и события</span><h2 class="h2">Отметьте праздник у печи</h2>
+  <p class="lead">Дни рождения, свадьбы, корпоративы и детские мастер-классы по пицце. Закрываем зал целиком или отдаём уютный второй этаж на 24 гостя.</p>
+  <ul><li>Банкетное меню от шефа — подберём под бюджет и диету гостей</li><li>Мастер-класс по пицце для детей и взрослых</li><li>Свой торт и алкоголь — без пробкового сбора</li><li>Проектор, звук и украшение зала</li></ul>
+  <div class="pr"><div><b>от 3 500 ₽</b><span>на гостя</span></div><div><b>до 64</b><span>гостей в зале</span></div></div>
+  <a class="btn dark" href="#book" data-open="bm" data-kind="Банкет">Обсудить банкет</a>
+ </div>
+</div></section>
+
+<section class="rev" id="reviews"><div class="w">
+ <div class="rhead"><div><span class="eyebrow">Отзывы</span><h2 class="h2">Гости возвращаются</h2></div><div class="score"><b>4.9</b><div><div class="stars">★★★★★</div><span>1 846 отзывов на Яндекс Картах</span></div></div></div>
+ <div class="rgrid">
+  <div class="rc rv"><div class="stars">★★★★★</div><p>Лучшая карбонара в Москве, без сливок, как надо. Хлеб на закваске забираем домой каждую субботу. Персонал помнит, что я пью капучино на овсяном.</p><div class="who"><div class="av">М</div><div>Мария К.<span>постоянный гость</span></div></div></div>
+  <div class="rc rv"><div class="stars">★★★★★</div><p>Отмечали юбилей мамы на втором этаже — 20 человек. Меню согласовали в Telegram за вечер, всё было горячим и вовремя. Отдельное спасибо за торт-сюрприз!</p><div class="who"><div class="av">Д</div><div>Дмитрий С.<span>банкет на 20 гостей</span></div></div></div>
+  <div class="rc rv"><div class="stars">★★★★★</div><p>Приходим с детьми на мастер-класс по пицце уже третий раз. Дети в восторге, взрослые — от Дьяволы и вина. Бронирую через сайт за минуту.</p><div class="who"><div class="av">А</div><div>Анна и Олег<span>семейный ужин</span></div></div></div>
+ </div>
+</div></section>
+
+<section class="bk" id="book"><div class="w">
+ <div class="bk-info rv"><span class="eyebrow">Бронирование</span><h2 class="h2">Забронируйте стол за минуту</h2><p class="lead">Подтвердим бронь в течение 10 минут. Столы у печи и на веранде лучше бронировать заранее — особенно на выходные.</p>
+  <div class="hours"><div><b>Пн — Чт</b><span>8:00 — 23:00</span></div><div><b>Пт — Сб</b><span>8:00 — 01:00</span></div><div><b>Вс</b><span>9:00 — 23:00</span></div></div>
+  <a class="tel" href="tel:+74950000000" style="font:600 24px var(--serif);text-decoration:none">+7 (495) 000-00-00</a>
+ </div>
+ <form class="form rv" data-demo="на настоящем сайте бронь сразу пришла бы администратору в Telegram, а вам — SMS с подтверждением и напоминание за 2 часа до визита." novalidate>
+  <h3>Бронь стола</h3><p>Без предоплаты. Бронь держим 15 минут.</p>
+  <div class="row row3"><label>Дата<input type="date" name="date" required></label><label>Время<select name="time"><option>12:00</option><option>13:00</option><option>14:00</option><option>18:00</option><option selected>19:00</option><option>19:30</option><option>20:00</option><option>21:00</option></select></label><label>Гостей<div class="stp" data-stepper><button type="button" data-d="-1">−</button><input type="number" name="guests" value="2" min="1" max="24"><button type="button" data-d="1">+</button></div></label></div>
+  <div style="font-size:13px;font-weight:500;color:var(--mut)">Зона</div>
+  <div class="chips"><label><input type="radio" name="zone" checked><span>Не важно</span></label><label><input type="radio" name="zone"><span>У печи</span></label><label><input type="radio" name="zone"><span>У окна</span></label><label><input type="radio" name="zone"><span>Веранда</span></label><label><input type="radio" name="zone"><span>2 этаж</span></label></div>
+  <div class="row"><label>Имя<input name="name" autocomplete="given-name" placeholder="Как к вам обращаться" required></label><label>Телефон<input type="tel" name="phone" autocomplete="tel" placeholder="+7 (___) ___-__-__" required></label></div>
+  <label>Пожелания<textarea name="msg" rows="2" placeholder="День рождения, детский стульчик, аллергия…"></textarea></label>
+  <button class="btn" type="submit">Забронировать стол</button><p class="agree">Нажимая кнопку, вы соглашаетесь с политикой обработки персональных данных</p>
+ </form>
+</div></section>
+
+<section class="ct" id="contacts"><div class="w">
+ <div class="ct-tx"><h2>Как нас найти</h2><dl><div><dt>Адрес</dt><dd>Москва, ул. Покровка, 17<br>5 минут пешком от м. Китай-город</dd></div><div><dt>Телефон</dt><dd><a href="tel:+74950000000">+7 (495) 000-00-00</a></dd></div><div><dt>Доставка</dt><dd>Пицца и хлеб — в радиусе 5 км за 45 минут</dd></div><div><dt>Соцсети</dt><dd>Telegram · ВКонтакте</dd></div></dl></div>
+ <div class="map" aria-label="Схема проезда"><svg viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice"><g stroke="#3b2d25" stroke-width="18" fill="none"><path d="M-20 120 620 80"/><path d="M-20 300 620 340"/><path d="M180 -20 240 420"/><path d="M420 -20 380 420"/></g><g stroke="#4a3a30" stroke-width="8" fill="none"><path d="M-20 210 620 200"/><path d="M80 -20 100 420"/><path d="M520 -20 540 420"/><path d="M300 -20 320 420"/></g><path d="M-20 260C150 230 260 280 620 240" stroke="#c4532d" stroke-opacity=".35" stroke-width="5" fill="none" stroke-dasharray="10 10"/><circle cx="200" cy="300" r="12" fill="#d9a441"/><text x="218" y="292" fill="#d9a441" font-family="Inter" font-size="14">м. Китай-город</text></svg><div class="pin"><b>Очаг · Покровка, 17</b><i></i></div></div>
+</div></section>
+
+<footer><div class="w"><a class="logo" href="#top"><svg viewBox="0 0 32 32" fill="currentColor" style="width:26px;color:var(--oc)"><path d="M16 3c4 5 8 8 8 14a8 8 0 0 1-16 0c0-4 2.5-6 4-9.5 1.3 2.6 2.6 3.3 4 3.3C14.7 7.5 16 5.5 16 3z"/></svg>ОЧАГ</a><nav><a href="#menu">Меню</a><a href="#events">Банкеты</a><a href="#book" data-open="bm">Бронь</a><a href="#contacts">Контакты</a></nav><span>© 2026 «Очаг» · вымышленный ресторан, демо-сайт <a href="https://codway.su/" style="text-decoration:underline">CodWay</a></span></div></footer>
+
+<div class="modal" id="bm" role="dialog" aria-modal="true" aria-label="Бронирование стола">
+ <form class="form" data-demo="на настоящем сайте заявка сразу пришла бы администратору в Telegram, а вам — SMS с подтверждением брони." novalidate>
+  <button class="mx" type="button" data-close aria-label="Закрыть">×</button>
+  <h3>Забронировать стол</h3><p>Перезвоним и подтвердим в течение 10 минут.</p>
+  <div class="row row3"><label>Дата<input type="date" name="date" required></label><label>Время<select name="time"><option>13:00</option><option>18:00</option><option selected>19:00</option><option>20:00</option><option>21:00</option></select></label><label>Гостей<div class="stp" data-stepper><button type="button" data-d="-1">−</button><input type="number" name="guests" value="2" min="1" max="64"><button type="button" data-d="1">+</button></div></label></div>
+  <div class="chips"><label><input type="radio" name="kind" value="Ужин" checked><span>Ужин</span></label><label><input type="radio" name="kind" value="Завтрак"><span>Завтрак</span></label><label><input type="radio" name="kind" value="Банкет"><span>Банкет</span></label><label><input type="radio" name="kind" value="Мастер-класс"><span>Мастер-класс</span></label></div>
+  <div class="row"><label>Имя<input name="name" placeholder="Ваше имя" required></label><label>Телефон<input type="tel" name="phone" placeholder="+7 (___) ___-__-__" required></label></div>
+  <button class="btn" type="submit">Отправить заявку</button>
+ </form>
+</div>
+<script>document.getElementById("bm").addEventListener("open",function(e){var k=e.detail&&e.detail.dataset.kind;if(k){var r=this.querySelector('[name=kind][value="'+k+'"]');if(r)r.checked=true}})</script>
+<!--CW-->
+</body>
+</html>
