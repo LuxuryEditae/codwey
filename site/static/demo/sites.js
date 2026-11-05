@@ -98,6 +98,8 @@
       upd(); });
     upd();
   }
+  // ---- remont: before/after slider ----
+  $$("[data-ba]").forEach(function (b) { var r = $("input", b); var f = function () { b.style.setProperty("--x", r.value + "%"); }; r.addEventListener("input", f); f(); });
   // ---- remont: calculator ----
   var cf = d.getElementById("calc");
   if (cf) {

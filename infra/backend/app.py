@@ -488,8 +488,8 @@ def ack(m: Message, text, force=False):
 
 def prices_text():
     lines = ["💰 <b>Цены CodWay</b> — в 2–5 раз ниже студий (у студий от 50 000 ₽)\n"]
-    for p in PRICING["projects"]:
-        days = "3–5 недель" if p["id"] == "system" else f"{p['daysMin']}–{p['daysMax']} дн."
+    for p in PRICING.get("tiers") or PRICING["projects"]:
+        days = p.get("days") or ("3–5 недель" if p["id"] == "system" else f"{p['daysMin']}–{p['daysMax']} дн.")
         lines.append(f"• {escape(p['label'])} — от <b>{money(p['min'])} ₽</b>, {days}")
     lines.append("\n<b>Доп. модули</b>")
     lines += [f"• {escape(f['label'])} — от {money(f['min'])} ₽" for f in PRICING["features"]]
@@ -523,7 +523,7 @@ async def start(message: Message, state: FSMContext):
         return
     await state.clear()
     await message.answer("Здравствуйте! Это <b>CodWay</b> — делаем Telegram-ботов, Mini Apps, сайты и парсеры. "
-                         "Бот от 9 900 ₽, сайт от 14 900 ₽, оплата 50/50.\n\n"
+                         "Бот от 4 900 ₽, Mini App от 14 900 ₽, сайт от 9 900 ₽, оплата 50/50.\n\n"
                          "Нажмите «📝 Оставить заявку» или просто напишите вопрос — ответит живой разработчик.", reply_markup=MENU)
     if arg.startswith("sol_") and arg[4:] in SOLUTIONS:
         s = SOLUTIONS[arg[4:]]

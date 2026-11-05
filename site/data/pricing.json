@@ -1,16 +1,26 @@
 {
   "projects": [
-    {"id": "bot", "label": "Telegram-бот", "min": 9900, "max": 29900, "daysMin": 3, "daysMax": 7},
-    {"id": "miniapp", "label": "Telegram Mini App", "min": 29900, "max": 69900, "daysMin": 7, "daysMax": 14},
-    {"id": "site", "label": "Сайт / лендинг", "min": 14900, "max": 39900, "daysMin": 5, "daysMax": 10},
-    {"id": "script", "label": "Парсер / скрипт", "min": 4900, "max": 14900, "daysMin": 2, "daysMax": 5},
-    {"id": "system", "label": "Комплексная система", "min": 69900, "max": 149900, "daysMin": 15, "daysMax": 25}
+    {"id": "bot", "label": "Telegram-бот", "min": 4900, "max": 19900, "daysMin": 1, "daysMax": 7},
+    {"id": "miniapp", "label": "Telegram Mini App", "min": 14900, "max": 49900, "daysMin": 5, "daysMax": 14},
+    {"id": "site", "label": "Сайт / лендинг", "min": 9900, "max": 29900, "daysMin": 3, "daysMax": 10},
+    {"id": "script", "label": "Парсер / скрипт", "min": 2900, "max": 9900, "daysMin": 1, "daysMax": 4},
+    {"id": "system", "label": "Комплексная система", "min": 59900, "max": 129900, "daysMin": 15, "daysMax": 25}
   ],
   "features": [
-    {"id": "payments", "label": "Приём оплаты", "detail": "ЮKassa, СБП, Telegram Stars", "min": 4900, "max": 9900, "daysMin": 1, "daysMax": 2},
-    {"id": "ai", "label": "Нейросеть (AI)", "detail": "GPT / YandexGPT / GigaChat", "min": 7900, "max": 14900, "daysMin": 2, "daysMax": 4},
-    {"id": "admin", "label": "Админ-панель", "detail": "Заявки, рассылки, статистика", "min": 4900, "max": 9900, "daysMin": 1, "daysMax": 3},
-    {"id": "sheets", "label": "Google Таблицы", "detail": "Выгрузка заказов и данных", "min": 2900, "max": 4900, "daysMin": 1, "daysMax": 1},
-    {"id": "languages", "label": "Несколько языков", "detail": "RU / EN и другие", "min": 2900, "max": 5900, "daysMin": 1, "daysMax": 2}
+    {"id": "payments", "label": "Приём оплаты", "detail": "ЮKassa, СБП, Telegram Stars", "min": 3900, "max": 6900, "daysMin": 1, "daysMax": 2},
+    {"id": "ai", "label": "Нейросеть (AI)", "detail": "GPT / YandexGPT / GigaChat", "min": 5900, "max": 11900, "daysMin": 2, "daysMax": 4},
+    {"id": "admin", "label": "Админ-панель", "detail": "Заявки, рассылки, статистика", "min": 3900, "max": 7900, "daysMin": 1, "daysMax": 3},
+    {"id": "sheets", "label": "Google Таблицы", "detail": "Выгрузка заказов и данных", "min": 1900, "max": 2900, "daysMin": 1, "daysMax": 1},
+    {"id": "languages", "label": "Несколько языков", "detail": "RU / EN и другие", "min": 1900, "max": 3900, "daysMin": 1, "daysMax": 2}
+  ],
+  "tiers": [
+    {"project": "bot", "label": "Простой бот", "note": "меню, ответы на вопросы, приём заявок", "min": 4900, "days": "1–2 дня"},
+    {"project": "bot", "label": "Бот под ключ", "note": "запись, каталог, рассылки, сценарии", "min": 8900, "days": "3–7 дней"},
+    {"project": "miniapp", "label": "Mini App — витрина", "note": "каталог или меню внутри Telegram", "min": 14900, "days": "5–7 дней"},
+    {"project": "miniapp", "label": "Mini App — магазин", "note": "корзина, варианты товара, заказы", "min": 24900, "days": "7–14 дней"},
+    {"project": "site", "label": "Лендинг", "note": "одна страница, заявки в Telegram", "min": 9900, "days": "3–5 дней"},
+    {"project": "site", "label": "Многостраничный сайт", "note": "до 10 страниц, SEO под каждую услугу", "min": 19900, "days": "7–10 дней"},
+    {"project": "script", "label": "Парсер или скрипт", "note": "сбор данных, выгрузка в Excel и таблицы", "min": 2900, "days": "1–3 дня"},
+    {"project": "system", "label": "Сложная система", "note": "бот + Mini App + админка + интеграции", "min": 59900, "days": "3–5 недель"}
   ]
 }
