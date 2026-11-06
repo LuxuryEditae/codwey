@@ -83,7 +83,7 @@ _HUMAN = re.compile(
     r"передай(?:те)?\s+(?:описание|бриф|это)\s+(?:разработчик|марку)|хочу\s+общаться)",
     re.I,
 )
-_PRICE_ASK = re.compile(r"(сколько\s+стоит|какая\s+цен|стоимость|по\s+цен|прайс|поч[её]м|₽|руб)", re.I)
+_PRICE_ASK = re.compile(r"(сколько\b.{0,30}?\bст(?:оит|оить)|сколько\b.{0,30}?\bвыйд|сколько\b.{0,30}?\bвыхо|обойд|дешев|какая\s+цен|стоимость|по\s+цен|прайс|поч[её]м|₽|руб)", re.I)
 _SOLUTION_HINTS = (
     ("booking", "bot", ("запис", "брон", "столик", "слот", "мастер")),
     ("video", "bot", ("видео", "скач")),
@@ -281,6 +281,16 @@ _KNOWN_WORDS = """
 вещи одежд еда игр заказчик владел компан студи красот небольш столик правил прежн
 отмен цен люб рубл час секрет ключ систем промпт макет онлайн запись любой цена
 срок гост звонил владел
+привет здраствуйте здравствуйте здраст спасиб пожалуйста ладно хорош отличн супер
+круто нормальн понятн понял конечно примерно короч буквальн просто думаю кажется
+наверн нужн давайт дайт глян погляд посмотр например данн денег деньг валют тогда
+завтр скидк процент бесплатн обслужив навсегд спеш желат размер цвет прям прост
+блин работ челове разработ программ менедж звони дешевл около
+скрин скриншот таблиц инст интеграц автоматиз приложен страниц конкур блог ютуб
+авито объявлен объя массаж телег вайбер гугл эксель нибудь поним заяв сбор
+квартир бронир продав прежн прежд отмен визитк портал сервис
+время времен хотел буду бота боте ботом ботов номер телефон прилет приход
+отправ пересы получ дела загруз выгруж написа приним обраб мастер
 """.split()
 _SUFFIXES = ("ами", "ями", "ого", "ему", "ов", "ев", "ах", "ях", "ом", "ем", "ой", "ей",
              "ий", "ый", "ая", "ое", "ые", "ие", "ам", "ям", "а", "я", "ы", "и", "у", "ю", "е", "о")
@@ -338,6 +348,35 @@ def polite_text(text):
     return clean_scalar(cleaned, 200)
 
 
+_GREETING = re.compile(
+    r"^\s*(привет|здравствуй|здраствуйте|здравствуйте|приветств|"
+    r"добрый\s+(?:день|вечер)|доброе\s+утро|hi|hello)[^\n]*?[.!?;,]\s*",
+    re.I,
+)
+
+
+def strip_greeting(text):
+    """Drop a leading greeting sentence: «Привет! У меня кафе...» -> «У меня кафе...»."""
+    cleaned = polite_text(text)
+    stripped = _GREETING.sub("", cleaned)
+    return stripped or cleaned
+
+
+_NAME_TAG = re.compile(r"@[A-Za-z0-9_]{3,32}")
+_NAME_FILLER = re.compile(r"\b(?:меня|зовут|зови|моё|мое|имя|это|я|ник|юзернейм|username)\b", re.I)
+
+
+def name_from_reply(text):
+    """Name when the client answers the name question. Drops @usernames and filler."""
+    cleaned = _NAME_TAG.sub(" ", text or "")
+    cleaned = _NAME_FILLER.sub(" ", cleaned)
+    cleaned = re.sub(r"[^A-Za-zА-Яа-яЁё\- ]", " ", cleaned)
+    words = [word for word in cleaned.split() if word]
+    if not words or len(words) > 3:
+        return None
+    return clean_scalar(" ".join(words), 40)
+
+
 def local_extract(text, fields):
     """Fill still-empty fields from the client's own words. Never replaces a filled field."""
     low = (text or "").lower().replace("ё", "е")
@@ -357,7 +396,7 @@ def local_extract(text, fields):
         elif "парсер" in low or "скрипт" in low:
             found["service"] = "script"
     if not fields.get("goal") and any(word in low for word in ("продаж", "заявк", "запис", "бронь", "брон", "заказ")):
-        found["goal"] = polite_text(text)
+        found["goal"] = strip_greeting(text)
     if not fields.get("features") and any(word in low for word in ("карточ", "оплат", "корзин", "каталог", "фильтр", "напомин")):
         found["features"] = polite_text(text)
     if not fields.get("budget") and re.search(r"\d", text or "") and any(word in low for word in ("бюджет", "руб", "тысяч", "около", "₽")):
@@ -371,8 +410,15 @@ def local_extract(text, fields):
 
 
 def unknown_word(text, dialog):
-    """First odd product word not already clarified. One per dialog."""
+    """First odd product word not already clarified. One per dialog.
+
+    Only at dialog start: once a questionnaire question is pending, the client's
+    answers are ordinary words, not jargon to interrogate.
+    """
     if dialog.get("terms_asked"):
+        return None
+    pending = dialog.get("pending") or {}
+    if pending.get("kind"):
         return None
     for token in re.findall(r"[а-яё]{5,}", (text or "").lower().replace("ё", "е")):
         if _SWEAR.search(token):
@@ -623,6 +669,8 @@ def official_price_line(fields, catalog):
 
 def attach_price(reply, client_text, fields, catalog):
     if not asks_price(client_text):
+        return reply
+    if "₽" in reply or re.search(r"руб", reply or "", re.I):
         return reply
     line = official_price_line(fields, catalog)
     if line in reply:
@@ -994,11 +1042,18 @@ async def run_turn(*, client_text, fields, history, turns, catalog, complete, im
     local = local_extract(text, fields)
     if local.get("name"):
         dialog["name"] = local["name"]
-    merged = merge_fields(fields, local)
+    pending = dialog.get("pending") or {}
+    if not dialog.get("name") and pending.get("kind") == "field" and pending.get("field") == "name":
+        guess = name_from_reply(text)
+        if guess:
+            dialog["name"] = guess
+    merged = merge_fields(fields, {})
     for item in (parsed, parsed_retry):
         if item:
             merged = merge_fields(merged, item["fields"], only_empty=True)
-    pending = dialog.get("pending") or {}
+    # The model sees the full context and extracts cleanly; local heuristics only
+    # fill what is still empty (e.g. when the provider failed this turn).
+    merged = merge_fields(merged, local, only_empty=True)
     if pending.get("kind") == "term" and pending.get("stem"):
         dialog["terms"][pending["stem"]] = polite_text(text) or "уточнили своими словами"
         dialog["pending"] = None
