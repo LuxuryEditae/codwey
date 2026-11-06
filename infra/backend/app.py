@@ -61,8 +61,11 @@ ALERT_EMAIL = os.getenv("ALERT_EMAIL", "coddweyy@gmail.com")
 RATE_SALT = hashlib.sha256((BOT_TOKEN or "local-development").encode()).digest()
 MSK = ZoneInfo("Europe/Moscow")
 DELAY_NOTE_AFTER = 300
-CONTACTS = ("📞 <b>Контакты CodWay</b>\n\nБот для заявок: @codway_bot\nTelegram: @mexciti\nПочта: coddweyy@gmail.com\n"
-            "Сайт: https://codway.su\n\nОтвечаем 9:00–22:00 МСК, обычно в течение часа.")
+CONTACTS = ("📬 <b>Контакты CodWay</b>\n"
+            "🤖 @codway_bot · 💬 @mexciti\n"
+            "✉️ coddweyy@gmail.com\n"
+            "🌐 https://codway.su")
+
 SERVICE_LABELS = {**{k: v["label"] for k, v in PROJECTS.items()}, "other": "Другое / консультация", "question": "Вопрос"}
 bot: Bot | None = None
 dispatcher = Dispatcher()
@@ -532,28 +535,22 @@ def demo_url(s):
     return f"{SITE_URL}/demo/{s['id']}/"
 
 def catalog_text():
-    lines = ["🧩 <b>Готовые решения CodWay</b>\n", "Уже собранная основа — адаптируем под ваш бизнес. Сроки подберём под вас. "
-             "Выберите решение, чтобы открыть демо или оставить заявку.\n"]
-    for g, icon, title in CATALOG_GROUPS:
-        items = [x for x in SOLUTIONS.values() if x["project"] == g]
-        if items:
-            lines.append(f"{icon} <b>{title}</b>")
-            lines += [f"• {escape(x['title'])} — {money(x['price'])} ₽" for x in items]
-            lines.append("")
-    lines.append("Нужно что-то своё? Нажмите «📝 Оставить заявку».")
-    return "\n".join(lines)
+    return ("🧩 <b>Готовые решения</b>\n"
+            "Сроки подберём под вас\n"
+            "👇 Выберите решение — внутри демо и цена.")
 
 def catalog_kb():
     rows = [[InlineKeyboardButton(text=f"{GROUP_ICON.get(x['project'], '•')} {x['title']} · {money(x['price'])} ₽", callback_data=f"cat:item:{x['id']}")]
             for g, _, _ in CATALOG_GROUPS for x in SOLUTIONS.values() if x["project"] == g]
-    rows.append([InlineKeyboardButton(text="📝 Нужно своё — заказная разработка", callback_data="cat:custom")])
+    rows.append([InlineKeyboardButton(text="📝 Своя задача", callback_data="cat:custom")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 def item_text(x):
-    feats = "\n".join(f"✓ {escape(f)}" for f in x.get("features", []))
+    summary = "; ".join(x.get("features", [])[:2])
     return (f"{GROUP_ICON.get(x['project'], '🧩')} <b>{escape(x['title'])}</b>\n"
-            f"<b>{money(x['price'])} ₽</b>\nСроки подберём под вас.\n\n{escape(x['description'])}\n\n{feats}\n\n"
-            "Откройте демо, чтобы попробовать, или нажмите «Хочу такой» — менеджер свяжется с вами здесь.")
+            f"💰 <b>{money(x['price'])} ₽</b>\n"
+            f"{escape(summary)}\n"
+            "⏳ Сроки подберём под вас")
 
 def item_kb(x):
     return InlineKeyboardMarkup(inline_keyboard=[
@@ -595,9 +592,10 @@ async def start(message: Message, state: FSMContext):
     if user["blocked"]:
         return
     await state.clear()
-    await message.answer("Здравствуйте! <b>CodWay</b> — боты от 4 900 ₽, Mini Apps от 14 900 ₽, сайты от 9 900 ₽ и парсеры. "
-                         "Оплата 50/50. Готовые решения с демо — в каталоге, своё — через «Оставить заявку». "
-                         "Или напишите вопрос — ответит живой разработчик.", reply_markup=MENU)
+    await message.answer("👋 <b>CodWay</b> — боты, Mini Apps, сайты и парсеры\n"
+                         "Боты от 4 900 ₽ · Mini Apps от 14 900 ₽\n"
+                         "Сайты от 9 900 ₽\n"
+                         "👇 Выберите пункт или напишите вопрос.", reply_markup=MENU)
     if arg.startswith("demo_") and arg[5:] in SOLUTIONS:  # visitor came from a demo on codway.su
         s = SOLUTIONS[arg[5:]]
         await state.update_data(entry_source=arg)
@@ -608,11 +606,12 @@ async def start(message: Message, state: FSMContext):
         s = SOLUTIONS[arg[4:]]
         await state.update_data(service=s["project"], solution_id=s["id"])
         await state.set_state(Req.description)
-        await message.answer(f"Вы выбрали готовое решение «<b>{escape(s['title'])}</b>» — {money(s['price'])} ₽.\n\nОпишите ваш бизнес и что нужно настроить (можно голосовым).")
+        await message.answer(f"🧩 <b>{escape(s['title'])}</b> — {money(s['price'])} ₽\n"
+                             "⏳ Сроки подберём под вас\n📝 Что настроить? Можно голосом.")
     elif arg.startswith("svc_") and arg[4:] in PROJECTS:
         await state.update_data(service=arg[4:], solution_id=None)
         await state.set_state(Req.description)
-        await message.answer(f"Услуга: <b>{escape(PROJECTS[arg[4:]]['label'])}</b>.\n\nОпишите задачу в паре предложений (можно голосовым).")
+        await message.answer(f"🛠 <b>{escape(PROJECTS[arg[4:]]['label'])}</b>\n📝 Что нужно сделать? Можно голосом.")
 
 ADMIN_HELP = ("<b>CodWay · панель</b>\n\n"
               "Новые заявки и сообщения клиентов приходят сюда карточками и копиями.\n"
@@ -745,7 +744,7 @@ async def blocked(m: Message):
 async def req_start(m: Message, state: FSMContext):
     if await blocked(m): return
     await state.clear(); await state.set_state(Req.service)
-    await m.answer("Что нужно сделать?", reply_markup=services_kb())
+    await m.answer("🛠 <b>Что нужно сделать?</b>\n👇 Выберите услугу.", reply_markup=services_kb())
 
 @dispatcher.callback_query(F.data.startswith("svc:"))
 async def req_service(q: CallbackQuery, state: FSMContext):
@@ -753,9 +752,12 @@ async def req_service(q: CallbackQuery, state: FSMContext):
     await state.update_data(service=svc if svc in SERVICE_LABELS else "other", solution_id=None)
     await state.set_state(Req.description)
     await q.answer()
-    with suppress(Exception):
-        await q.message.edit_text(f"Услуга: <b>{escape(SERVICE_LABELS.get(svc, 'Другое'))}</b>")
-    await q.message.answer("Опишите задачу: что должен уметь продукт, для кого, есть ли примеры. Можно текстом или голосовым.")
+    text = f"🛠 <b>{escape(SERVICE_LABELS.get(svc, 'Другое'))}</b>\n📝 Что нужно сделать? Можно голосом."
+    try:
+        await q.message.edit_text(text)
+    except TelegramBadRequest as exc:
+        if "not modified" not in str(exc):
+            await q.message.answer(text)
 
 @dispatcher.message(F.chat.type == "private", F.text == CATALOG_BTN)
 @dispatcher.message(F.chat.type == "private", Command("catalog"))
@@ -778,7 +780,7 @@ async def catalog_action(q: CallbackQuery, state: FSMContext):
     if action == "custom":
         await q.answer()
         await state.clear(); await state.set_state(Req.service)
-        await bot.send_message(q.from_user.id, "Что нужно сделать?", reply_markup=services_kb())
+        await bot.send_message(q.from_user.id, "🛠 <b>Что нужно сделать?</b>\n👇 Выберите услугу.", reply_markup=services_kb())
         return
     x = SOLUTIONS.get(sid) if SOL_RE.fullmatch(sid or "") else None
     if not x:
@@ -803,11 +805,10 @@ async def catalog_action(q: CallbackQuery, state: FSMContext):
     await q.answer("Заявка уже у менеджера" if dup else "Заявка отправлена ✅")
     await state.clear()
     await state.update_data(ticket_id=tid, service=x["project"], solution_id=x["id"]); await state.set_state(Req.files)
-    head = (f"Заявка <b>#{tid}</b> на «{escape(x['title'])}» уже у менеджера." if dup else
-            f"✅ Заявка <b>#{tid}</b> на «<b>{escape(x['title'])}</b>» — {money(x['price'])} ₽ передана менеджеру.")
-    await bot.send_message(q.from_user.id, head + " Ответим здесь в течение часа (9:00–22:00 МСК).\n\n"
-                           "Если хотите, расскажите о вашем бизнесе или пришлите примеры — я всё передам. Когда закончите, нажмите «✅ Готово».",
-                           reply_markup=FILES_KB)
+    head = f"✅ <b>Заявка №{tid}</b> " + ("уже у менеджера" if dup else "передана менеджеру")
+    await bot.send_message(q.from_user.id, head + f"\n{escape(x['title'])} · {money(x['price'])} ₽\n"
+                           "📎 Добавьте детали или файлы → «✅ Готово».\n"
+                           "Ответим в течение часа, 9:00–22:00 МСК.", reply_markup=FILES_KB)
 
 @dispatcher.message(F.chat.type == "private", F.text == "💰 Цены")
 async def prices(m: Message):
@@ -819,21 +820,42 @@ async def contacts(m: Message):
     if await blocked(m): return
     await m.answer(CONTACTS, disable_web_page_preview=True)
 
+def client_tickets(uid, offset=0):
+    with db() as conn:
+        total = conn.execute("SELECT count(*) FROM tickets WHERE user_id=?", (uid,)).fetchone()[0]
+        offset = min(max(0, offset), max(0, ((total - 1) // 3) * 3))
+        rows = conn.execute("SELECT * FROM tickets WHERE user_id=? ORDER BY id DESC LIMIT 3 OFFSET ?", (uid, offset)).fetchall()
+    if not rows:
+        return "📂 <b>Заявок пока нет</b>\nНажмите «📝 Оставить заявку».", None
+    text = f"📂 <b>Ваши заявки</b> · {offset + 1}–{offset + len(rows)} из {total}\n" + "\n".join(
+        f"• №{r['id']} · {escape(SERVICE_LABELS.get(r['service'] or '', 'Другое'))} · {STATUS[r['status']]}" for r in rows)
+    buttons = []
+    if offset: buttons.append(InlineKeyboardButton(text="← Назад", callback_data=f"mine:{offset - 3}"))
+    if offset + 3 < total: buttons.append(InlineKeyboardButton(text="Далее →", callback_data=f"mine:{offset + 3}"))
+    return text, InlineKeyboardMarkup(inline_keyboard=[buttons]) if buttons else None
+
 @dispatcher.message(F.chat.type == "private", F.text == "📂 Мои заявки")
 async def my_tickets(m: Message):
     if await blocked(m): return
-    with db() as conn:
-        rows = conn.execute("SELECT * FROM tickets WHERE user_id=? ORDER BY id DESC LIMIT 10", (m.from_user.id,)).fetchall()
-    if not rows:
-        await m.answer("У вас пока нет заявок. Нажмите «📝 Оставить заявку».", reply_markup=MENU); return
-    await m.answer("📂 <b>Ваши заявки</b>\n\n" + "\n".join(
-        f"#{r['id']} · {escape(SERVICE_LABELS.get(r['service'] or '', '—'))} · {STATUS[r['status']]} · {krat(r['created_at'])}" for r in rows), reply_markup=MENU)
+    text, kb = client_tickets(m.from_user.id)
+    await m.answer(text, reply_markup=kb or MENU)
+
+@dispatcher.callback_query(F.data.startswith("mine:"))
+async def my_tickets_page(q: CallbackQuery):
+    if not q.message or q.message.chat.type != "private" or touch_user(q.from_user)["blocked"]:
+        await q.answer(); return
+    try: offset = int(q.data[5:])
+    except ValueError:
+        await q.answer(); return
+    await q.answer()
+    text, kb = client_tickets(q.from_user.id, offset)
+    await show_screen(q, text, kb)
 
 @dispatcher.message(F.chat.type == "private", F.text == "💬 Написать менеджеру")
 async def write_manager(m: Message, state: FSMContext):
     if await blocked(m): return
     await state.clear()
-    await m.answer("Напишите сообщение — текст, фото, файл или голосовое. Передам менеджеру, ответ придёт сюда.", reply_markup=MENU)
+    await m.answer("💬 <b>Напишите вопрос</b>\nМожно текстом, голосом или файлом. Ответим здесь.", reply_markup=MENU)
 
 @dispatcher.message(F.chat.type == "private", StateFilter(Req.service))
 async def req_service_text(m: Message, state: FSMContext):
@@ -849,16 +871,14 @@ async def req_description(m: Message, state: FSMContext):
     if not m.text:
         relay_to_admin(m, tid)
     await state.update_data(ticket_id=tid); await state.set_state(Req.files)
-    await m.answer(f"Принято, заявка <b>#{tid}</b>. Пришлите файлы, скриншоты или примеры (если есть) и нажмите «✅ Готово». "
-                   "Можно поделиться телефоном — так быстрее созвониться.", reply_markup=FILES_KB)
+    await m.answer(f"✅ <b>Заявка №{tid} принята</b>\n📎 Добавьте файлы или примеры, если есть.\nЗатем нажмите «✅ Готово».", reply_markup=FILES_KB)
 
 @dispatcher.message(F.chat.type == "private", StateFilter(Req.files))
 async def req_files(m: Message, state: FSMContext):
     data = await state.get_data()
     if m.text == "✅ Готово":
         await state.clear()
-        await m.answer(f"✅ Заявка #{data['ticket_id']} у менеджера. Ответим здесь в течение часа (9:00–22:00 МСК). "
-                       "Если захотите что-то добавить — просто напишите.", reply_markup=MENU)
+        await m.answer(f"✅ <b>Заявка №{data['ticket_id']} у менеджера</b>\nОтветим здесь в течение часа, 9:00–22:00 МСК.\nДополнения можно прислать сообщением.", reply_markup=MENU)
         return
     relay_to_admin(m, data["ticket_id"])
     if m.contact:
@@ -875,7 +895,7 @@ async def client_message(m: Message, state: FSMContext):
         t = open_ticket(conn, m.from_user.id)
         tid = t["id"] if t else new_ticket(conn, m.from_user, "question", None, "", m.date.timestamp(), source=origin)
     relay_to_admin(m, tid)
-    ack(m, "✉️ Передал менеджеру, ответ придёт сюда. Обычно отвечаем в течение часа (9:00–22:00 МСК).", force=not t)
+    ack(m, "✉️ <b>Передал менеджеру</b>\nОтветим здесь в течение часа, 9:00–22:00 МСК.", force=not t)
 
 # ---------------------------------------------------------------- polling
 async def polling_worker():
