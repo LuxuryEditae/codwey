@@ -63,6 +63,7 @@ ALERT_EMAIL = os.getenv("ALERT_EMAIL", "coddweyy@gmail.com")
 AI_MODE = ai_manager.parse_mode(os.getenv("AI_MANAGER_MODE"))
 NVIDIA_KEYS = ai_manager.parse_keys(os.getenv("NVIDIA_KEYS", ""))
 MISTRAL_KEYS = ai_manager.parse_keys(os.getenv("MISTRAL_KEYS", ""))
+MISTRAL_MODELS = ai_manager.parse_models(os.getenv("MISTRAL_MODELS"))
 
 def _positive_int(name, default):
     try:
@@ -1022,7 +1023,7 @@ async def handle_ai_message(m: Message, state: FSMContext):
             return
 
         async def complete(messages):
-            return await ai_manager.chat_complete(messages, nvidia_keys=NVIDIA_KEYS, mistral_keys=MISTRAL_KEYS)
+            return await ai_manager.chat_complete(messages, nvidia_keys=NVIDIA_KEYS, mistral_keys=MISTRAL_KEYS, mistral_models=MISTRAL_MODELS)
 
         result = await ai_manager.run_turn(client_text=m.text, fields=session["fields"], history=session["history"],
                                             turns=session["turns"], catalog=ai_catalog(), complete=complete)
@@ -1077,7 +1078,8 @@ async def lifespan(app):
         build_routes()
         bot = Bot(BOT_TOKEN, session=ROUTES["direct"], default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         STATE["last_ok"] = time.time()
-        log.info("AI manager mode=%s nvidia_keys=%s mistral_keys=%s daily_cap=%s", AI_MODE, bool(NVIDIA_KEYS), bool(MISTRAL_KEYS), AI_DAILY_CAP)
+        log.info("AI manager mode=%s nvidia_keys=%s mistral_keys=%s mistral_models=%s daily_cap=%s",
+                 AI_MODE, bool(NVIDIA_KEYS), bool(MISTRAL_KEYS), ",".join(MISTRAL_MODELS), AI_DAILY_CAP)
         tasks = [asyncio.create_task(c()) for c in (polling_worker, outbox_worker, health_worker)]
     yield
     for task in tasks:

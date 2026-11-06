@@ -6,9 +6,10 @@ Env (/etc/codwey.env): BOT_TOKEN, ADMIN_ID, DATABASE_PATH, ALLOWED_ORIGINS.
 
 AI manager (off until you set the flag; keys stay out of logs and out of the site deploy):
 - `AI_MANAGER_MODE=off|admin_only|all` — default `off`. `admin_only` shows «🤖 Обсудить проект с AI» and «↩️ Выйти из AI» only to ADMIN_ID.
-- `NVIDIA_KEYS` — newline or comma separated keys for `https://integrate.api.nvidia.com/v1/chat/completions` (models `nvidia/nemotron-3.5-super-vl-120b-a12b`, then `nvidia/nemotron-3.5-lightning-30b-a3b`).
-- `MISTRAL_KEYS` — same format for `https://api.mistral.ai/v1/chat/completions`, model `mistral-small-latest`. One 1.5s backoff on HTTP 429, then at most one other key (keys in one workspace share a quota).
-- `AI_DAILY_CAP=800` — global messages per Krasnoyarsk day. Also fixed: 1 message / 3s and 40/day per user (`AI_USER_INTERVAL`, `AI_USER_DAILY`), 12 turns, 12 history messages, 20s timeout.
+- `NVIDIA_KEYS` — newline or comma separated keys for `https://integrate.api.nvidia.com/v1/chat/completions` (models `nvidia/nemotron-3.5-super-vl-120b-a12b`, then `nvidia/nemotron-3.5-lightning-30b-a3b`). Empty skips NVIDIA; no request and no timeout.
+- `MISTRAL_KEYS` — same format for `https://api.mistral.ai/v1/chat/completions`. Every model is tried on every key.
+- `MISTRAL_MODELS` — comma list, default `ministral-8b-latest,open-mistral-nemo,mistral-small-latest`. HTTP 429 moves to the next key or model. One 1.5s backoff per client message. The whole provider attempt stops after 25s and the chat is handed to a person.
+- `AI_DAILY_CAP=800` — global messages per Krasnoyarsk day. Also fixed: 1 message / 3s and 40/day per user (`AI_USER_INTERVAL`, `AI_USER_DAILY`), 12 turns, 12 history messages, 20s per request inside the 25s budget.
 - Put the keys in root-only `/etc/codwey/ai.env` (`chmod 0600`) and add a systemd drop-in, not in the site repo:
 
 ```
