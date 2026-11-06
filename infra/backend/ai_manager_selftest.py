@@ -28,9 +28,12 @@ CATALOG = {
 }
 
 
-def reply_json(reply, fields=None, want_human=False):
+def reply_json(reply, fields=None, want_human=False, cost_rub=None):
     body = {"reply": reply, "fields": fields or {}, "want_human": want_human}
-    return json.dumps({"choices": [{"message": {"content": json.dumps(body, ensure_ascii=False)}}]}, ensure_ascii=False)
+    payload = {"choices": [{"message": {"content": json.dumps(body, ensure_ascii=False)}}]}
+    if cost_rub is not None:
+        payload["usage"] = {"cost_rub": cost_rub}
+    return json.dumps(payload, ensure_ascii=False)
 
 
 class GuardTests(unittest.TestCase):
@@ -211,6 +214,15 @@ class QuotaTests(unittest.TestCase):
         total = self.conn.execute("SELECT count FROM ai_quota WHERE day=?", (ai.day_key(2_000),)).fetchone()[0]
         self.assertEqual(total, 800)
 
+    def test_paid_daily_sum_is_what_gets_logged(self):
+        with self.assertLogs("codwey.ai", level="INFO") as logs:
+            first = ai.add_paid_spend(self.conn, 1.25, now=2_000)
+            second = ai.add_paid_spend(self.conn, 0.5, now=2_000)
+        self.assertEqual(first, 1.25)
+        self.assertEqual(second, 1.75)
+        self.assertEqual(ai.paid_spent(self.conn, now=2_000), 1.75)
+        self.assertIn("AI paid daily_rub=1.7500", "\n".join(logs.output))
+
     def test_session_resume_does_not_drop_fields(self):
         session = ai.load_session(self.conn, 7)
         session["fields"] = ai.merge_fields(session["fields"], {"business": "Кафе", "goal": "бронь"})
@@ -243,7 +255,8 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             sleeps.append(seconds)
 
         text = await ai.chat_complete([{"role": "user", "content": "{}"}], nvidia_keys=["k1", "k2"], mistral_keys=["m1"], post=post, sleep=sleep)
-        self.assertIn("Какую задачу", text)
+        self.assertIn("Какую задачу", text.content)
+        self.assertEqual(text.provider, "nvidia")
         self.assertEqual(sleeps, [1.5])
         self.assertTrue(all("mistral" not in model for model, _, _ in seen))
         self.assertLessEqual(len(seen), 4)
@@ -320,6 +333,59 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertLessEqual(clock["t"], 25.0)
         self.assertGreaterEqual(len(calls), 1)
         self.assertLess(len(calls), 4 * 3)
+
+    async def test_fast_mistral_429_still_reaches_paid(self):
+        clock = {"t": 0.0}
+        seen = []
+        costs = []
+
+        def now():
+            return clock["t"]
+
+        async def post(url, key, payload, timeout):
+            seen.append((url, key, payload["model"], timeout))
+            clock["t"] += 0.05
+            if url == ai.MISTRAL_URL:
+                return 429, ""
+            return 200, reply_json("Какую задачу нужно решить?", cost_rub=1.6)
+
+        async def sleep(seconds):
+            clock["t"] += seconds
+
+        with self.assertLogs("codwey.ai", level="INFO") as logs:
+            reply = await ai.chat_complete(
+                [], nvidia_keys=[], mistral_keys=["m1", "m2"], mistral_models=["ministral-8b-latest"],
+                paid_keys=["paid-secret-xyz"], paid_models=["google/gemma-4-31b-it"],
+                paid_base_url="https://polza.ai/api/v1", paid_spent=0, paid_cap=30,
+                on_paid_cost=costs.append, post=post, sleep=sleep, clock=now)
+        self.assertEqual(reply.provider, "paid")
+        self.assertEqual(reply.model, "google/gemma-4-31b-it")
+        self.assertEqual(costs, [1.6])
+        self.assertLess(clock["t"], 25)
+        self.assertEqual(seen[-1][0], "https://polza.ai/api/v1/chat/completions")
+        self.assertEqual(seen[-1][1], "paid-secret-xyz")
+        self.assertEqual(seen[-1][3], 20)
+        logged = "\n".join(logs.output)
+        self.assertIn("provider=paid", logged)
+        self.assertNotIn("paid-secret-xyz", logged)
+        self.assertNotIn("cost_rub", logged)
+
+    async def test_paid_cap_skips_and_hands_off(self):
+        async def post(url, key, payload, timeout):
+            if "polza.ai" in url:
+                raise AssertionError("paid provider was called over the cap")
+            return 429, ""
+
+        async def sleep(seconds):
+            return None
+
+        with self.assertLogs("codwey.ai", level="INFO") as logs:
+            with self.assertRaises(ai.ProviderFailed):
+                await ai.chat_complete(
+                    [], nvidia_keys=[], mistral_keys=["m1"], mistral_models=["ministral-8b-latest"],
+                    paid_keys=["paid-secret-xyz"], paid_spent=30, paid_cap=30, post=post, sleep=sleep)
+        self.assertIn("AI paid skipped daily_rub=30.0000", "\n".join(logs.output))
+        self.assertNotIn("paid-secret-xyz", "\n".join(logs.output))
 
     async def _fail_sleep(self, seconds):
         raise AssertionError("sleep was not expected")
@@ -429,10 +495,13 @@ class JudgeTests(unittest.TestCase):
 async def run_live():
     nvidia = ai.parse_keys(os.getenv("NVIDIA_KEYS") or _load_secret_file("/workspace/.secrets/nvidia_keys"))
     mistral = ai.parse_keys(os.getenv("MISTRAL_KEYS") or _load_secret_file("/workspace/.secrets/mistral_keys"))
-    if not nvidia and not mistral:
+    paid = ai.parse_keys(os.getenv("PAID_KEYS") or _load_secret_file("/workspace/.secrets/paid_keys"))
+    if not nvidia and not mistral and not paid:
         print("live: skipped, no keys in env")
         return 0
     models = ai.parse_models(os.getenv("MISTRAL_MODELS"))
+    paid_models = ai.parse_paid_models(os.getenv("PAID_MODELS"))
+    paid_base = os.getenv("PAID_BASE_URL") or ai.DEFAULT_PAID_BASE
     print("live: running 5 fictional scenarios")
     failures = 0
 
@@ -449,19 +518,23 @@ async def run_live():
                 payload = None
             if isinstance(payload, dict) and payload.get("client_text"):
                 sent.append(payload["client_text"])
-            return await ai.chat_complete(messages, nvidia_keys=nvidia, mistral_keys=mistral, mistral_models=models)
+            return await ai.chat_complete(
+                messages, nvidia_keys=nvidia, mistral_keys=mistral, mistral_models=models,
+                paid_keys=paid, paid_models=paid_models, paid_base_url=paid_base)
 
         for line in lines:
             result = await ai.run_turn(client_text=line, fields=fields, history=history, turns=turns, catalog=CATALOG, complete=complete)
-            steps.append({"reply": result["reply"], "reason": result["reason"], "model_used": result["model_used"], "fields": result["fields"]})
+            steps.append({"reply": result["reply"], "reason": result["reason"], "model_used": result["model_used"],
+                           "fields": result["fields"], "provider": result.get("provider")})
             fields, history, turns = result["fields"], result["history"], result["turns"]
         problems = judge_scenario(name, steps, sent)
+        providers = ",".join(step["provider"] or "none" for step in steps) or "none"
         if problems:
             failures += 1
             label = "UNAVAILABLE" if "UNAVAILABLE" in problems else "FAIL"
-            print(f"live {label} {name}: {', '.join(problems)}")
+            print(f"live {label} {name}: provider={providers}: {', '.join(problems)}")
         else:
-            print(f"live ok {name}: turns={turns}")
+            print(f"live ok {name}: turns={turns} provider={providers}")
     return failures
 
 

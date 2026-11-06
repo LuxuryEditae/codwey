@@ -64,6 +64,9 @@ AI_MODE = ai_manager.parse_mode(os.getenv("AI_MANAGER_MODE"))
 NVIDIA_KEYS = ai_manager.parse_keys(os.getenv("NVIDIA_KEYS", ""))
 MISTRAL_KEYS = ai_manager.parse_keys(os.getenv("MISTRAL_KEYS", ""))
 MISTRAL_MODELS = ai_manager.parse_models(os.getenv("MISTRAL_MODELS"))
+PAID_BASE_URL = (os.getenv("PAID_BASE_URL") or ai_manager.DEFAULT_PAID_BASE).strip()
+PAID_KEYS = ai_manager.parse_keys(os.getenv("PAID_KEYS", ""))
+PAID_MODELS = ai_manager.parse_paid_models(os.getenv("PAID_MODELS"))
 
 def _positive_int(name, default):
     try:
@@ -78,6 +81,15 @@ try:
     AI_USER_INTERVAL = float(os.getenv("AI_USER_INTERVAL", str(ai_manager.USER_INTERVAL)))
 except ValueError:
     AI_USER_INTERVAL = ai_manager.USER_INTERVAL
+
+def _nonnegative_float(name, default):
+    try:
+        value = float(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+    return value if value >= 0 else default
+
+PAID_DAILY_RUB_CAP = _nonnegative_float("PAID_DAILY_RUB_CAP", ai_manager.DEFAULT_PAID_CAP)
 RATE_SALT = hashlib.sha256((BOT_TOKEN or "local-development").encode()).digest()
 MSK = ZoneInfo("Europe/Moscow")
 DELAY_NOTE_AFTER = 300
@@ -1023,7 +1035,17 @@ async def handle_ai_message(m: Message, state: FSMContext):
             return
 
         async def complete(messages):
-            return await ai_manager.chat_complete(messages, nvidia_keys=NVIDIA_KEYS, mistral_keys=MISTRAL_KEYS, mistral_models=MISTRAL_MODELS)
+            with db() as conn:
+                spent = ai_manager.paid_spent(conn)
+
+            def charge(amount):
+                with db() as conn:
+                    ai_manager.add_paid_spend(conn, amount)
+
+            return await ai_manager.chat_complete(
+                messages, nvidia_keys=NVIDIA_KEYS, mistral_keys=MISTRAL_KEYS, mistral_models=MISTRAL_MODELS,
+                paid_keys=PAID_KEYS, paid_models=PAID_MODELS, paid_base_url=PAID_BASE_URL,
+                paid_spent=spent, paid_cap=PAID_DAILY_RUB_CAP, on_paid_cost=charge)
 
         result = await ai_manager.run_turn(client_text=m.text, fields=session["fields"], history=session["history"],
                                             turns=session["turns"], catalog=ai_catalog(), complete=complete)
@@ -1078,8 +1100,8 @@ async def lifespan(app):
         build_routes()
         bot = Bot(BOT_TOKEN, session=ROUTES["direct"], default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         STATE["last_ok"] = time.time()
-        log.info("AI manager mode=%s nvidia_keys=%s mistral_keys=%s mistral_models=%s daily_cap=%s",
-                 AI_MODE, bool(NVIDIA_KEYS), bool(MISTRAL_KEYS), ",".join(MISTRAL_MODELS), AI_DAILY_CAP)
+        log.info("AI manager mode=%s nvidia_keys=%s mistral_keys=%s paid_keys=%s mistral_models=%s paid_models=%s daily_cap=%s paid_rub_cap=%s",
+                 AI_MODE, bool(NVIDIA_KEYS), bool(MISTRAL_KEYS), bool(PAID_KEYS), ",".join(MISTRAL_MODELS), ",".join(PAID_MODELS), AI_DAILY_CAP, PAID_DAILY_RUB_CAP)
         tasks = [asyncio.create_task(c()) for c in (polling_worker, outbox_worker, health_worker)]
     yield
     for task in tasks:
