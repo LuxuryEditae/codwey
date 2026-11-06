@@ -142,12 +142,13 @@ class TurnTests(unittest.IsolatedAsyncioTestCase):
 
         result = await ai.run_turn(client_text="У меня небольшое кафе.", fields=ai.empty_fields(), history=[], turns=0,
                                     catalog=CATALOG, complete=complete)
-        self.assertEqual(calls["n"], 2)
+        self.assertEqual(calls["n"], 1)
         self.assertFalse(result["handoff"])
         self.assertEqual(result["fields"]["business"], "Кафе")
         self.assertNotIn("7900", result["reply"])
         self.assertNotIn("руб", result["reply"].lower())
         self.assertIn("?", result["reply"])
+        self.assertFalse(result["reply"].lower().startswith("хорошо"))
 
     async def test_ready_handoff_does_not_use_model_price(self):
         async def complete(messages):
@@ -161,14 +162,11 @@ class TurnTests(unittest.IsolatedAsyncioTestCase):
             client_text="Бюджет 15000, бот для брони, цель — чтобы не звонили.",
             fields={"business": "Кафе", "goal": None, "features": None, "service": None, "budget": None, "timeline": None},
             history=[], turns=2, catalog=CATALOG, complete=complete)
-        self.assertTrue(result["handoff"])
-        self.assertEqual(result["reason"], "ready")
+        self.assertFalse(result["handoff"])
         self.assertEqual(result["service_id"], "bot")
-        self.assertEqual(result["solution_id"], "booking")
-        self.assertNotIn("7900", result["reply"])
-        self.assertNotIn("15000", result["reply"])
-        self.assertIn("Марк", result["reply"])
-        self.assertIn("7\u202f900", result["plan_html"])
+        self.assertTrue(result["fields"]["goal"])
+        self.assertNotIn("чем занимается", result["reply"].lower())
+        self.assertNotIn("то есть", result["reply"].lower())
 
     async def test_explicit_human_request(self):
         async def complete(messages):
@@ -357,6 +355,63 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
 
     async def _fail_sleep(self, seconds):
         raise AssertionError("sleep was not expected")
+
+
+class ZildakDialogTests(unittest.IsolatedAsyncioTestCase):
+    """Replay of the shop / «жилдаки» chat: the server must not re-ask filled fields."""
+
+    async def test_replay_finishes_without_reasking(self):
+        async def complete(messages):
+            return json.dumps({
+                "reply": "Хорошо, то есть какие ещё функции? Для чего сайт? То есть магазин?",
+                "fields": {},
+                "want_human": False,
+            }, ensure_ascii=False)
+
+        def answer(question):
+            low = question.lower()
+            if "что такое" in low:
+                return "Это мягкие игрушки."
+            if "функц" in low:
+                return "Карточки товаров и оплата."
+            if "бюджет" in low:
+                return "Около 15000."
+            if "запуст" in low or "срок" in low:
+                return "К концу месяца, не срочно."
+            if "обращ" in low or "зовут" in low:
+                return "Меня зовут Игорь."
+            if "для чего" in low or "задач" in low or "что делаем" in low:
+                return "Для продажи блять"
+            return "ничего"
+
+        fields, history, dialog = ai.empty_fields(), [], None
+        questions = []
+        text = "У меня магазин, хочу сайт по продаже жилдаков."
+        result = None
+        for _ in range(8):
+            result = await ai.run_turn(client_text=text, fields=fields, history=history, turns=len(questions),
+                                        catalog=CATALOG, complete=complete, dialog=dialog)
+            questions.append(result["reply"])
+            fields, history, dialog = result["fields"], result["history"], result["dialog"]
+            if result["handoff"]:
+                break
+            text = answer(result["reply"])
+        self.assertTrue(result["handoff"])
+        self.assertLessEqual(len(questions), 8)
+        asks = [q for q in questions if "?" in q]
+        blob = "\n".join(asks).lower()
+        self.assertEqual(sum("что такое" in q.lower() and "жилд" in q.lower() for q in asks), 1)
+        self.assertEqual(sum("функц" in q.lower() for q in asks), 1)
+        self.assertNotIn("то есть", blob)
+        self.assertFalse(any(q.lower().startswith("хорошо") for q in questions))
+        self.assertNotIn("для чего", blob)
+        brief = ai.brief_text(result["fields"], result["history"], "@igor", result["dialog"])
+        self.assertIn("магазин", brief.lower())
+        self.assertIn("жилд", brief.lower())
+        self.assertIn("карточ", brief.lower())
+        self.assertIn("оплат", brief.lower())
+        self.assertIn("План:", brief)
+        self.assertIn("Игорь", brief)
 
 
 SCENARIOS = (

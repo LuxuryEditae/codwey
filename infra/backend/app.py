@@ -992,7 +992,7 @@ async def _ai_commit(m: Message, state: FSMContext, session, result):
     """Create one ticket per AI session after the decision is already made. Confirmation follows the commit."""
     contact = ai_manager.local_contact(m.from_user.username, m.from_user.id)
     reason = result.get("reason") or "ready"
-    description = ai_manager.brief_text(result["fields"], result["history"], contact) + f"\nПричина: {reason}"
+    description = ai_manager.brief_text(result["fields"], result["history"], contact, result.get("dialog")) + f"\nПричина: {reason}"
     with db() as conn:
         current = ai_manager.load_session(conn, m.from_user.id) or session
         tid = current.get("ticket_id")
@@ -1097,6 +1097,12 @@ async def handle_ai_message(m: Message, state: FSMContext, *, user=None, enter=F
             return
         with db() as conn:
             session = ai_manager.begin_session(conn, uid)
+            dialog = ai_manager.normalize_dialog(session.get("dialog"))
+            if not dialog.get("pending") and not session.get("turns"):
+                dialog["pending"] = {"kind": "field", "field": "business"}
+                dialog["asked"]["business"] = dialog["asked"].get("business", 0) + 1
+                session["dialog"] = dialog
+                ai_manager.save_session(conn, uid, session)
         await state.set_state(Ai.chat)
         field = ai_manager.next_missing(session["fields"]) or "business"
         prefix = "Продолжаем предыдущий разговор.\n\n" if session["turns"] else "Задам один короткий вопрос за раз. Цену и сроки подтверждает Марк.\n\n"
@@ -1175,7 +1181,8 @@ async def handle_ai_message(m: Message, state: FSMContext, *, user=None, enter=F
                 paid_spent=spent, paid_cap=PAID_DAILY_RUB_CAP, on_paid_cost=charge)
 
         result = await ai_manager.run_turn(client_text=client_text, fields=session["fields"], history=session["history"],
-                                            turns=session["turns"], catalog=ai_catalog(), complete=complete, image=image)
+                                            turns=session["turns"], catalog=ai_catalog(), complete=complete, image=image,
+                                            dialog=session.get("dialog"), kind="voice" if speech else "text")
         if picture or speech:
             user_lines = [item.get("content") for item in result["history"] if item.get("role") == "user" and item.get("content")]
             note = user_lines[-1] if user_lines else media_note
@@ -1187,7 +1194,7 @@ async def handle_ai_message(m: Message, state: FSMContext, *, user=None, enter=F
         with db() as conn:
             saved = ai_manager.load_session(conn, uid) or session
             saved.update(fields=result["fields"], history=result["history"], turns=result["turns"],
-                         media=session.get("media") or [], updated_at=time.time())
+                         media=session.get("media") or [], dialog=result.get("dialog"), updated_at=time.time())
             ai_manager.save_session(conn, uid, saved)
         await m.answer(escape(result["reply"]), reply_markup=ai_reply_kb(uid, in_session=True))
 
