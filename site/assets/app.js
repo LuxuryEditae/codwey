@@ -17,7 +17,7 @@
   const calc = () => {
     const pr = P[f.project.value]; const fs = [...f.querySelectorAll('[name=features]:checked')].map((i) => F[i.value]);
     const tp = document.getElementById("total-price"), td = document.getElementById("total-days");
-    if (solution) { tp.textContent = rub(solution.price); td.textContent = "Сроки подберём под вас — можно очень быстро, можно спокойно."; return; }
+    if (solution) { tp.textContent = rub(solution.price); td.textContent = "Сроки подберём под вас."; return; }
     const s = (k) => [pr, ...fs].reduce((a, x) => a + x[k], 0);
     tp.textContent = `${rub(s("min"))} – ${rub(s("max"))}`;
     td.textContent = pr.id === "system" ? "3–5 недель" : `${s("daysMin")}–${s("daysMax")} дней`;

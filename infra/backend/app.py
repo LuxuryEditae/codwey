@@ -495,7 +495,7 @@ def prices_text():
         lines.append(f"• {escape(p['label'])} — от <b>{money(p['min'])} ₽</b>, {days}")
     lines.append("\n<b>Доп. модули</b>")
     lines += [f"• {escape(f['label'])} — от {money(f['min'])} ₽" for f in PRICING["features"]]
-    lines.append("\n<b>Готовые решения</b>\nСроки подберём под вас — можно очень быстро, можно спокойно.")
+    lines.append("\n<b>Готовые решения</b>\nСроки подберём под вас.")
     lines += [f"• {escape(s['title'])} — {money(s['price'])} ₽" for s in SOLUTIONS.values()]
     lines.append("\nОплата 50/50, 30 дней бесплатных правок, код передаём вам.\nПодробно: https://codway.su/ceny")
     return "\n".join(lines)
@@ -510,7 +510,7 @@ def demo_url(s):
     return f"{SITE_URL}/demo/{s['id']}/"
 
 def catalog_text():
-    lines = ["🧩 <b>Готовые решения CodWay</b>\n", "Уже собранная основа — адаптируем под ваш бизнес. Сроки подберём под вас — можно очень быстро, можно спокойно. "
+    lines = ["🧩 <b>Готовые решения CodWay</b>\n", "Уже собранная основа — адаптируем под ваш бизнес. Сроки подберём под вас. "
              "Выберите решение, чтобы открыть демо или оставить заявку.\n"]
     for g, icon, title in CATALOG_GROUPS:
         items = [x for x in SOLUTIONS.values() if x["project"] == g]
@@ -530,7 +530,7 @@ def catalog_kb():
 def item_text(x):
     feats = "\n".join(f"✓ {escape(f)}" for f in x.get("features", []))
     return (f"{GROUP_ICON.get(x['project'], '🧩')} <b>{escape(x['title'])}</b>\n"
-            f"<b>{money(x['price'])} ₽</b>\nСроки подберём под вас — можно очень быстро, можно спокойно.\n\n{escape(x['description'])}\n\n{feats}\n\n"
+            f"<b>{money(x['price'])} ₽</b>\nСроки подберём под вас.\n\n{escape(x['description'])}\n\n{feats}\n\n"
             "Откройте демо, чтобы попробовать, или нажмите «Хочу такой» — менеджер свяжется с вами здесь.")
 
 def item_kb(x):

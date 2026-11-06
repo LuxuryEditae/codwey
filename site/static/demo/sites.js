@@ -11,7 +11,7 @@
   d.body.appendChild(bar);
   // final modal
   var fm = d.createElement("div"); fm.className = "cw-modal"; fm.setAttribute("role", "dialog"); fm.setAttribute("aria-modal", "true");
-  fm.innerHTML = '<div class="cw-card"><div class="cw-ic">' + MARK + '</div><h3>Это демо-сайт</h3><p class="cw-txt"></p><p class="cw-sub">CodWay адаптирует такой же сайт под ваш бизнес — с вашими текстами, фото и заявками прямо в Telegram. ' + (S.timing || "Сроки подберём под вас — можно очень быстро, можно спокойно.") + ' Готовое решение — ' + (S.price || "") + '.</p><a class="cw-go" href="' + S.link + '" target="_blank" rel="noopener">Обсудить в @codwey_bot</a><button class="cw-x" type="button">Вернуться к сайту</button></div>';
+  fm.innerHTML = '<div class="cw-card"><div class="cw-ic">' + MARK + '</div><h3>Это демо-сайт</h3><p class="cw-txt"></p><p class="cw-sub">CodWay адаптирует такой же сайт под ваш бизнес — с вашими текстами, фото и заявками прямо в Telegram. ' + (S.timing || "Сроки подберём под вас.") + ' Готовое решение — ' + (S.price || "") + '.</p><a class="cw-go" href="' + S.link + '" target="_blank" rel="noopener">Обсудить в @codwey_bot</a><button class="cw-x" type="button">Вернуться к сайту</button></div>';
   d.body.appendChild(fm);
   var closeAll = function () { $$(".modal.on").forEach(function (m) { m.classList.remove("on"); }); };
   var finish = function (txt) { closeAll(); $(".cw-txt", fm).textContent = txt || "Заявка никуда не отправилась — на настоящем сайте она сразу пришла бы владельцу в Telegram."; fm.classList.add("on"); d.body.classList.add("lock"); };
