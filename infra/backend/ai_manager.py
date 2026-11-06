@@ -256,7 +256,7 @@ def next_missing(fields):
     return None
 
 
-STEPS = ("business", "task", "features", "budget", "timeline", "name")
+STEPS = ("business", "task", "features", "details", "budget", "timeline", "name")
 _STEP_QUESTION = {
     "business": "Чем занимается ваш бизнес?",
     "task": "Что делаем — сайт, бот или Mini App — и какую задачу это закрывает?",
@@ -268,6 +268,7 @@ _STEP_FOLLOW = {
     "business": "Напишите в двух словах, чем вы занимаетесь.",
     "task": "Уточните одним сообщением: сайт, бот или Mini App, и зачем он.",
     "features": "Назовите одну-две функции. Если ничего добавлять не нужно — напишите «ничего».",
+    "details": "Хоть в двух словах: стиль, разделы или как это должно работать.",
     "budget": "Назовите вилку, хотя бы примерно.",
     "timeline": "Это срочно или срок спокойный?",
     "name": "Как вас зовут?",
@@ -313,7 +314,8 @@ _KNOWN_STEMS = {stem_word(word) for word in _KNOWN_WORDS} | set(_KNOWN_WORDS)
 
 
 def empty_dialog():
-    return {"asked": {}, "terms_asked": [], "terms": {}, "name": None, "features_done": False, "pending": None}
+    return {"asked": {}, "terms_asked": [], "terms": {}, "name": None, "features_done": False,
+            "details": None, "details_done": False, "pending": None}
 
 
 def normalize_dialog(dialog):
@@ -327,6 +329,8 @@ def normalize_dialog(dialog):
     base["terms"] = {str(key): str(value) for key, value in terms.items()}
     base["name"] = clean_scalar(dialog.get("name"), 80)
     base["features_done"] = bool(dialog.get("features_done"))
+    base["details"] = clean_scalar(dialog.get("details"), 300)
+    base["details_done"] = bool(dialog.get("details_done"))
     pending = dialog.get("pending")
     base["pending"] = pending if isinstance(pending, dict) else None
     return base
@@ -443,6 +447,8 @@ def step_closed(step, fields, dialog):
         return bool(fields.get("goal") and fields.get("service")) or _asked(dialog, step) >= 2
     if step == "features":
         return bool(fields.get("features")) or dialog.get("features_done") or _asked(dialog, step) >= 2
+    if step == "details":
+        return bool(dialog.get("details") or dialog.get("details_done")) or _asked(dialog, step) >= 1
     if step == "budget":
         return bool(fields.get("budget")) or _asked(dialog, step) >= 2
     if step == "timeline":
@@ -465,7 +471,24 @@ def budget_question(fields, catalog):
     return f"На какой бюджет ориентируетесь? {ranges}Точную стоимость подтвердит Марк."
 
 
+_DETAIL_QUESTIONS = {
+    "site": "Какой стиль сайта нравится (тёмный, светлый, минимализм, яркий) и какие разделы нужны? Можно скинуть ссылку на пример.",
+    "miniapp": "Что должно быть внутри Mini App и в каком порядке? Например: каталог, карточка, корзина, личный кабинет, оплата.",
+    "bot": "Опишите сценарий по шагам: что человек пишет или нажимает, что бот отвечает, куда сохраняется заявка.",
+    "script": "Откуда брать данные и куда выгружать? Например: с Авито в Google Таблицу раз в час.",
+    "system": "Опишите систему по частям: что откуда приходит, что должно получиться на выходе.",
+}
+_DEFAULT_DETAIL_QUESTION = "Опишите подробнее, как это должно выглядеть и работать: разделы, кнопки, примеры."
+
+
+def detail_question(fields):
+    """One deep service-specific question for the brief (ТЗ)."""
+    return _DETAIL_QUESTIONS.get(fields.get("service") or "", _DEFAULT_DETAIL_QUESTION)
+
+
 def step_question(step, fields, catalog, follow=False):
+    if step == "details" and not follow:
+        return detail_question(fields)
     if step == "budget" and not follow:
         return budget_question(fields, catalog)
     if follow:
@@ -799,6 +822,8 @@ def brief_text(fields, history, contact, dialog=None):
         lines.append("Функции: " + fields["features"])
     elif dialog.get("features_done"):
         lines.append("Функции: без дополнений")
+    if dialog.get("details"):
+        lines.append("Детали: " + dialog["details"])
     photos, voices = [], []
     for item in history:
         if item.get("role") != "user":
@@ -1061,6 +1086,14 @@ async def run_turn(*, client_text, fields, history, turns, catalog, complete, im
         dialog["features_done"] = True
         if not merged.get("features"):
             merged["features"] = "без дополнительных функций"
+    if pending.get("kind") == "field" and pending.get("field") == "details":
+        if is_nothing(text):
+            dialog["details_done"] = True
+        else:
+            stored = strip_greeting(text)
+            if stored:
+                dialog["details"] = stored
+                dialog["details_done"] = True
     irritated = is_irritated(text)
     human = wants_human(text) or bool(parsed and parsed.get("want_human") and not guard_reason((parsed or {}).get("reply") or "x?"))
     new_turns = turns + 1
