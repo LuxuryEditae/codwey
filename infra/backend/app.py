@@ -140,10 +140,10 @@ def enqueue(conn, direction, kind, chat_id, payload, orig_time, ticket_id=None):
         pass
 
 # ---------------------------------------------------------------- formatting
-money = lambda v: f"{v:,}".replace(",", " ")
+money = lambda v: f"{v:,}".replace(",", "\u202f")
 
-def msk(ts):
-    return datetime.fromtimestamp(ts, timezone.utc).astimezone(MSK).strftime("%d.%m.%Y %H:%M")
+def krat(ts):
+    return datetime.fromtimestamp(ts, timezone.utc).astimezone(ZoneInfo("Asia/Krasnoyarsk")).strftime("%d.%m.%Y %H:%M")
 
 def delay_text(seconds):
     m = int(seconds // 60)
@@ -151,45 +151,66 @@ def delay_text(seconds):
 
 def time_lines(orig, sent=None):
     sent = sent or time.time()
-    line = f"🕒 Отправлено: {msk(orig)} МСК"
+    line = f"🕒 <b>Время:</b> {krat(orig)} · Красноярск (UTC+7)"
     if sent - orig > DELAY_NOTE_AFTER:
         line += f"\n⏳ доставлено с задержкой {delay_text(sent - orig)}"
     return line
 
 def who(t):
-    parts = [escape(t["name"] or "")] if t["name"] else []
-    if t["username"]:
-        parts.append("@" + escape(t["username"]))
-    if t["contact"] and t["contact"] != ("@" + (t["username"] or "")):
-        parts.append(escape(t["contact"]))
-    if t["user_id"]:
-        parts.append(f"id {t['user_id']}")
-    return " · ".join(parts) or "—"
+    """One escaped field per line; IDs are numeric, usernames validated before linking."""
+    lines = [f"<b>Имя:</b> {escape(t['name'] or 'Не указано')}"]
+    username = t["username"] or ""
+    if re.fullmatch(r"[A-Za-z0-9_]{1,32}", username):
+        lines.append(f'<b>Юз:</b> <a href="https://t.me/{username}">@{username}</a>')
+    else:
+        lines.append(f"<b>Юз:</b> {escape('@' + username) if username else 'Не указан'}")
+    uid = t["user_id"]
+    if uid and str(uid).isdigit():
+        lines.append(f'<b>ID:</b> <a href="tg://user?id={int(uid)}">{int(uid)} · открыть профиль</a>')
+    else:
+        lines.append("<b>ID:</b> Клиент ещё не писал в бот")
+    contact = t["contact"] or ""
+    if contact and contact != "@" + username:
+        lines.append(f"<b>Контакт:</b> {escape(contact)}")
+    return "\n".join(lines)
 
 STATUS = {"new": "🆕 Новая", "active": "🛠 В работе", "closed": "✅ Закрыта"}
 
+def source_text(t):
+    src = t["source"] or "bot"
+    if src == "site":
+        return "Форма сайта" + (f" · заявка №{t['order_id']}" if t["order_id"] else "")
+    if src.startswith("demo_"):
+        return "Демо → бот · " + escape(src)
+    return "Бот"
+
 def ticket_card(t, order=None):
-    src = "сайт" + (f", заявка №{t['order_id']}" if t["order_id"] else "") if t["source"] == "site" else "бот"
-    lines = [f"<b>Тикет #{t['id']}</b> · {STATUS.get(t['status'], t['status'])}", f"👤 {who(t)}",
-             f"📌 {escape(SERVICE_LABELS.get(t['service'] or '', t['service'] or '—'))}"]
     sol = SOLUTIONS.get(t["solution_id"] or "")
     if sol:
-        lines.append(f"🧩 Готовое решение: <b>{escape(sol['title'])}</b> — {money(sol['price'])} ₽")
-    if order:
-        feats = ", ".join(FEATURES[f]["label"] for f in json.loads(order["features"]) if f in FEATURES)
-        if feats:
-            lines.append(f"➕ Опции: {escape(feats)}")
-        if not sol:
-            lines.append(f"💰 Смета: <b>{money(order['price_min'])}–{money(order['price_max'])} ₽</b>, {order['days_min']}–{order['days_max']} дн.")
-    lines.append(f"🌐 Источник: {src}")
-    lines.append(time_lines(t["created_at"], t["card_sent_at"]))
-    if t["description"]:
-        lines.append(f"\n<b>Задача:</b>\n{escape(t['description'][:3000])}")
-    if t["source"] == "site" and not t["user_id"]:
-        lines.append("\n<i>Клиент ещё не писал в бот — свяжитесь по контакту. Когда он напишет в бот, тикет привяжется и можно будет отвечать реплаем.</i>")
+        budget, days = money(sol["price"]) + " ₽", "Сроки подберём под вас"
+    elif order:
+        budget = f"{money(order['price_min'])}–{money(order['price_max'])} ₽ · ориентир"
+        days = f"{order['days_min']}–{order['days_max']} дней · ориентир"
     else:
-        lines.append("\n<i>Ответьте реплаем на это или любое сообщение тикета — ответ уйдёт клиенту.</i>")
-    return "\n".join(lines)
+        budget, days = "Не указан — обсудим с клиентом", "Уточним по задаче"
+    blocks = [f"📩 <b>Заявка / тикет №{t['id']}</b>\n<b>Статус:</b> {escape(STATUS.get(t['status'], t['status']))}",
+              "👤 <b>Клиент</b>\n" + who(t),
+              f"📍 <b>Источник:</b> {source_text(t)}\n"
+              f"🛠 <b>Услуга:</b> {escape(SERVICE_LABELS.get(t['service'] or '', t['service'] or 'Не указана'))}\n"
+              + (f"🧩 <b>Решение:</b> {escape(sol['title'])}\n" if sol else "")
+              + f"💰 <b>Бюджет:</b> {budget}\n⏳ <b>Сроки:</b> {days}"]
+    if order:
+        feats = [FEATURES[f]["label"] for f in json.loads(order["features"]) if f in FEATURES]
+        if feats:
+            blocks.append("➕ <b>Дополнения</b>\n" + "\n".join("• " + escape(f) for f in feats))
+    blocks.append("📝 <b>Описание</b>\n" + escape((t["description"] or "Не добавлено")[:3000]))
+    blocks.append(time_lines(t["created_at"], t["card_sent_at"]))
+    if not t["user_id"]:
+        blocks.append("💡 <i>Клиент ещё не писал в бот. Свяжитесь по указанному контакту.</i>")
+    else:
+        blocks.append("↩️ <i>Ответьте на эту карточку или сообщение тикета — ответ уйдёт клиенту.</i>")
+    return "\n\n".join(blocks)
+
 
 def ticket_kb(t):
     rows = []
@@ -246,14 +267,10 @@ async def deliver(job):
     if job["kind"] == "client_msg":  # client -> admin
         with db() as conn:
             t = get_ticket(conn, job["ticket_id"])
-        head = f"💬 <b>#{t['id']}</b> · {who(t)}\n{time_lines(job['orig_time'], now)}"
+        head = f"💬 <b>Сообщение · тикет №{t['id']}</b>\n\n{who(t)}\n\n📍 <b>Источник:</b> {source_text(t)}\n\n{time_lines(job['orig_time'], now)}"
         reply = ReplyParameters(message_id=t["card_msg_id"], allow_sending_without_reply=True) if t["card_msg_id"] else None
         if p["type"] == "text":
             m = await bot.send_message(admin, f"{head}\n\n{p['html']}", reply_parameters=reply, request_timeout=15)
-            return [m.message_id]
-        if p.get("captionable"):
-            cap = f"{head}\n\n{p.get('html') or ''}".strip()[:1024]
-            m = await bot.copy_message(admin, p["chat_id"], p["message_id"], caption=cap, parse_mode=ParseMode.HTML, reply_parameters=reply, request_timeout=30)
             return [m.message_id]
         h = await bot.send_message(admin, head, reply_parameters=reply, request_timeout=15)
         m = await bot.copy_message(admin, p["chat_id"], p["message_id"], reply_parameters=ReplyParameters(message_id=h.message_id, allow_sending_without_reply=True), request_timeout=30)
@@ -262,9 +279,7 @@ async def deliver(job):
         late = now - job["orig_time"] > DELAY_NOTE_AFTER
         note = f"\n\n<i>{time_lines(job['orig_time'], now)}</i>" if late else ""
         if p["type"] == "text":
-            await bot.send_message(job["chat_id"], f"💬 <b>Менеджер CodWay:</b>\n{p['html']}{note}", request_timeout=15)
-        elif p.get("captionable") and (late or p.get("html")):
-            await bot.copy_message(job["chat_id"], p["chat_id"], p["message_id"], caption=(f"{p.get('html') or ''}{note}").strip()[:1024], parse_mode=ParseMode.HTML, request_timeout=30)
+            await bot.send_message(job["chat_id"], f"💬 <b>Менеджер CodWay</b>\n\n{p['html']}{note}", request_timeout=15)
         else:
             await bot.copy_message(job["chat_id"], p["chat_id"], p["message_id"], request_timeout=30)
             if late:
@@ -406,7 +421,7 @@ async def maybe_email_alert():
         tickets = conn.execute("SELECT DISTINCT t.* FROM outbox o JOIN tickets t ON t.id=o.ticket_id WHERE o.direction='admin' AND o.sent_at IS NULL AND o.failed=0 ORDER BY t.id").fetchall()
     body = [f"Telegram недоступен, в очереди {row['n']} сообщений для вас.", ""]
     for t in tickets:
-        body.append(f"#{t['id']} · {t['username'] and '@' + t['username'] or ''} {t['contact'] or ''} · {SERVICE_LABELS.get(t['service'] or '', '')} · {msk(t['created_at'])} МСК")
+        body.append(f"#{t['id']} · {t['username'] and '@' + t['username'] or ''} {t['contact'] or ''} · {SERVICE_LABELS.get(t['service'] or '', '')} · {krat(t['created_at'])} Красноярск (UTC+7)")
         if t["description"]:
             body.append("   " + t["description"][:500].replace("\n", " "))
     msg = EmailMessage()
@@ -421,7 +436,7 @@ async def maybe_email_alert():
                 s.starttls()
             s.login(SMTP["SMTP_USER"], SMTP["SMTP_PASSWORD"]); s.send_message(msg)
     try:
-        await asyncio.to_thread(send); STATE["alert_note"] = f"email отправлен {msk(time.time())}"
+        await asyncio.to_thread(send); STATE["alert_note"] = f"email отправлен {krat(time.time())}"
         log.info("E-mail alert sent")
     except Exception as exc:
         STATE["alert_note"] = f"email ошибка {type(exc).__name__}"
@@ -460,9 +475,11 @@ def touch_user(u):
 def open_ticket(conn, uid):
     return conn.execute("SELECT * FROM tickets WHERE user_id=? AND status!='closed' ORDER BY id DESC LIMIT 1", (uid,)).fetchone()
 
-def new_ticket(conn, u, service, solution_id, description, orig):
+def new_ticket(conn, u, service, solution_id, description, orig, source="bot"):
+    if not (source.startswith("demo_") and source[5:] in SOLUTIONS):
+        source = "bot"
     cur = conn.execute("INSERT INTO tickets (user_id,username,name,contact,source,service,solution_id,description,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                       (u.id, u.username, u.full_name, "@" + u.username if u.username else None, "bot", service, solution_id, description, orig, time.time()))
+                       (u.id, u.username, u.full_name, "@" + u.username if u.username else None, source, service, solution_id, description, orig, time.time()))
     enqueue(conn, "admin", "card", None, {}, orig, cur.lastrowid)
     return cur.lastrowid
 
@@ -489,16 +506,21 @@ def ack(m: Message, text, force=False):
             enqueue(conn, "client", "text", m.chat.id, {"html": text}, time.time())
 
 def prices_text():
-    lines = ["💰 <b>Цены CodWay</b> — в 2–5 раз ниже студий (у студий от 50 000 ₽)\n"]
-    for p in PRICING.get("tiers") or PRICING["projects"]:
-        days = p.get("days") or ("3–5 недель" if p["id"] == "system" else f"{p['daysMin']}–{p['daysMax']} дн.")
-        lines.append(f"• {escape(p['label'])} — от <b>{money(p['min'])} ₽</b>, {days}")
-    lines.append("\n<b>Доп. модули</b>")
-    lines += [f"• {escape(f['label'])} — от {money(f['min'])} ₽" for f in PRICING["features"]]
-    lines.append("\n<b>Готовые решения</b>\nСроки подберём под вас.")
-    lines += [f"• {escape(s['title'])} — {money(s['price'])} ₽" for s in SOLUTIONS.values()]
-    lines.append("\nОплата 50/50, 30 дней бесплатных правок, код передаём вам.\nПодробно: https://codway.su/ceny")
-    return "\n".join(lines)
+    blocks = ["💰 <b>Цены CodWay</b>\nРазработка под вашу задачу"]
+    tiers = PRICING.get("tiers") or PRICING["projects"]
+    for ids, title in [(("bot",), "🤖 Боты"), (("miniapp",), "📱 Mini Apps"),
+                       (("site",), "🌐 Сайты"), (("script", "system"), "⚙️ Автоматизация")]:
+        items = [p for p in tiers if (p.get("project") or p.get("id")) in ids]
+        if items:
+            blocks.append(f"<b>{title}</b>\n" + "\n".join(
+                f"• {escape(p['label'])} — от {money(p['min'])} ₽" for p in items))
+    blocks.append("➕ <b>Дополнения</b>\n" + "\n".join(
+        f"• {escape(f['label'])} — от {money(f['min'])} ₽" for f in PRICING["features"]))
+    blocks.append("🧩 <b>Готовые решения</b>\nСроки подберём под вас\n\n" + "\n".join(
+        f"• {escape(x['title'])} — {money(x['price'])} ₽" for x in SOLUTIONS.values()))
+    blocks.append("🤝 <b>Условия</b>\nОплата 50/50\n30 дней бесплатных правок\nИсходный код — ваш")
+    blocks.append('🔗 <a href="https://codway.su/ceny">Цены и сроки на сайте</a>')
+    return "\n\n".join(blocks)
 
 # ---------------------------------------------------------------- bot: ready-made catalog (same items as codway.su)
 SITE_URL = "https://codway.su"
@@ -578,6 +600,7 @@ async def start(message: Message, state: FSMContext):
                          "Или напишите вопрос — ответит живой разработчик.", reply_markup=MENU)
     if arg.startswith("demo_") and arg[5:] in SOLUTIONS:  # visitor came from a demo on codway.su
         s = SOLUTIONS[arg[5:]]
+        await state.update_data(entry_source=arg)
         await message.answer(item_text(s), reply_markup=item_kb(s), disable_web_page_preview=True)
     elif arg == "catalog":
         await message.answer(catalog_text(), reply_markup=catalog_kb(), disable_web_page_preview=True)
@@ -596,7 +619,7 @@ ADMIN_HELP = ("<b>CodWay · панель</b>\n\n"
               "• <b>Ответить клиенту</b> — сделайте Reply (ответ) на любое его сообщение или на карточку тикета; текст, фото, файлы и голосовые уйдут клиенту.\n"
               "• Кнопки: ✋ Взять · ✅ Закрыть · ⛔ Заблокировать.\n"
               "• /tickets — открытые тикеты, /stats — статистика и связь, /orders — заявки с сайта.\n\n"
-              "🕒 у каждого сообщения — время отправки клиентом (МСК); ⏳ — если Telegram доставил с задержкой.")
+              "🕒 у каждого сообщения — время отправки клиентом (Красноярск, UTC+7); ⏳ — если Telegram доставил с задержкой.")
 
 @dispatcher.message(Command("help"), admin_only)
 async def help_command(message: Message):
@@ -612,10 +635,14 @@ async def stats(message: Message):
         q = conn.execute("SELECT direction, count(*) FROM outbox WHERE sent_at IS NULL AND failed=0 GROUP BY direction").fetchall()
     mem = psutil.virtual_memory()
     queue = ", ".join(f"{'вам' if d == 'admin' else 'клиентам'} {n}" for d, n in q) or "пусто"
-    await message.answer(f"📊 <b>CodWay</b>\n\nТикеты: новые {t.get('new', 0)}, в работе {t.get('active', 0)}, закрыты {t.get('closed', 0)}\n"
-                         f"За 7 дней: {week}\nЗаявок с сайта всего: {o}\nКлиентов в боте: {users[0]} (заблок. {users[1] or 0})\n"
-                         f"Очередь доставки: {queue}\nМаршрут Telegram: {STATE['route']} (доступно: {', '.join(ROUTES)})\n\n"
-                         f"RAM: {mem.used // 1048576}/{mem.total // 1048576} MB · Диск: {psutil.disk_usage('/').percent}%")
+    await message.answer(
+        f"📊 <b>CodWay · статистика</b>\n\n"
+        f"<b>Новые тикеты:</b> {t.get('new', 0)}\n<b>В работе:</b> {t.get('active', 0)}\n<b>Закрыты:</b> {t.get('closed', 0)}\n"
+        f"<b>Тикетов за 7 дней:</b> {week}\n\n"
+        f"<b>Заявок с сайта:</b> {o}\n<b>Клиентов в боте:</b> {users[0]}\n<b>Заблокировано:</b> {users[1] or 0}\n\n"
+        f"<b>Очередь доставки:</b> {escape(queue)}\n<b>Маршрут Telegram:</b> {escape(STATE['route'])}\n"
+        f"<b>Доступные маршруты:</b> {escape(', '.join(ROUTES))}\n\n"
+        f"<b>RAM:</b> {mem.used // 1048576}/{mem.total // 1048576} МБ\n<b>Диск:</b> {psutil.disk_usage('/').percent}%")
 
 @dispatcher.message(Command("tickets"), admin_only)
 async def tickets_cmd(message: Message):
@@ -635,8 +662,14 @@ async def orders_cmd(message: Message):
     if not rows:
         await message.answer("Заявок с сайта пока нет.")
     for o in rows:
-        await message.answer(f"Заявка №{o['id']} · {escape(o['contact'])} · {escape(SERVICE_LABELS.get(o['project'], o['project']))} · {o['status']}\n"
-                             f"{msk(o['created_at'])} МСК\n{escape(o['description'][:500])}")
+        with db() as conn:
+            t = conn.execute("SELECT * FROM tickets WHERE order_id=? ORDER BY id DESC LIMIT 1", (o["id"],)).fetchone()
+        if t:
+            await message.answer(ticket_card(t, o))
+        else:
+            await message.answer(f"📩 <b>Заявка с сайта №{o['id']}</b>\n\n<b>Контакт:</b> {escape(o['contact'])}\n"
+                                 f"<b>Услуга:</b> {escape(SERVICE_LABELS.get(o['project'], o['project']))}\n"
+                                 f"<b>Статус:</b> {escape(o['status'])}\n\n📝 <b>Описание</b>\n{escape(o['description'][:3000])}\n\n{time_lines(o['created_at'])}")
 
 @dispatcher.callback_query(F.data.startswith("t:"))
 async def ticket_action(q: CallbackQuery):
@@ -760,11 +793,13 @@ async def catalog_action(q: CallbackQuery, state: FSMContext):
         await q.answer(); return
     if is_admin(q.from_user.id):
         await q.answer("Это ваш бот — заявки от владельца не создаются", show_alert=True); return
+    origin = (await state.get_data()).get("entry_source", "bot")
+    if not (origin.startswith("demo_") and origin[5:] in SOLUTIONS): origin = "bot"
     with db() as conn:
         dup = conn.execute("SELECT id FROM tickets WHERE user_id=? AND solution_id=? AND status!='closed' AND created_at>? ORDER BY id DESC LIMIT 1",
                            (q.from_user.id, x["id"], time.time() - 86400)).fetchone()
         tid = dup["id"] if dup else new_ticket(conn, q.from_user, x["project"], x["id"],
-                                                f"Хочу готовое решение «{x['title']}» — {money(x['price'])} ₽ (из каталога бота, демо: {demo_url(x)})", time.time())
+                                                f"Хочу готовое решение «{x['title']}» — {money(x['price'])} ₽ (из каталога бота, демо: {demo_url(x)})", time.time(), source=origin)
     await q.answer("Заявка уже у менеджера" if dup else "Заявка отправлена ✅")
     await state.clear()
     await state.update_data(ticket_id=tid, service=x["project"], solution_id=x["id"]); await state.set_state(Req.files)
@@ -792,7 +827,7 @@ async def my_tickets(m: Message):
     if not rows:
         await m.answer("У вас пока нет заявок. Нажмите «📝 Оставить заявку».", reply_markup=MENU); return
     await m.answer("📂 <b>Ваши заявки</b>\n\n" + "\n".join(
-        f"#{r['id']} · {escape(SERVICE_LABELS.get(r['service'] or '', '—'))} · {STATUS[r['status']]} · {msk(r['created_at'])}" for r in rows), reply_markup=MENU)
+        f"#{r['id']} · {escape(SERVICE_LABELS.get(r['service'] or '', '—'))} · {STATUS[r['status']]} · {krat(r['created_at'])}" for r in rows), reply_markup=MENU)
 
 @dispatcher.message(F.chat.type == "private", F.text == "💬 Написать менеджеру")
 async def write_manager(m: Message, state: FSMContext):
@@ -810,7 +845,7 @@ async def req_description(m: Message, state: FSMContext):
     if await blocked(m): return
     data = await state.get_data()
     with db() as conn:
-        tid = new_ticket(conn, m.from_user, data.get("service") or "other", data.get("solution_id"), m.text or m.caption or "", m.date.timestamp())
+        tid = new_ticket(conn, m.from_user, data.get("service") or "other", data.get("solution_id"), m.text or m.caption or "", m.date.timestamp(), source=data.get("entry_source", "bot"))
     if not m.text:
         relay_to_admin(m, tid)
     await state.update_data(ticket_id=tid); await state.set_state(Req.files)
@@ -831,13 +866,14 @@ async def req_files(m: Message, state: FSMContext):
             conn.execute("UPDATE tickets SET contact=? WHERE id=?", (m.contact.phone_number, data["ticket_id"]))
 
 @dispatcher.message(F.chat.type == "private")
-async def client_message(m: Message):
+async def client_message(m: Message, state: FSMContext):
     user = touch_user(m.from_user)
     if user["blocked"]:
         return
+    origin = (await state.get_data()).get("entry_source", "bot")
     with db() as conn:
         t = open_ticket(conn, m.from_user.id)
-        tid = t["id"] if t else new_ticket(conn, m.from_user, "question", None, "", m.date.timestamp())
+        tid = t["id"] if t else new_ticket(conn, m.from_user, "question", None, "", m.date.timestamp(), source=origin)
     relay_to_admin(m, tid)
     ack(m, "✉️ Передал менеджеру, ответ придёт сюда. Обычно отвечаем в течение часа (9:00–22:00 МСК).", force=not t)
 
