@@ -5,14 +5,13 @@
 Env (/etc/codwey.env): BOT_TOKEN, ADMIN_ID, DATABASE_PATH, ALLOWED_ORIGINS.
 
 AI manager (off until you set the flag; keys stay out of logs and out of the site deploy):
-- `AI_MANAGER_MODE=off|admin_only|all` — default `off`. `admin_only` shows «🤖 Обсудить проект с AI» and «↩️ Выйти из AI» only to ADMIN_ID.
-- `NVIDIA_KEYS` — newline or comma separated keys for `https://integrate.api.nvidia.com/v1/chat/completions` (models `nvidia/nemotron-3.5-super-vl-120b-a12b`, then `nvidia/nemotron-3.5-lightning-30b-a3b`). Empty skips NVIDIA; no request and no timeout.
-- `MISTRAL_KEYS` — same format for `https://api.mistral.ai/v1/chat/completions`. Every model is tried on every key.
-- `MISTRAL_MODELS` — comma list, default `ministral-8b-latest,open-mistral-nemo,mistral-small-latest`. HTTP 429 moves to the next key or model. One 1.5s backoff per client message. The whole provider attempt stops after 25s and the chat is handed to a person.
-- `PAID_BASE_URL` — default `https://polza.ai/api/v1`. Called only after NVIDIA (when it has keys) and Mistral, at `{base}/chat/completions` with Bearer auth and a 20s timeout, still inside the 25s budget.
-- `PAID_KEYS` — comma or newline separated keys for that endpoint.
+- `AI_MANAGER_MODE=off|admin_only|all` — default `off`. `admin_only` shows the AI entry points only to `ADMIN_ID` and `AI_ALLOWED_IDS`.
+- `AI_ALLOWED_IDS` — comma-separated Telegram ids. In `admin_only` they can open AI together with `ADMIN_ID`. Entry points: reply button, `/ai`, and the inline button «Обсудить проект с AI» under `/start`.
+- `PAID_BASE_URL` — default `https://polza.ai/api/v1`. The only model provider: `{base}/chat/completions`, Bearer auth, 20s timeout. HTTP 429 tries the next `PAID_KEYS` entry, with one 1.5s backoff per message. The attempt stops after 25s and the chat goes to a person.
+- `PAID_KEYS` — comma or newline separated keys.
 - `PAID_MODELS` — comma list, default `google/gemma-4-31b-it`.
-- `PAID_DAILY_RUB_CAP` — default `30`. If a response includes `usage.cost_rub`, that amount is added to the Krasnoyarsk-day total and only the sum is logged. At or over the cap the paid provider is skipped and the chat goes to a person.
+- `PAID_DAILY_RUB_CAP` — default `30`. If a response includes `usage.cost_rub`, that amount is added to the Krasnoyarsk-day total and only the sum is logged. At or over the cap the paid call is skipped and the chat goes to a person.
+- `STT_MODEL` — default `openai/whisper-large-v3-turbo`, via `{base}/audio/transcriptions`, language `ru`, 60s budget, audio up to about 2 minutes. Photos in AI mode are sent as a data URL (max 5 MB) and only a short note is stored.
 - `AI_DAILY_CAP=800` — global messages per Krasnoyarsk day. Also fixed: 1 message / 3s and 40/day per user (`AI_USER_INTERVAL`, `AI_USER_DAILY`), 12 turns, 12 history messages, 20s per request inside the 25s budget.
 - Put the keys in root-only `/etc/codwey/ai.env` (`chmod 0600`) and add a systemd drop-in, not in the site repo:
 
@@ -22,7 +21,7 @@ AI manager (off until you set the flag; keys stay out of logs and out of the sit
 EnvironmentFile=/etc/codwey/ai.env
 ```
 
-Then `systemctl daemon-reload && systemctl restart codwey`. Do not print `systemctl show Environment`. The hosted NVIDIA trial endpoint is not a production licence for client traffic; keep `AI_MANAGER_MODE=off` or `admin_only` until the provider terms allow it.
+Then `systemctl daemon-reload && systemctl restart codwey`. Do not print `systemctl show Environment`. Keep `AI_MANAGER_MODE=off` or `admin_only` until you want clients in the AI dialog.
 
 Optional:
 - `TELEGRAM_API_BASE=https://<relay>` — Bot API relay (see ../telegram-relay-worker.js)

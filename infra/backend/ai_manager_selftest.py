@@ -1,7 +1,7 @@
 """Offline checks for the AI manager, plus five fictional API dialogues when keys are set.
 
-Unit tests mock the HTTP client. Live scenarios run only if NVIDIA_KEYS or MISTRAL_KEYS
-is in the environment, or if /workspace/.secrets/{nvidia,mistral}_keys exists.
+Unit tests mock the HTTP client. Live scenarios run only if PAID_KEYS
+is in the environment, or if /workspace/.secrets/paid_keys exists.
 Keys are never printed. No Telegram tickets are created.
 """
 import asyncio
@@ -235,79 +235,84 @@ class QuotaTests(unittest.TestCase):
         self.assertEqual(resumed["turns"], 2)
 
 
+class MediaTests(unittest.IsolatedAsyncioTestCase):
+    async def test_image_goes_to_the_model_and_history_stays_text(self):
+        seen = {}
+
+        async def complete(messages):
+            seen["messages"] = messages
+            return json.dumps({
+                "reply": "Какую задачу нужно решить?",
+                "fields": {"business": "кафе"},
+                "image_note": "макет лендинга",
+                "want_human": False,
+            }, ensure_ascii=False)
+
+        result = await ai.run_turn(
+            client_text="вот макет", fields=ai.empty_fields(), history=[], turns=0, catalog=CATALOG,
+            complete=complete, image={"mime": "image/jpeg", "b64": "QUJD"})
+        history_blob = json.dumps(result["history"], ensure_ascii=False)
+        self.assertNotIn("QUJD", history_blob)
+        self.assertNotIn("base64", history_blob.lower())
+        self.assertIn("[фото: макет лендинга]", result["history"][0]["content"])
+        self.assertIn("вот макет", result["history"][0]["content"])
+        last = seen["messages"][-1]["content"]
+        self.assertIsInstance(last, list)
+        self.assertTrue(last[1]["image_url"]["url"].startswith("data:image/jpeg;base64,QUJD"))
+        for message in seen["messages"][:-1]:
+            self.assertIsInstance(message["content"], str)
+
+    async def test_stt_posts_whisper_and_failure_is_explicit(self):
+        async def post(url, key, fields, file, timeout):
+            self.assertTrue(url.endswith("/audio/transcriptions"))
+            self.assertEqual(fields["model"], "openai/whisper-large-v3-turbo")
+            self.assertEqual(fields["language"], "ru")
+            self.assertEqual(file[0], "voice.ogg")
+            self.assertLessEqual(timeout, 60)
+            self.assertNotIn(key, json.dumps(fields))
+            return 200, json.dumps({"text": "нужен бот для кафе"})
+
+        text = await ai.transcribe(b"abc", filename="voice.ogg", mime="audio/ogg", paid_keys=["stt-secret"], post=post)
+        self.assertEqual(text, "нужен бот для кафе")
+        self.assertEqual(ai.stt_skip_reason(121, None), "long")
+        self.assertIsNone(ai.stt_skip_reason(30, 1000))
+
+        async def fail(url, key, fields, file, timeout):
+            return 500, ""
+
+        with self.assertRaises(ai.ProviderFailed):
+            await ai.transcribe(b"abc", filename="voice.ogg", mime="audio/ogg", paid_keys=["stt-secret"], post=fail)
+
+
 class ProviderTests(unittest.IsolatedAsyncioTestCase):
-    async def test_nvidia_rotates_key_and_model_on_429_and_5xx(self):
-        seen = []
-
-        async def post(url, key, payload, timeout):
-            seen.append((payload["model"], key, timeout))
-            self.assertEqual(timeout, 20)
-            self.assertNotIn(key, json.dumps(payload))
-            if payload["model"].endswith("super-vl-120b-a12b"):
-                return (429 if key == "k1" else 502), ""
-            if key == "k1":
-                return 200, reply_json("Какую задачу нужно решить?", {"business": "Кафе"})
-            return 500, ""
-
-        sleeps = []
-
-        async def sleep(seconds):
-            sleeps.append(seconds)
-
-        text = await ai.chat_complete([{"role": "user", "content": "{}"}], nvidia_keys=["k1", "k2"], mistral_keys=["m1"], post=post, sleep=sleep)
-        self.assertIn("Какую задачу", text.content)
-        self.assertEqual(text.provider, "nvidia")
-        self.assertEqual(sleeps, [1.5])
-        self.assertTrue(all("mistral" not in model for model, _, _ in seen))
-        self.assertLessEqual(len(seen), 4)
-
-    async def test_timeout_does_not_walk_every_key(self):
-        seen = []
-
-        async def post(url, key, payload, timeout):
-            seen.append(key)
-            if payload["model"].endswith("super-vl-120b-a12b"):
-                raise TimeoutError()
-            return 200, reply_json("Какую задачу нужно решить?")
-
-        await ai.chat_complete([], nvidia_keys=["k1", "k2", "k3"], mistral_keys=[], post=post, sleep=self._fail_sleep)
-        self.assertEqual(seen, ["k1", "k1"])
-
-    async def test_mistral_uses_every_key_then_next_model(self):
-        sleeps = []
+    async def test_paid_rotates_keys_on_429(self):
         calls = []
+        sleeps = []
 
         async def post(url, key, payload, timeout):
-            self.assertNotIn("nvidia", url)
-            calls.append((payload["model"], key))
-            if payload["model"] == "ministral-8b-latest" and key != "m4":
+            calls.append((url, payload["model"], key, timeout))
+            self.assertNotIn(key, json.dumps(payload))
+            if key != "k3":
                 return 429, ""
-            if payload["model"] == "ministral-8b-latest":
-                return 200, reply_json("Какую задачу нужно решить?")
-            return 500, ""
+            return 200, reply_json("Какую задачу нужно решить?", cost_rub=0.4)
 
         async def sleep(seconds):
             sleeps.append(seconds)
 
-        await ai.chat_complete([], nvidia_keys=[], mistral_keys=["m1", "m2", "m3", "m4"],
-                               mistral_models=["ministral-8b-latest", "open-mistral-nemo"], post=post, sleep=sleep)
+        with self.assertLogs("codwey.ai", level="INFO") as logs:
+            reply = await ai.chat_complete(
+                [], paid_keys=["k1", "k2", "k3"], paid_models=["google/gemma-4-31b-it"],
+                paid_base_url="https://polza.ai/api/v1", on_paid_cost=lambda amount: None, post=post, sleep=sleep)
+        self.assertEqual(reply.provider, "paid")
+        self.assertEqual(reply.model, "google/gemma-4-31b-it")
         self.assertEqual(sleeps, [1.5])
-        self.assertEqual(calls, [
-            ("ministral-8b-latest", "m1"),
-            ("ministral-8b-latest", "m2"),
-            ("ministral-8b-latest", "m3"),
-            ("ministral-8b-latest", "m4"),
-        ])
-
-    async def test_empty_nvidia_keys_make_no_request(self):
-        seen = []
-
-        async def post(url, key, payload, timeout):
-            seen.append(url)
-            return 200, reply_json("Какую задачу нужно решить?")
-
-        await ai.chat_complete([], nvidia_keys=[], mistral_keys=["m1"], post=post, sleep=self._fail_sleep)
-        self.assertEqual(seen, [ai.MISTRAL_URL])
+        self.assertEqual([item[2] for item in calls], ["k1", "k2", "k3"])
+        self.assertTrue(all(item[0] == "https://polza.ai/api/v1/chat/completions" for item in calls))
+        self.assertEqual(calls[0][3], 20)
+        logged = "\n".join(logs.output)
+        self.assertIn("provider=paid", logged)
+        self.assertNotIn("k1", logged)
+        self.assertNotIn("k3", logged)
 
     async def test_budget_stops_before_25s(self):
         clock = {"t": 0.0}
@@ -317,7 +322,7 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             return clock["t"]
 
         async def post(url, key, payload, timeout):
-            self.assertLessEqual(timeout, 25)
+            self.assertLessEqual(timeout, 20)
             calls.append(timeout)
             clock["t"] += timeout
             return 429, ""
@@ -327,65 +332,28 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             clock["t"] += seconds
 
         with self.assertRaises(ai.ProviderFailed):
-            await ai.chat_complete([], nvidia_keys=[], mistral_keys=["m1", "m2", "m3", "m4"],
-                                   mistral_models=["ministral-8b-latest", "open-mistral-nemo", "mistral-small-latest"],
+            await ai.chat_complete([], paid_keys=["k1", "k2", "k3", "k4"], paid_models=["google/gemma-4-31b-it"],
                                    post=post, sleep=sleep, clock=now, budget=25)
         self.assertLessEqual(clock["t"], 25.0)
         self.assertGreaterEqual(len(calls), 1)
-        self.assertLess(len(calls), 4 * 3)
+        self.assertLess(len(calls), 4)
 
-    async def test_fast_mistral_429_still_reaches_paid(self):
-        clock = {"t": 0.0}
-        seen = []
-        costs = []
-
-        def now():
-            return clock["t"]
-
+    async def test_paid_cap_skips_without_calling(self):
         async def post(url, key, payload, timeout):
-            seen.append((url, key, payload["model"], timeout))
-            clock["t"] += 0.05
-            if url == ai.MISTRAL_URL:
-                return 429, ""
-            return 200, reply_json("Какую задачу нужно решить?", cost_rub=1.6)
-
-        async def sleep(seconds):
-            clock["t"] += seconds
-
-        with self.assertLogs("codwey.ai", level="INFO") as logs:
-            reply = await ai.chat_complete(
-                [], nvidia_keys=[], mistral_keys=["m1", "m2"], mistral_models=["ministral-8b-latest"],
-                paid_keys=["paid-secret-xyz"], paid_models=["google/gemma-4-31b-it"],
-                paid_base_url="https://polza.ai/api/v1", paid_spent=0, paid_cap=30,
-                on_paid_cost=costs.append, post=post, sleep=sleep, clock=now)
-        self.assertEqual(reply.provider, "paid")
-        self.assertEqual(reply.model, "google/gemma-4-31b-it")
-        self.assertEqual(costs, [1.6])
-        self.assertLess(clock["t"], 25)
-        self.assertEqual(seen[-1][0], "https://polza.ai/api/v1/chat/completions")
-        self.assertEqual(seen[-1][1], "paid-secret-xyz")
-        self.assertEqual(seen[-1][3], 20)
-        logged = "\n".join(logs.output)
-        self.assertIn("provider=paid", logged)
-        self.assertNotIn("paid-secret-xyz", logged)
-        self.assertNotIn("cost_rub", logged)
-
-    async def test_paid_cap_skips_and_hands_off(self):
-        async def post(url, key, payload, timeout):
-            if "polza.ai" in url:
-                raise AssertionError("paid provider was called over the cap")
-            return 429, ""
-
-        async def sleep(seconds):
-            return None
+            raise AssertionError("paid provider was called over the cap")
 
         with self.assertLogs("codwey.ai", level="INFO") as logs:
             with self.assertRaises(ai.ProviderFailed):
-                await ai.chat_complete(
-                    [], nvidia_keys=[], mistral_keys=["m1"], mistral_models=["ministral-8b-latest"],
-                    paid_keys=["paid-secret-xyz"], paid_spent=30, paid_cap=30, post=post, sleep=sleep)
-        self.assertIn("AI paid skipped daily_rub=30.0000", "\n".join(logs.output))
-        self.assertNotIn("paid-secret-xyz", "\n".join(logs.output))
+                await ai.chat_complete([], paid_keys=["paid-secret-xyz"], paid_spent=30, paid_cap=30, post=post)
+        logged = "\n".join(logs.output)
+        self.assertIn("AI paid skipped daily_rub=30.0000", logged)
+        self.assertNotIn("paid-secret-xyz", logged)
+
+    def test_admin_only_allows_extra_ids(self):
+        self.assertTrue(ai.enabled_for("admin_only", False, True))
+        self.assertFalse(ai.enabled_for("admin_only", False, False))
+        self.assertTrue(ai.enabled_for("admin_only", True, False))
+        self.assertEqual(ai.parse_ids("10, 20\n30"), [10, 20, 30])
 
     async def _fail_sleep(self, seconds):
         raise AssertionError("sleep was not expected")
@@ -493,13 +461,10 @@ class JudgeTests(unittest.TestCase):
 
 
 async def run_live():
-    nvidia = ai.parse_keys(os.getenv("NVIDIA_KEYS") or _load_secret_file("/workspace/.secrets/nvidia_keys"))
-    mistral = ai.parse_keys(os.getenv("MISTRAL_KEYS") or _load_secret_file("/workspace/.secrets/mistral_keys"))
     paid = ai.parse_keys(os.getenv("PAID_KEYS") or _load_secret_file("/workspace/.secrets/paid_keys"))
-    if not nvidia and not mistral and not paid:
-        print("live: skipped, no keys in env")
+    if not paid:
+        print("live: skipped, no paid keys in env")
         return 0
-    models = ai.parse_models(os.getenv("MISTRAL_MODELS"))
     paid_models = ai.parse_paid_models(os.getenv("PAID_MODELS"))
     paid_base = os.getenv("PAID_BASE_URL") or ai.DEFAULT_PAID_BASE
     print("live: running 5 fictional scenarios")
@@ -518,9 +483,7 @@ async def run_live():
                 payload = None
             if isinstance(payload, dict) and payload.get("client_text"):
                 sent.append(payload["client_text"])
-            return await ai.chat_complete(
-                messages, nvidia_keys=nvidia, mistral_keys=mistral, mistral_models=models,
-                paid_keys=paid, paid_models=paid_models, paid_base_url=paid_base)
+            return await ai.chat_complete(messages, paid_keys=paid, paid_models=paid_models, paid_base_url=paid_base)
 
         for line in lines:
             result = await ai.run_turn(client_text=line, fields=fields, history=history, turns=turns, catalog=CATALOG, complete=complete)
@@ -528,6 +491,8 @@ async def run_live():
                            "fields": result["fields"], "provider": result.get("provider")})
             fields, history, turns = result["fields"], result["history"], result["turns"]
         problems = judge_scenario(name, steps, sent)
+        if any(step.get("model_used") and step.get("provider") != "paid" for step in steps):
+            problems.append("provider is not paid")
         providers = ",".join(step["provider"] or "none" for step in steps) or "none"
         if problems:
             failures += 1

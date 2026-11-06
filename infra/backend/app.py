@@ -10,10 +10,12 @@ from contextlib import asynccontextmanager, contextmanager, suppress
 from datetime import datetime, timezone
 from email.message import EmailMessage
 from html import escape
+import base64
 import hashlib
 import json
 import logging
 import os
+from io import BytesIO
 from pathlib import Path
 import re
 import secrets
@@ -61,12 +63,11 @@ TELEGRAM_PROXY = os.getenv("TELEGRAM_PROXY", "").strip()
 SMTP = {k: os.getenv(k, "") for k in ("SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM")}
 ALERT_EMAIL = os.getenv("ALERT_EMAIL", "coddweyy@gmail.com")
 AI_MODE = ai_manager.parse_mode(os.getenv("AI_MANAGER_MODE"))
-NVIDIA_KEYS = ai_manager.parse_keys(os.getenv("NVIDIA_KEYS", ""))
-MISTRAL_KEYS = ai_manager.parse_keys(os.getenv("MISTRAL_KEYS", ""))
-MISTRAL_MODELS = ai_manager.parse_models(os.getenv("MISTRAL_MODELS"))
 PAID_BASE_URL = (os.getenv("PAID_BASE_URL") or ai_manager.DEFAULT_PAID_BASE).strip()
 PAID_KEYS = ai_manager.parse_keys(os.getenv("PAID_KEYS", ""))
 PAID_MODELS = ai_manager.parse_paid_models(os.getenv("PAID_MODELS"))
+STT_MODEL = (os.getenv("STT_MODEL") or ai_manager.DEFAULT_STT_MODEL).strip()
+AI_ALLOWED_IDS = set(ai_manager.parse_ids(os.getenv("AI_ALLOWED_IDS", "")))
 
 def _positive_int(name, default):
     try:
@@ -307,6 +308,8 @@ async def deliver(job):
         with db() as conn:
             t = get_ticket(conn, job["ticket_id"])
         head = f"💬 <b>Сообщение · тикет №{t['id']}</b>\n\n{who(t)}\n\n📍 <b>Источник:</b> {source_text(t)}\n\n{time_lines(job['orig_time'], now)}"
+        if p.get("transcript"):
+            head += f"\n\n<b>Расшифровка:</b>\n{escape(str(p['transcript'])[:3000])}"
         reply = ReplyParameters(message_id=t["card_msg_id"], allow_sending_without_reply=True) if t["card_msg_id"] else None
         if p["type"] == "text":
             m = await bot.send_message(admin, f"{head}\n\n{p['html']}", reply_parameters=reply, request_timeout=15)
@@ -502,18 +505,25 @@ def menu_rows(include_ai):
         rows.append([KeyboardButton(text=ai_manager.AI_BTN)])
     return rows
 
+def ai_allowed(user_id):
+    return ai_manager.enabled_for(AI_MODE, is_admin(user_id), user_id in AI_ALLOWED_IDS)
+
 def menu_kb(user_id):
     return ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True,
-                               keyboard=menu_rows(ai_manager.enabled_for(AI_MODE, is_admin(user_id))))
+                               keyboard=menu_rows(ai_allowed(user_id)))
 
 def ai_session_kb(user_id):
     return ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True,
                                keyboard=[[KeyboardButton(text=ai_manager.AI_EXIT)], *menu_rows(False)])
 
+def ai_inline_kb():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Обсудить проект с AI", callback_data="ai:start")]])
+
 def ai_reply_kb(user_id, in_session=False):
     """Admins only get the AI button, so the client menu is not forced onto the owner chat."""
     if is_admin(user_id):
-        if not ai_manager.enabled_for(AI_MODE, True):
+        if not ai_allowed(user_id):
             return None
         label = ai_manager.AI_EXIT if in_session else ai_manager.AI_BTN
         return ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True, keyboard=[[KeyboardButton(text=label)]])
@@ -561,9 +571,12 @@ def msg_payload(m: Message):
     return {"type": "media", "chat_id": m.chat.id, "message_id": m.message_id, "captionable": captionable,
             "html": m.html_text if m.caption else ""}
 
-def relay_to_admin(m: Message, ticket_id):
+def relay_to_admin(m: Message, ticket_id, transcript=""):
+    payload = msg_payload(m)
+    if transcript:
+        payload["transcript"] = transcript[:3000]
     with db() as conn:
-        enqueue(conn, "admin", "client_msg", None, msg_payload(m), m.date.timestamp(), ticket_id)
+        enqueue(conn, "admin", "client_msg", None, payload, m.date.timestamp(), ticket_id)
         conn.execute("UPDATE tickets SET updated_at=? WHERE id=?", (time.time(), ticket_id))
 
 def ack(m: Message, text, force=False):
@@ -652,6 +665,8 @@ async def start(message: Message, state: FSMContext):
             conn.execute("INSERT OR IGNORE INTO settings VALUES ('admin_id',?)", (str(message.from_user.id),))
     if is_admin(message.from_user.id):
         await message.answer(ADMIN_HELP, reply_markup=ai_reply_kb(message.from_user.id, in_session=False))
+        if ai_allowed(message.from_user.id):
+            await message.answer("Или обсудите проект с AI:", reply_markup=ai_inline_kb())
         return
     user = touch_user(message.from_user)
     if user["blocked"]:
@@ -661,6 +676,8 @@ async def start(message: Message, state: FSMContext):
                          "Боты от 4 900 ₽ · Mini Apps от 14 900 ₽\n"
                          "Сайты от 9 900 ₽\n"
                          "👇 Выберите пункт или напишите вопрос.", reply_markup=menu_kb(message.from_user.id))
+    if ai_allowed(message.from_user.id):
+        await message.answer("Или обсудите проект с AI:", reply_markup=ai_inline_kb())
     if arg.startswith("demo_") and arg[5:] in SOLUTIONS:  # visitor came from a demo on codway.su
         s = SOLUTIONS[arg[5:]]
         await state.update_data(entry_source=arg)
@@ -779,10 +796,18 @@ async def legacy_order_action(q: CallbackQuery):  # buttons on cards sent before
                 conn.execute("UPDATE tickets SET status=? WHERE order_id=?", ("active" if status == "active" else "closed", int(oid)))
     await q.answer("Готово")
 
+@dispatcher.message(F.chat.type == "private", Command("ai"))
+async def ai_command(m: Message, state: FSMContext):
+    await handle_ai_message(m, state, enter=True)
+
 @dispatcher.message(admin_only)
 async def admin_message(message: Message, state: FSMContext):
     in_ai = await state.get_state() == Ai.chat.state
+    command = ((message.text or "").split(maxsplit=1)[0].split("@")[0] if message.text else "")
     # A reply to a ticket still reaches the client, even if the admin is inside the AI dialog.
+    if command == "/ai":
+        await handle_ai_message(message, state, enter=True)
+        return
     if message.text in (ai_manager.AI_BTN, ai_manager.AI_EXIT) or (in_ai and not message.reply_to_message):
         await handle_ai_message(message, state)
         return
@@ -936,10 +961,11 @@ async def req_service_text(m: Message, state: FSMContext):
 async def req_description(m: Message, state: FSMContext):
     if await blocked(m): return
     data = await state.get_data()
+    transcript = await message_transcript(m)
     with db() as conn:
-        tid = new_ticket(conn, m.from_user, data.get("service") or "other", data.get("solution_id"), m.text or m.caption or "", m.date.timestamp(), source=data.get("entry_source", "bot"))
+        tid = new_ticket(conn, m.from_user, data.get("service") or "other", data.get("solution_id"), m.text or m.caption or transcript or "", m.date.timestamp(), source=data.get("entry_source", "bot"))
     if not m.text:
-        relay_to_admin(m, tid)
+        relay_to_admin(m, tid, transcript)
     await state.update_data(ticket_id=tid); await state.set_state(Req.files)
     await m.answer(f"✅ <b>Заявка №{tid} принята</b>\n📎 Добавьте файлы или примеры, если есть.\nЗатем нажмите «✅ Готово».", reply_markup=FILES_KB)
 
@@ -950,7 +976,7 @@ async def req_files(m: Message, state: FSMContext):
         await state.clear()
         await m.answer(f"✅ <b>Заявка №{data['ticket_id']} у менеджера</b>\nОтветим здесь в течение часа, 9:00–22:00 МСК.\nДополнения можно прислать сообщением.", reply_markup=menu_kb(m.from_user.id))
         return
-    relay_to_admin(m, data["ticket_id"])
+    relay_to_admin(m, data["ticket_id"], await message_transcript(m))
     if m.contact:
         with db() as conn:
             conn.execute("UPDATE tickets SET contact=? WHERE id=?", (m.contact.phone_number, data["ticket_id"]))
@@ -979,29 +1005,95 @@ async def _ai_commit(m: Message, state: FSMContext, session, result):
         current.update(fields=result["fields"], history=result["history"], turns=result["turns"], ticket_id=tid,
                        updated_at=time.time(), day=saved.get("day") or current.get("day") or "",
                        day_count=saved.get("day_count") if saved else current.get("day_count") or 0,
-                       last_at=saved.get("last_at") if saved else current.get("last_at") or 0)
+                       last_at=saved.get("last_at") if saved else current.get("last_at") or 0,
+                       media=[])
+        for item in session.get("media") or []:
+            if item.get("chat_id") and item.get("message_id"):
+                enqueue(conn, "admin", "client_msg", None, {
+                    "type": "media", "chat_id": item["chat_id"], "message_id": item["message_id"],
+                    "captionable": True, "transcript": item.get("note") or "",
+                }, time.time(), tid)
         ai_manager.save_session(conn, m.from_user.id, current)
     await state.clear()
     await m.answer(f"✅ <b>Заявка №{tid} у Марка</b>\n{escape(result['reply'])}", reply_markup=ai_reply_kb(m.from_user.id, in_session=False))
     return tid
 
-async def handle_ai_message(m: Message, state: FSMContext):
-    if m.chat.type != "private" or not m.from_user:
+def speech_file(m: Message):
+    if m.voice:
+        return m.voice.file_id, m.voice.duration, m.voice.file_size, "audio/ogg", "voice.ogg"
+    if m.audio:
+        return m.audio.file_id, m.audio.duration, m.audio.file_size, m.audio.mime_type or "audio/mpeg", m.audio.file_name or "audio.bin"
+    if m.video_note:
+        return m.video_note.file_id, m.video_note.duration, m.video_note.file_size, "video/mp4", "note.mp4"
+    return None
+
+def image_file(m: Message):
+    if m.photo:
+        photo = m.photo[-1]
+        return photo.file_id, photo.file_size, "image/jpeg"
+    doc = m.document
+    if doc and (doc.mime_type or "").startswith("image/"):
+        return doc.file_id, doc.file_size, doc.mime_type
+    return None
+
+async def download_telegram(file_id, max_bytes):
+    tg_file = await bot.get_file(file_id)
+    if tg_file.file_size and tg_file.file_size > max_bytes:
+        return None
+    buf = BytesIO()
+    await bot.download(tg_file, destination=buf)
+    data = buf.getvalue()
+    if len(data) > max_bytes:
+        return None
+    return data
+
+async def message_transcript(m: Message):
+    part = speech_file(m)
+    if not part or not PAID_KEYS:
+        return ""
+    file_id, duration, size, mime, filename = part
+    if ai_manager.stt_skip_reason(duration, size):
+        return ""
+    try:
+        data = await download_telegram(file_id, ai_manager.STT_MAX_BYTES)
+    except Exception as exc:
+        log.info("AI download failed %s", type(exc).__name__)
+        return ""
+    if not data:
+        return ""
+    try:
+        return await ai_manager.transcribe(data, filename=filename, mime=mime, paid_keys=PAID_KEYS, model=STT_MODEL, base_url=PAID_BASE_URL)
+    except Exception as exc:
+        log.info("AI stt failed %s", type(exc).__name__)
+        return ""
+
+async def forward_media(m: Message, transcript=""):
+    with db() as conn:
+        t = open_ticket(conn, m.from_user.id)
+        tid = t["id"] if t else new_ticket(conn, m.from_user, "question", None, transcript or m.caption or "", m.date.timestamp(), source="bot")
+    relay_to_admin(m, tid, transcript)
+    return tid
+
+async def handle_ai_message(m: Message, state: FSMContext, *, user=None, enter=False):
+    user = user or m.from_user
+    if not user or (getattr(m, "chat", None) and m.chat.type != "private"):
         return
-    if await blocked(m):
+    row = touch_user(user)
+    if row["blocked"]:
         return
-    uid = m.from_user.id
-    if m.text == ai_manager.AI_EXIT:
+    uid = user.id
+    if getattr(m, "text", None) == ai_manager.AI_EXIT and not enter:
         await state.clear()
         await m.answer("Вышли из AI. Заявку этим шагом не отправлял.", reply_markup=ai_reply_kb(uid, in_session=False))
         return
-    allowed = ai_manager.enabled_for(AI_MODE, is_admin(uid))
+    allowed = ai_allowed(uid)
     if not allowed:
         await state.clear()
         await m.answer("Обсуждение с AI сейчас выключено.", reply_markup=ai_reply_kb(uid, in_session=False))
         return
-    if m.text == ai_manager.AI_BTN or await state.get_state() != Ai.chat.state:
-        if m.text != ai_manager.AI_BTN:
+    command = (m.text or "").split(maxsplit=1)[0].split("@")[0] if m.text else ""
+    if enter or m.text == ai_manager.AI_BTN or command == "/ai" or await state.get_state() != Ai.chat.state:
+        if not (enter or m.text == ai_manager.AI_BTN or command == "/ai"):
             return
         with db() as conn:
             session = ai_manager.begin_session(conn, uid)
@@ -1010,8 +1102,44 @@ async def handle_ai_message(m: Message, state: FSMContext):
         prefix = "Продолжаем предыдущий разговор.\n\n" if session["turns"] else "Задам один короткий вопрос за раз. Цену и сроки подтверждает Марк.\n\n"
         await m.answer(prefix + ai_manager.template_question(field), reply_markup=ai_reply_kb(uid, in_session=True))
         return
-    if not m.text:
-        await m.answer("Напишите текстом. Голос и файлы можно приложить в обычной заявке.", reply_markup=ai_reply_kb(uid, in_session=True))
+    image = None
+    client_text = m.text or ""
+    media_note = ""
+    picture = image_file(m)
+    speech = speech_file(m)
+    if picture:
+        file_id, size, mime = picture
+        if size and size > ai_manager.MAX_IMAGE_BYTES:
+            await m.answer("Изображение больше 5 МБ. Пришлите файл поменьше или опишите текстом.", reply_markup=ai_reply_kb(uid, in_session=True))
+            await forward_media(m)
+            return
+        try:
+            data = await download_telegram(file_id, ai_manager.MAX_IMAGE_BYTES)
+        except Exception as exc:
+            log.info("AI download failed %s", type(exc).__name__)
+            data = None
+        if not data:
+            await m.answer("Не получилось прочитать изображение. Опишите его текстом.", reply_markup=ai_reply_kb(uid, in_session=True))
+            await forward_media(m)
+            return
+        image = {"mime": mime, "b64": base64.standard_b64encode(data).decode("ascii")}
+        client_text = m.caption or ""
+        media_note = "фото"
+    elif speech:
+        file_id, duration, size, mime, filename = speech
+        if ai_manager.stt_skip_reason(duration, size):
+            await m.answer("Голосовое длиннее двух минут. Напишите текстом, пожалуйста.", reply_markup=ai_reply_kb(uid, in_session=True))
+            await forward_media(m)
+            return
+        transcript = await message_transcript(m)
+        if not transcript:
+            await m.answer("Не разобрал голосовое. Напишите текстом, пожалуйста.", reply_markup=ai_reply_kb(uid, in_session=True))
+            await forward_media(m)
+            return
+        client_text = transcript
+        media_note = transcript
+    elif not m.text:
+        await m.answer("Напишите текстом, пришлите фото или голосовое.", reply_markup=ai_reply_kb(uid, in_session=True))
         return
     async with _ai_lock(uid):
         now = time.time()
@@ -1025,8 +1153,8 @@ async def handle_ai_message(m: Message, state: FSMContext):
             await m.answer("Напишите через пару секунд.", reply_markup=ai_reply_kb(uid, in_session=True))
             return
         if slot in {"user_cap", "global_cap"}:
-            result = ai_manager.close_turn(fields=session["fields"], history=session["history"] + [{"role": "user", "content": m.text[:ai_manager.MAX_INPUT]}],
-                                            turns=session["turns"], catalog=ai_catalog(), reason=slot, client_text=m.text)
+            result = ai_manager.close_turn(fields=session["fields"], history=session["history"] + [{"role": "user", "content": (client_text or "")[:ai_manager.MAX_INPUT]}],
+                                            turns=session["turns"], catalog=ai_catalog(), reason=slot, client_text=client_text)
             await _ai_commit(m, state, session, result)
             return
         if session.get("ticket_id"):
@@ -1043,18 +1171,23 @@ async def handle_ai_message(m: Message, state: FSMContext):
                     ai_manager.add_paid_spend(conn, amount)
 
             return await ai_manager.chat_complete(
-                messages, nvidia_keys=NVIDIA_KEYS, mistral_keys=MISTRAL_KEYS, mistral_models=MISTRAL_MODELS,
-                paid_keys=PAID_KEYS, paid_models=PAID_MODELS, paid_base_url=PAID_BASE_URL,
+                messages, paid_keys=PAID_KEYS, paid_models=PAID_MODELS, paid_base_url=PAID_BASE_URL,
                 paid_spent=spent, paid_cap=PAID_DAILY_RUB_CAP, on_paid_cost=charge)
 
-        result = await ai_manager.run_turn(client_text=m.text, fields=session["fields"], history=session["history"],
-                                            turns=session["turns"], catalog=ai_catalog(), complete=complete)
+        result = await ai_manager.run_turn(client_text=client_text, fields=session["fields"], history=session["history"],
+                                            turns=session["turns"], catalog=ai_catalog(), complete=complete, image=image)
+        if picture or speech:
+            user_lines = [item.get("content") for item in result["history"] if item.get("role") == "user" and item.get("content")]
+            note = user_lines[-1] if user_lines else media_note
+            session.setdefault("media", []).append({"chat_id": m.chat.id, "message_id": m.message_id, "note": str(note)[:500]})
+            session["media"] = session["media"][-6:]
         if result["handoff"]:
             await _ai_commit(m, state, session, result)
             return
         with db() as conn:
             saved = ai_manager.load_session(conn, uid) or session
-            saved.update(fields=result["fields"], history=result["history"], turns=result["turns"], updated_at=time.time())
+            saved.update(fields=result["fields"], history=result["history"], turns=result["turns"],
+                         media=session.get("media") or [], updated_at=time.time())
             ai_manager.save_session(conn, uid, saved)
         await m.answer(escape(result["reply"]), reply_markup=ai_reply_kb(uid, in_session=True))
 
@@ -1065,6 +1198,17 @@ async def ai_client_message(m: Message, state: FSMContext):
         return
     await handle_ai_message(m, state)
 
+@dispatcher.callback_query(F.data == "ai:start")
+async def ai_start_button(q: CallbackQuery, state: FSMContext):
+    if not q.from_user:
+        await q.answer(); return
+    await q.answer()
+    target = q.message if q.message and q.message.chat.type == "private" else None
+    if target is None:
+        await bot.send_message(q.from_user.id, "Откройте диалог с ботом и напишите /ai")
+        return
+    await handle_ai_message(target, state, user=q.from_user, enter=True)
+
 @dispatcher.message(F.chat.type == "private")
 async def client_message(m: Message, state: FSMContext):
     user = touch_user(m.from_user)
@@ -1074,7 +1218,7 @@ async def client_message(m: Message, state: FSMContext):
     with db() as conn:
         t = open_ticket(conn, m.from_user.id)
         tid = t["id"] if t else new_ticket(conn, m.from_user, "question", None, "", m.date.timestamp(), source=origin)
-    relay_to_admin(m, tid)
+    relay_to_admin(m, tid, await message_transcript(m))
     ack(m, "✉️ <b>Передал менеджеру</b>\nОтветим здесь в течение часа, 9:00–22:00 МСК.", force=not t)
 
 # ---------------------------------------------------------------- polling
@@ -1100,8 +1244,8 @@ async def lifespan(app):
         build_routes()
         bot = Bot(BOT_TOKEN, session=ROUTES["direct"], default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         STATE["last_ok"] = time.time()
-        log.info("AI manager mode=%s nvidia_keys=%s mistral_keys=%s paid_keys=%s mistral_models=%s paid_models=%s daily_cap=%s paid_rub_cap=%s",
-                 AI_MODE, bool(NVIDIA_KEYS), bool(MISTRAL_KEYS), bool(PAID_KEYS), ",".join(MISTRAL_MODELS), ",".join(PAID_MODELS), AI_DAILY_CAP, PAID_DAILY_RUB_CAP)
+        log.info("AI manager mode=%s paid_keys=%s paid_models=%s stt_model=%s daily_cap=%s paid_rub_cap=%s",
+                 AI_MODE, bool(PAID_KEYS), ",".join(PAID_MODELS), STT_MODEL, AI_DAILY_CAP, PAID_DAILY_RUB_CAP)
         tasks = [asyncio.create_task(c()) for c in (polling_worker, outbox_worker, health_worker)]
     yield
     for task in tasks:

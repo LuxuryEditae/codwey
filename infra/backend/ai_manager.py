@@ -29,15 +29,12 @@ SESSION_TTL = 86400
 HTTP_TIMEOUT = 20
 MISTRAL_BACKOFF = 1.5
 CALL_BUDGET = 25.0
-MAX_NVIDIA_CALLS = 4
-MAX_TIMEOUTS = 2
+STT_TIMEOUT = 60
+STT_MAX_SECONDS = 120
+STT_MAX_BYTES = 8 * 1024 * 1024
+MAX_IMAGE_BYTES = 5 * 1024 * 1024
+DEFAULT_STT_MODEL = "openai/whisper-large-v3-turbo"
 
-NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions"
-NVIDIA_MODELS = (
-    "nvidia/nemotron-3.5-super-vl-120b-a12b",
-    "nvidia/nemotron-3.5-lightning-30b-a3b",
-)
 DEFAULT_MISTRAL_MODELS = (
     "ministral-8b-latest",
     "open-mistral-nemo",
@@ -163,11 +160,20 @@ def paid_completions_url(base):
     return root + "/chat/completions"
 
 
-def enabled_for(mode, is_admin):
+def parse_ids(raw):
+    ids = []
+    for chunk in str(raw or "").replace("\n", ",").split(","):
+        piece = chunk.strip()
+        if piece.lstrip("-").isdigit():
+            ids.append(int(piece))
+    return ids
+
+
+def enabled_for(mode, is_admin, allowed=False):
     if mode == "all":
         return True
     if mode == "admin_only":
-        return bool(is_admin)
+        return bool(is_admin or allowed)
     return False
 
 
@@ -348,7 +354,11 @@ def parse_model_json(raw):
         want = data.get("want_human")
         if want is None:
             want = data.get("handoff")
-        return {"reply": reply.strip(), "fields": fields, "want_human": bool(want)}
+        note = data.get("image_note")
+        if not isinstance(note, str):
+            note = None
+        return {"reply": reply.strip(), "fields": fields, "want_human": bool(want),
+                "image_note": note.strip() if note else None}
     return None
 
 
@@ -402,18 +412,39 @@ def template_question(field):
     return TEMPLATES.get(field) or TEMPLATES["business"]
 
 
-def model_messages(history, ask_only, fields, client_text):
+def photo_history_line(image_note, caption=""):
+    """Short text for history and the brief. Never keeps bytes or a data URL."""
+    note = clean_scalar(image_note, 80) or ""
+    if not note or "base64" in note.lower() or note.lower().startswith("data:"):
+        note = "изображение"
+    line = f"[фото: {note}]"
+    cap = clean_scalar(caption, 300)
+    if cap:
+        line = f"{line}\n{cap}"
+    return line[:MAX_INPUT]
+
+
+def model_messages(history, ask_only, fields, client_text, image=None):
     payload = json.dumps(
         {"ask_only": ask_only, "known": public_fields(fields), "client_text": (client_text or "")[:MAX_INPUT]},
         ensure_ascii=False,
     )
+    if image:
+        payload += "\nЕсли приложено изображение, добавь в JSON image_note: до 80 символов, что на нём. Не вставляй base64."
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     for item in history[-HISTORY_CAP:]:
         role = item.get("role")
         if role not in ("user", "assistant"):
             continue
         messages.append({"role": role, "content": str(item.get("content") or "")[:MAX_INPUT]})
-    messages.append({"role": "user", "content": payload})
+    if image:
+        mime = image.get("mime") or "image/jpeg"
+        messages.append({"role": "user", "content": [
+            {"type": "text", "text": payload},
+            {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{image.get('b64') or ''}"}},
+        ]})
+    else:
+        messages.append({"role": "user", "content": payload})
     return messages
 
 
@@ -531,6 +562,9 @@ def ensure_schema(conn):
           rub REAL NOT NULL
         );
     """)
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(ai_sessions)")}
+    if "media" not in cols:
+        conn.execute("ALTER TABLE ai_sessions ADD COLUMN media TEXT NOT NULL DEFAULT '[]'")
 
 
 def paid_spent(conn, now=None):
@@ -574,27 +608,34 @@ def load_session(conn, user_id):
         history = []
     merged = empty_fields()
     merged.update({k: fields.get(k) for k in FIELD_ORDER})
+    try:
+        media = json.loads(row["media"]) if "media" in row.keys() else []
+    except (TypeError, json.JSONDecodeError, IndexError):
+        media = []
+    if not isinstance(media, list):
+        media = []
     return {
         "fields": merged, "history": history, "turns": int(row["turns"] or 0),
         "ticket_id": row["ticket_id"], "last_at": row["last_at"] or 0,
         "day": row["day"] or "", "day_count": int(row["day_count"] or 0),
-        "updated_at": row["updated_at"] or 0,
+        "updated_at": row["updated_at"] or 0, "media": media,
     }
 
 
 def save_session(conn, user_id, session):
     ensure_schema(conn)
     conn.execute(
-        """INSERT INTO ai_sessions (user_id, fields, history, turns, ticket_id, last_at, day, day_count, updated_at)
-           VALUES (?,?,?,?,?,?,?,?,?)
+        """INSERT INTO ai_sessions (user_id, fields, history, turns, ticket_id, last_at, day, day_count, updated_at, media)
+           VALUES (?,?,?,?,?,?,?,?,?,?)
            ON CONFLICT(user_id) DO UPDATE SET
              fields=excluded.fields, history=excluded.history, turns=excluded.turns,
              ticket_id=excluded.ticket_id, last_at=excluded.last_at, day=excluded.day,
-             day_count=excluded.day_count, updated_at=excluded.updated_at""",
+             day_count=excluded.day_count, updated_at=excluded.updated_at, media=excluded.media""",
         (user_id, json.dumps(public_fields(session["fields"]), ensure_ascii=False),
          json.dumps(trim_history(session["history"]), ensure_ascii=False), int(session["turns"]),
          session.get("ticket_id"), float(session.get("last_at") or 0), session.get("day") or "",
-         int(session.get("day_count") or 0), float(session.get("updated_at") or time.time())),
+         int(session.get("day_count") or 0), float(session.get("updated_at") or time.time()),
+         json.dumps(session.get("media") or [], ensure_ascii=False)),
     )
 
 
@@ -608,7 +649,7 @@ def begin_session(conn, user_id, now=None):
         return current
     fresh = {"fields": empty_fields(), "history": [], "turns": 0, "ticket_id": None,
              "last_at": 0, "day": current["day"] if current else "", "day_count": current["day_count"] if current else 0,
-             "updated_at": now}
+             "updated_at": now, "media": []}
     if current and current["day"] != day_key(now):
         fresh["day"] = day_key(now)
         fresh["day_count"] = 0
@@ -655,22 +696,27 @@ async def _one_completion(complete, messages):
     return raw, parse_model_json(raw), None
 
 
-async def run_turn(*, client_text, fields, history, turns, catalog, complete):
-    """One client message. `complete(messages)` returns raw model text or raises ProviderFailed."""
+async def run_turn(*, client_text, fields, history, turns, catalog, complete, image=None):
+    """One client message. `complete(messages)` returns raw model text or raises ProviderFailed.
+
+    `image` is {"mime", "b64"} for this turn only. History stores a short note, not the bytes.
+    """
     text = " ".join((client_text or "").split())[:MAX_INPUT]
     fields = merge_fields(fields, {})
     history = trim_history(history)
     if turns >= MAX_TURNS:
         return _done(fields, trim_history(history + [{"role": "user", "content": text}]), turns, catalog, "limit", text)
     ask_only = next_missing(fields) or "timeline"
-    messages = model_messages(history, ask_only, fields, text)
+    model_text = text or ("Клиент прислал изображение." if image else "")
+    messages = model_messages(history, ask_only, fields, model_text, image=image)
     parsed = None
     answered = None
     try:
         raw, parsed, answered = await _one_completion(complete, messages)
     except ProviderFailed:
         log.info("AI providers failed, handoff")
-        return _done(fields, trim_history(history + [{"role": "user", "content": text}]), turns + 1, catalog, "provider", text, model_used=False)
+        failed_line = photo_history_line(None, text) if image else text
+        return _done(fields, trim_history(history + [{"role": "user", "content": failed_line}]), turns + 1, catalog, "provider", text, model_used=False)
     chosen = parsed if _accept(parsed, ask_only) else None
     if chosen is None:
         reason = guard_reason(parsed["reply"]) if parsed else "schema"
@@ -705,7 +751,15 @@ async def run_turn(*, client_text, fields, history, turns, catalog, complete):
     human = wants_human(text) or trusted_human
     ready = is_ready(merged)
     new_turns = turns + 1
-    new_history = trim_history(history + [{"role": "user", "content": text}])
+    if image:
+        note = None
+        for item in (parsed, parsed_retry):
+            if item and item.get("image_note"):
+                note = item["image_note"]
+        user_line = photo_history_line(note, text)
+    else:
+        user_line = text
+    new_history = trim_history(history + [{"role": "user", "content": user_line}])
     if human or ready or new_turns >= MAX_TURNS:
         reason = "human" if human else "ready" if ready else "limit"
         return _done(merged, new_history, new_turns, catalog, reason, text, model_used=bool(chosen), provider=answered)
@@ -805,22 +859,30 @@ def _urllib_post(url, key, payload, timeout):
         raise TimeoutError from None
 
 
-async def chat_complete(messages, *, nvidia_keys, mistral_keys, mistral_models=None, paid_keys=None, paid_models=None,
-                         paid_base_url=None, paid_spent=0.0, paid_cap=DEFAULT_PAID_CAP, on_paid_cost=None,
-                         post=None, sleep=None, clock=None, budget=CALL_BUDGET):
-    """NVIDIA if it has keys, then Mistral, then the paid endpoint if the budget allows.
+def stt_url(base):
+    root = (base or DEFAULT_PAID_BASE).strip().rstrip("/")
+    if root.endswith("/audio/transcriptions"):
+        return root
+    return root + "/audio/transcriptions"
 
-    One 1.5s backoff per message. The whole attempt stops at `budget` seconds
-    (default 25) and the caller hands the client to a person. A paid daily total
-    already at `paid_cap` skips the paid provider.
-    """
+
+def stt_skip_reason(duration=None, size=None):
+    if duration and int(duration) > STT_MAX_SECONDS:
+        return "long"
+    if size and int(size) > STT_MAX_BYTES:
+        return "large"
+    return None
+
+
+async def chat_complete(messages, *, paid_keys, paid_models=None, paid_base_url=None, paid_spent=0.0,
+                         paid_cap=DEFAULT_PAID_CAP, on_paid_cost=None, post=None, sleep=None, clock=None,
+                         budget=CALL_BUDGET):
+    """Paid OpenAI-compatible chat only. One 1.5s backoff, then the next key. Stops at 25s."""
     post = post or default_post
     sleep = sleep or asyncio.sleep
     clock = clock or time.monotonic
-    models = list(mistral_models) if mistral_models else list(DEFAULT_MISTRAL_MODELS)
     paid_model_list = list(paid_models) if paid_models else list(DEFAULT_PAID_MODELS)
     deadline = clock() + budget
-    timeouts = 0
     backed_off = False
 
     def remaining():
@@ -828,7 +890,6 @@ async def chat_complete(messages, *, nvidia_keys, mistral_keys, mistral_models=N
 
     async def call(url, key, model, provider):
         """Return ('ok', content, cost), ('timeout', None, None), ('budget', None, None) or ('next', status, None)."""
-        nonlocal timeouts
         left = remaining()
         if left < 0.5:
             return "budget", None, None
@@ -838,7 +899,6 @@ async def chat_complete(messages, *, nvidia_keys, mistral_keys, mistral_models=N
         try:
             status, body = await post(url, key, payload, min(HTTP_TIMEOUT, left))
         except TimeoutError:
-            timeouts += 1
             log.info("AI timeout provider=%s model=%s", provider, short)
             return "timeout", None, None
         elapsed = int((clock() - started) * 1000)
@@ -867,40 +927,6 @@ async def chat_complete(messages, *, nvidia_keys, mistral_keys, mistral_models=N
         backed_off = True
         await sleep(MISTRAL_BACKOFF)
 
-    if nvidia_keys:
-        nvidia_calls = 0
-        for model in NVIDIA_MODELS:
-            if timeouts >= MAX_TIMEOUTS or remaining() < 0.5:
-                break
-            for key in nvidia_keys:
-                if nvidia_calls >= MAX_NVIDIA_CALLS or timeouts >= MAX_TIMEOUTS or remaining() < 0.5:
-                    break
-                nvidia_calls += 1
-                kind, content, cost = await call(NVIDIA_URL, key, model, "nvidia")
-                done = accept(kind, content, cost, "nvidia", model)
-                if done:
-                    return done
-                if kind == "budget":
-                    raise ProviderFailed()
-                if kind == "timeout":
-                    break  # do not spend another long wait on every remaining key of this model
-                await maybe_backoff(content)
-    else:
-        log.info("AI nvidia skipped (no keys)")
-    if mistral_keys:
-        for model in models:
-            for key in mistral_keys:
-                if remaining() < 0.5:
-                    raise ProviderFailed()
-                kind, content, cost = await call(MISTRAL_URL, key, model, "mistral")
-                done = accept(kind, content, cost, "mistral", model)
-                if done:
-                    return done
-                if kind == "budget":
-                    raise ProviderFailed()
-                if kind == "timeout":
-                    continue
-                await maybe_backoff(content)
     if paid_keys:
         if float(paid_spent) >= float(paid_cap):
             log.info("AI paid skipped daily_rub=%.4f", float(paid_spent))
@@ -921,4 +947,112 @@ async def chat_complete(messages, *, nvidia_keys, mistral_keys, mistral_models=N
                     if kind == "timeout":
                         continue
                     await maybe_backoff(content)
+    raise ProviderFailed()
+
+
+def _transcript_text(body):
+    try:
+        data = json.loads(body)
+    except (TypeError, json.JSONDecodeError):
+        return None
+    text = data.get("text") if isinstance(data, dict) else None
+    if isinstance(text, str) and text.strip():
+        return " ".join(text.split())[:MAX_INPUT]
+    return None
+
+
+async def default_post_audio(url, key, fields, file, timeout):
+    """Multipart POST. `file` is (filename, bytes, mime). The key is not logged."""
+    filename, audio, mime = file
+    try:
+        import aiohttp
+    except ImportError:
+        aiohttp = None
+    if aiohttp is not None:
+        form = aiohttp.FormData()
+        for name, value in fields.items():
+            form.add_field(name, value)
+        form.add_field("file", audio, filename=filename, content_type=mime)
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
+                async with session.post(url, data=form, headers={"Authorization": f"Bearer {key}"}) as response:
+                    return response.status, await response.text()
+        except asyncio.TimeoutError:
+            raise
+        except Exception as exc:
+            log.warning("AI stt transport error %s", type(exc).__name__)
+            raise TimeoutError from None
+    return await asyncio.to_thread(_urllib_audio, url, key, fields, file, timeout)
+
+
+def _urllib_audio(url, key, fields, file, timeout):
+    import urllib.error
+    import urllib.request
+    filename, audio, mime = file
+    boundary = "codwaystt"
+    chunks = []
+    for name, value in fields.items():
+        chunks.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}\r\n".encode())
+    chunks.append(
+        f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{filename}\"\r\n"
+        f"Content-Type: {mime}\r\n\r\n".encode() + audio + b"\r\n")
+    chunks.append(f"--{boundary}--\r\n".encode())
+    body = b"".join(chunks)
+    request = urllib.request.Request(
+        url, data=body, method="POST",
+        headers={"Authorization": f"Bearer {key}", "Content-Type": f"multipart/form-data; boundary={boundary}"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return response.status, response.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as exc:
+        return exc.code, exc.read().decode("utf-8", "replace")
+    except TimeoutError:
+        raise
+    except Exception as exc:
+        log.warning("AI stt transport error %s", type(exc).__name__)
+        raise TimeoutError from None
+
+
+async def transcribe(audio, *, filename, mime, paid_keys, model=None, base_url=None, post=None, sleep=None, clock=None):
+    """Transcribe with polza /audio/transcriptions. 60s budget, language ru. Raises ProviderFailed."""
+    post = post or default_post_audio
+    sleep = sleep or asyncio.sleep
+    clock = clock or time.monotonic
+    stt_model = (model or DEFAULT_STT_MODEL).strip() or DEFAULT_STT_MODEL
+    url = stt_url(base_url)
+    deadline = clock() + STT_TIMEOUT
+    backed_off = False
+    fields = {"model": stt_model, "language": "ru"}
+
+    async def once(key):
+        left = deadline - clock()
+        if left < 0.5:
+            return "budget", None
+        try:
+            status, body = await post(url, key, fields, (filename, audio, mime), min(STT_TIMEOUT, left))
+        except TimeoutError:
+            log.info("AI stt timeout model=%s", stt_model)
+            return "timeout", None
+        log.info("AI stt model=%s status=%s", stt_model, status)
+        if status == 200:
+            text = _transcript_text(body)
+            if text:
+                return "ok", text
+        return "next", status
+
+    for key in paid_keys or []:
+        if deadline - clock() < 0.5:
+            break
+        kind, payload = await once(key)
+        if kind == "ok":
+            log.info("AI stt answered model=%s", stt_model)
+            return payload
+        if kind == "next" and payload == 429 and not backed_off and deadline - clock() >= MISTRAL_BACKOFF:
+            backed_off = True
+            await sleep(MISTRAL_BACKOFF)
+            kind, payload = await once(key)
+            if kind == "ok":
+                log.info("AI stt answered model=%s", stt_model)
+                return payload
     raise ProviderFailed()
