@@ -28,7 +28,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .lbl{font:500 11px/1.4 var(--g);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
 .lbl b{color:var(--ink);font-weight:500}
 .ser{font-family:var(--s);font-weight:300;letter-spacing:-.01em}
-h1,h2,h3,.ser,.num b,.sv .pr b,.c-tot,.c-area,.g b,.plat b,.stp li small b,.ftr .ph a,.ftr .wm{font-variant-numeric:lining-nums}
+h1,h2,h3,.ser,.num b,.sv .pr b,.c-tot,.c-area,.g b,.plat b,.stp li small b,.ftr .ph .demo-phone,.ftr .wm{font-variant-numeric:lining-nums}
 h1,h2,h3{font-family:var(--s);font-weight:300;letter-spacing:-.015em;line-height:1.02}
 h2{font-size:clamp(40px,5vw,76px)}
 h2 em,h1 em{font-style:italic;color:var(--clay)}
@@ -260,7 +260,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .ftr h4{font:500 11px/1 var(--g);letter-spacing:.16em;text-transform:uppercase;color:#7c766c;margin-bottom:16px}
 .ftr ul{list-style:none}.ftr li{padding:3px 0}.ftr a:hover{color:var(--bg)}
 .ftr .ph{grid-column:11/13;font-size:14px}
-.ftr .ph a{display:block;color:var(--bg);font:400 26px/1.2 var(--s);margin-bottom:6px}
+.ftr .ph .demo-phone{display:block;color:var(--bg);font:400 26px/1.2 var(--s);margin-bottom:6px}
 .ftr .cp{grid-column:1/13;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:60px;padding-top:24px;border-top:1px solid #3a3833;font-size:12px;color:#7c766c}
 /* modal */
 .modal{position:fixed;inset:0;z-index:200;background:rgba(30,29,27,.55);backdrop-filter:blur(3px);display:grid;place-items:center;padding:20px;opacity:0;visibility:hidden;transition:.35s}
@@ -353,7 +353,7 @@ body{font-size:15px}
 <header class="hdr"><div class="wrap">
 <a href="#" class="logo" aria-label="Квадрат — на главную"><i></i>Квадрат</a>
 <nav class="nav"><a href="#services">Услуги и цены</a><a href="#calc-s">Калькулятор</a><a href="#works">Портфолио</a><a href="#steps">Этапы</a><a href="#team">Гарантия</a><a href="#contacts">Контакты</a></nav>
-<a class="hph" href="tel:+74950000000">+7 (495) 000-00-00</a>
+<span class="hph">+7 (495) 000-00-00</span>
 <button class="burger" data-burger aria-label="Меню"><span></span></button>
 </div></header>
 
@@ -503,7 +503,7 @@ body{font-size:15px}
 <label class="agree"><input type="checkbox" required checked> Согласен на обработку персональных данных</label>
 <button class="btn">Отправить заявку <i>→</i></button>
 </form>
-<div class="ct"><div><small>Телефон</small><a href="tel:+74950000000">+7 (495) 000-00-00</a></div><div><small>Почта</small>info@kvadrat-remont.ru</div><div><small>Офис</small>ул. Электрозаводская, 27с4</div></div>
+<div class="ct"><div><small>Телефон</small><span>+7 (495) 000-00-00</span></div><div><small>Почта</small>info@kvadrat-remont.ru</div><div><small>Офис</small>ул. Электрозаводская, 27с4</div></div>
 </div>
 </div></section>
 
@@ -512,7 +512,7 @@ body{font-size:15px}
 <div class="co"><p>ООО «Квадрат Строй»<br>Москва, ул. Электрозаводская, 27с4, офис 312<br>Ежедневно 8:00–21:00</p></div>
 <div class="col"><h4>Услуги</h4><ul><li><a href="#services">Косметический</a></li><li><a href="#services">Капитальный</a></li><li><a href="#services">Дизайнерский</a></li><li><a href="#services">Санузел под ключ</a></li></ul></div>
 <div class="col"><h4>Бюро</h4><ul><li><a href="#works">Портфолио</a></li><li><a href="#steps">Этапы работ</a></li><li><a href="#team">Гарантия</a></li><li><a href="#reviews">Отзывы</a></li></ul></div>
-<div class="ph"><h4>Связаться</h4><a href="tel:+74950000000">+7 (495) 000-00-00</a>info@kvadrat-remont.ru</div>
+<div class="ph"><h4>Связаться</h4><span class="demo-phone">+7 (495) 000-00-00</span>info@kvadrat-remont.ru</div>
 <div class="cp"><span>© 2014–2026 «Квадрат». Демо-сайт: компания, цены и отзывы вымышлены. Фото — Unsplash.</span><span>Сайт сделан в CodWay</span></div>
 </div></footer>
 

@@ -495,7 +495,7 @@ def prices_text():
         lines.append(f"• {escape(p['label'])} — от <b>{money(p['min'])} ₽</b>, {days}")
     lines.append("\n<b>Доп. модули</b>")
     lines += [f"• {escape(f['label'])} — от {money(f['min'])} ₽" for f in PRICING["features"]]
-    lines.append("\n<b>Готовые решения</b> (запуск 1–3 дня)")
+    lines.append("\n<b>Готовые решения</b>\nСроки подберём под вас — можно очень быстро, можно спокойно.")
     lines += [f"• {escape(s['title'])} — {money(s['price'])} ₽" for s in SOLUTIONS.values()]
     lines.append("\nОплата 50/50, 30 дней бесплатных правок, код передаём вам.\nПодробно: https://codway.su/ceny")
     return "\n".join(lines)
@@ -510,7 +510,7 @@ def demo_url(s):
     return f"{SITE_URL}/demo/{s['id']}/"
 
 def catalog_text():
-    lines = ["🧩 <b>Готовые решения CodWay</b>\n", "Уже собранная основа — подстроим под ваш бизнес за 1–3 дня. "
+    lines = ["🧩 <b>Готовые решения CodWay</b>\n", "Уже собранная основа — адаптируем под ваш бизнес. Сроки подберём под вас — можно очень быстро, можно спокойно. "
              "Выберите решение, чтобы открыть демо или оставить заявку.\n"]
     for g, icon, title in CATALOG_GROUPS:
         items = [x for x in SOLUTIONS.values() if x["project"] == g]
@@ -530,7 +530,7 @@ def catalog_kb():
 def item_text(x):
     feats = "\n".join(f"✓ {escape(f)}" for f in x.get("features", []))
     return (f"{GROUP_ICON.get(x['project'], '🧩')} <b>{escape(x['title'])}</b>\n"
-            f"<b>{money(x['price'])} ₽</b> · запуск за 1–3 дня\n\n{escape(x['description'])}\n\n{feats}\n\n"
+            f"<b>{money(x['price'])} ₽</b>\nСроки подберём под вас — можно очень быстро, можно спокойно.\n\n{escape(x['description'])}\n\n{feats}\n\n"
             "Откройте демо, чтобы попробовать, или нажмите «Хочу такой» — менеджер свяжется с вами здесь.")
 
 def item_kb(x):
@@ -573,10 +573,9 @@ async def start(message: Message, state: FSMContext):
     if user["blocked"]:
         return
     await state.clear()
-    await message.answer("Здравствуйте! Это <b>CodWay</b> — делаем Telegram-ботов, Mini Apps, сайты и парсеры. "
-                         "Бот от 4 900 ₽, Mini App от 14 900 ₽, сайт от 9 900 ₽, оплата 50/50.\n\n"
-                         f"«{CATALOG_BTN}» — боты, Mini Apps и сайты с демо, которые можно запустить за 1–3 дня. "
-                         "«📝 Оставить заявку» — разработка под вашу задачу. Или просто напишите вопрос — ответит живой разработчик.", reply_markup=MENU)
+    await message.answer("Здравствуйте! <b>CodWay</b> — боты от 4 900 ₽, Mini Apps от 14 900 ₽, сайты от 9 900 ₽ и парсеры. "
+                         "Оплата 50/50. Готовые решения с демо — в каталоге, своё — через «Оставить заявку». "
+                         "Или напишите вопрос — ответит живой разработчик.", reply_markup=MENU)
     if arg.startswith("demo_") and arg[5:] in SOLUTIONS:  # visitor came from a demo on codway.su
         s = SOLUTIONS[arg[5:]]
         await message.answer(item_text(s), reply_markup=item_kb(s), disable_web_page_preview=True)

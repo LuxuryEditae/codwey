@@ -33,7 +33,7 @@
     var old = host.querySelector(".dsheet"); if (old) old.remove();
     var el = document.createElement("div");
     el.className = "dsheet";
-    el.innerHTML = '<div class="dsheet-bg"></div><div class="dsheet-card" role="dialog" aria-modal="true" aria-label="Это демо"><i class="dsheet-grab"></i><div class="dsheet-ic">✓</div><b>Это демо-версия</b><p>' + (what || "В настоящем решении здесь прошла бы оплата и заказ.") + '</p><p class="dsheet-sub">Хотите такое же решение для своего бизнеса? Соберём под вас за 1–3 дня — напишите в бот, ответим в течение часа.</p><button class="dsheet-go" type="button">Обсудить в @codwey_bot</button><button class="dsheet-x" type="button">Продолжить демо</button></div>';
+    el.innerHTML = '<div class="dsheet-bg"></div><div class="dsheet-card" role="dialog" aria-modal="true" aria-label="Это демо"><i class="dsheet-grab"></i><div class="dsheet-ic">✓</div><b>Это демо-версия</b><p>' + (what || "В настоящем решении здесь прошла бы оплата и заказ.") + '</p><p class="dsheet-sub">Хотите такое же решение для своего бизнеса? Сроки подберём под вас — можно очень быстро, можно спокойно. Напишите в бот — ответим в течение часа.</p><button class="dsheet-go" type="button">Обсудить в @codwey_bot</button><button class="dsheet-x" type="button">Продолжить демо</button></div>';
     host.appendChild(el);
     requestAnimationFrame(function () { el.classList.add("on"); });
     var shut = function () { el.classList.remove("on"); setTimeout(function () { el.remove(); }, 300); };
