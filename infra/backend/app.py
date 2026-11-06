@@ -42,6 +42,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 import psutil
 
+import ai_manager
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logging.getLogger("aiogram.event").setLevel(logging.WARNING)
 log = logging.getLogger("codwey")
@@ -58,6 +60,23 @@ TELEGRAM_API_BASE = os.getenv("TELEGRAM_API_BASE", "").strip().rstrip("/")
 TELEGRAM_PROXY = os.getenv("TELEGRAM_PROXY", "").strip()
 SMTP = {k: os.getenv(k, "") for k in ("SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM")}
 ALERT_EMAIL = os.getenv("ALERT_EMAIL", "coddweyy@gmail.com")
+AI_MODE = ai_manager.parse_mode(os.getenv("AI_MANAGER_MODE"))
+NVIDIA_KEYS = ai_manager.parse_keys(os.getenv("NVIDIA_KEYS", ""))
+MISTRAL_KEYS = ai_manager.parse_keys(os.getenv("MISTRAL_KEYS", ""))
+
+def _positive_int(name, default):
+    try:
+        value = int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+    return value if value > 0 else default
+
+AI_DAILY_CAP = _positive_int("AI_DAILY_CAP", 800)
+AI_USER_DAILY = _positive_int("AI_USER_DAILY", ai_manager.USER_DAILY)
+try:
+    AI_USER_INTERVAL = float(os.getenv("AI_USER_INTERVAL", str(ai_manager.USER_INTERVAL)))
+except ValueError:
+    AI_USER_INTERVAL = ai_manager.USER_INTERVAL
 RATE_SALT = hashlib.sha256((BOT_TOKEN or "local-development").encode()).digest()
 MSK = ZoneInfo("Europe/Moscow")
 DELAY_NOTE_AFTER = 300
@@ -71,6 +90,7 @@ bot: Bot | None = None
 dispatcher = Dispatcher()
 outbox_event = asyncio.Event()
 STATE = {"route": "direct", "last_ok": 0.0, "fail_streak": 0, "last_alert": 0.0, "alert_note": ""}
+AI_LOCKS: dict[int, asyncio.Lock] = {}
 
 # ---------------------------------------------------------------- database
 @contextmanager
@@ -119,6 +139,7 @@ def init_db():
             failed INTEGER NOT NULL DEFAULT 0, last_error TEXT);
           CREATE INDEX IF NOT EXISTS outbox_due ON outbox(sent_at, failed, next_attempt);
         """)
+        ai_manager.ensure_schema(conn)
         if ADMIN_ID:
             conn.execute("INSERT INTO settings VALUES ('admin_id',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (str(int(ADMIN_ID)),))
         cols = {row[1] for row in conn.execute("PRAGMA table_info(orders)")}
@@ -185,6 +206,8 @@ def source_text(t):
         return "Форма сайта" + (f" · заявка №{t['order_id']}" if t["order_id"] else "")
     if src.startswith("demo_"):
         return "Демо → бот · " + escape(src)
+    if src == "ai":
+        return "AI-менеджер"
     return "Бот"
 
 def ticket_card(t, order=None):
@@ -451,11 +474,40 @@ class Req(StatesGroup):
     description = State()
     files = State()
 
+class Ai(StatesGroup):
+    chat = State()
+
 CATALOG_BTN = "🧩 Готовые решения"
-MENU = ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True, keyboard=[
-    [KeyboardButton(text="📝 Оставить заявку"), KeyboardButton(text=CATALOG_BTN)],
-    [KeyboardButton(text="💬 Написать менеджеру"), KeyboardButton(text="💰 Цены")],
-    [KeyboardButton(text="📂 Мои заявки"), KeyboardButton(text="📞 Контакты")]])
+
+def menu_rows(include_ai):
+    rows = [
+        [KeyboardButton(text="📝 Оставить заявку"), KeyboardButton(text=CATALOG_BTN)],
+        [KeyboardButton(text="💬 Написать менеджеру"), KeyboardButton(text="💰 Цены")],
+        [KeyboardButton(text="📂 Мои заявки"), KeyboardButton(text="📞 Контакты")],
+    ]
+    if include_ai:
+        rows.append([KeyboardButton(text=ai_manager.AI_BTN)])
+    return rows
+
+def menu_kb(user_id):
+    return ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True,
+                               keyboard=menu_rows(ai_manager.enabled_for(AI_MODE, is_admin(user_id))))
+
+def ai_session_kb(user_id):
+    return ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True,
+                               keyboard=[[KeyboardButton(text=ai_manager.AI_EXIT)], *menu_rows(False)])
+
+def ai_reply_kb(user_id, in_session=False):
+    """Admins only get the AI button, so the client menu is not forced onto the owner chat."""
+    if is_admin(user_id):
+        if not ai_manager.enabled_for(AI_MODE, True):
+            return None
+        label = ai_manager.AI_EXIT if in_session else ai_manager.AI_BTN
+        return ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True, keyboard=[[KeyboardButton(text=label)]])
+    return ai_session_kb(user_id) if in_session else menu_kb(user_id)
+
+def ai_catalog():
+    return {"projects": PROJECTS, "features": FEATURES, "tiers": PRICING.get("tiers") or [], "solutions": SOLUTIONS}
 FILES_KB = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [KeyboardButton(text="✅ Готово")], [KeyboardButton(text="📱 Поделиться телефоном", request_contact=True)]])
 
@@ -479,7 +531,7 @@ def open_ticket(conn, uid):
     return conn.execute("SELECT * FROM tickets WHERE user_id=? AND status!='closed' ORDER BY id DESC LIMIT 1", (uid,)).fetchone()
 
 def new_ticket(conn, u, service, solution_id, description, orig, source="bot"):
-    if not (source.startswith("demo_") and source[5:] in SOLUTIONS):
+    if source != "ai" and not (source.startswith("demo_") and source[5:] in SOLUTIONS):
         source = "bot"
     cur = conn.execute("INSERT INTO tickets (user_id,username,name,contact,source,service,solution_id,description,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
                        (u.id, u.username, u.full_name, "@" + u.username if u.username else None, source, service, solution_id, description, orig, time.time()))
@@ -586,7 +638,7 @@ async def start(message: Message, state: FSMContext):
         with db() as conn:
             conn.execute("INSERT OR IGNORE INTO settings VALUES ('admin_id',?)", (str(message.from_user.id),))
     if is_admin(message.from_user.id):
-        await message.answer(ADMIN_HELP)
+        await message.answer(ADMIN_HELP, reply_markup=ai_reply_kb(message.from_user.id, in_session=False))
         return
     user = touch_user(message.from_user)
     if user["blocked"]:
@@ -595,7 +647,7 @@ async def start(message: Message, state: FSMContext):
     await message.answer("👋 <b>CodWay</b> — боты, Mini Apps, сайты и парсеры\n"
                          "Боты от 4 900 ₽ · Mini Apps от 14 900 ₽\n"
                          "Сайты от 9 900 ₽\n"
-                         "👇 Выберите пункт или напишите вопрос.", reply_markup=MENU)
+                         "👇 Выберите пункт или напишите вопрос.", reply_markup=menu_kb(message.from_user.id))
     if arg.startswith("demo_") and arg[5:] in SOLUTIONS:  # visitor came from a demo on codway.su
         s = SOLUTIONS[arg[5:]]
         await state.update_data(entry_source=arg)
@@ -715,7 +767,12 @@ async def legacy_order_action(q: CallbackQuery):  # buttons on cards sent before
     await q.answer("Готово")
 
 @dispatcher.message(admin_only)
-async def admin_message(message: Message):
+async def admin_message(message: Message, state: FSMContext):
+    in_ai = await state.get_state() == Ai.chat.state
+    # A reply to a ticket still reaches the client, even if the admin is inside the AI dialog.
+    if message.text in (ai_manager.AI_BTN, ai_manager.AI_EXIT) or (in_ai and not message.reply_to_message):
+        await handle_ai_message(message, state)
+        return
     r = message.reply_to_message
     if not r and message.text in (CATALOG_BTN, "/catalog"):  # owner can preview the client catalog
         await message.answer(catalog_text(), reply_markup=catalog_kb(), disable_web_page_preview=True)
@@ -838,7 +895,7 @@ def client_tickets(uid, offset=0):
 async def my_tickets(m: Message):
     if await blocked(m): return
     text, kb = client_tickets(m.from_user.id)
-    await m.answer(text, reply_markup=kb or MENU)
+    await m.answer(text, reply_markup=kb or menu_kb(m.from_user.id))
 
 @dispatcher.callback_query(F.data.startswith("mine:"))
 async def my_tickets_page(q: CallbackQuery):
@@ -855,7 +912,7 @@ async def my_tickets_page(q: CallbackQuery):
 async def write_manager(m: Message, state: FSMContext):
     if await blocked(m): return
     await state.clear()
-    await m.answer("💬 <b>Напишите вопрос</b>\nМожно текстом, голосом или файлом. Ответим здесь.", reply_markup=MENU)
+    await m.answer("💬 <b>Напишите вопрос</b>\nМожно текстом, голосом или файлом. Ответим здесь.", reply_markup=menu_kb(m.from_user.id))
 
 @dispatcher.message(F.chat.type == "private", StateFilter(Req.service))
 async def req_service_text(m: Message, state: FSMContext):
@@ -878,12 +935,112 @@ async def req_files(m: Message, state: FSMContext):
     data = await state.get_data()
     if m.text == "✅ Готово":
         await state.clear()
-        await m.answer(f"✅ <b>Заявка №{data['ticket_id']} у менеджера</b>\nОтветим здесь в течение часа, 9:00–22:00 МСК.\nДополнения можно прислать сообщением.", reply_markup=MENU)
+        await m.answer(f"✅ <b>Заявка №{data['ticket_id']} у менеджера</b>\nОтветим здесь в течение часа, 9:00–22:00 МСК.\nДополнения можно прислать сообщением.", reply_markup=menu_kb(m.from_user.id))
         return
     relay_to_admin(m, data["ticket_id"])
     if m.contact:
         with db() as conn:
             conn.execute("UPDATE tickets SET contact=? WHERE id=?", (m.contact.phone_number, data["ticket_id"]))
+
+def _ai_lock(user_id):
+    lock = AI_LOCKS.get(user_id)
+    if lock is None:
+        lock = asyncio.Lock()
+        AI_LOCKS[user_id] = lock
+    return lock
+
+async def _ai_commit(m: Message, state: FSMContext, session, result):
+    """Create one ticket per AI session after the decision is already made. Confirmation follows the commit."""
+    contact = ai_manager.local_contact(m.from_user.username, m.from_user.id)
+    reason = result.get("reason") or "ready"
+    description = ai_manager.brief_text(result["fields"], result["history"], contact) + f"\nПричина: {reason}"
+    with db() as conn:
+        current = ai_manager.load_session(conn, m.from_user.id) or session
+        tid = current.get("ticket_id")
+        if not tid:
+            tid = new_ticket(conn, m.from_user, result.get("service_id") or "other", result.get("solution_id"),
+                             description, m.date.timestamp(), source="ai")
+            if result.get("plan_html"):
+                enqueue(conn, "admin", "text", None, {"html": result["plan_html"]}, time.time(), tid)
+        saved = ai_manager.load_session(conn, m.from_user.id) or {}
+        current.update(fields=result["fields"], history=result["history"], turns=result["turns"], ticket_id=tid,
+                       updated_at=time.time(), day=saved.get("day") or current.get("day") or "",
+                       day_count=saved.get("day_count") if saved else current.get("day_count") or 0,
+                       last_at=saved.get("last_at") if saved else current.get("last_at") or 0)
+        ai_manager.save_session(conn, m.from_user.id, current)
+    await state.clear()
+    await m.answer(f"✅ <b>Заявка №{tid} у Марка</b>\n{escape(result['reply'])}", reply_markup=ai_reply_kb(m.from_user.id, in_session=False))
+    return tid
+
+async def handle_ai_message(m: Message, state: FSMContext):
+    if m.chat.type != "private" or not m.from_user:
+        return
+    if await blocked(m):
+        return
+    uid = m.from_user.id
+    if m.text == ai_manager.AI_EXIT:
+        await state.clear()
+        await m.answer("Вышли из AI. Заявку этим шагом не отправлял.", reply_markup=ai_reply_kb(uid, in_session=False))
+        return
+    allowed = ai_manager.enabled_for(AI_MODE, is_admin(uid))
+    if not allowed:
+        await state.clear()
+        await m.answer("Обсуждение с AI сейчас выключено.", reply_markup=ai_reply_kb(uid, in_session=False))
+        return
+    if m.text == ai_manager.AI_BTN or await state.get_state() != Ai.chat.state:
+        if m.text != ai_manager.AI_BTN:
+            return
+        with db() as conn:
+            session = ai_manager.begin_session(conn, uid)
+        await state.set_state(Ai.chat)
+        field = ai_manager.next_missing(session["fields"]) or "business"
+        prefix = "Продолжаем предыдущий разговор.\n\n" if session["turns"] else "Задам один короткий вопрос за раз. Цену и сроки подтверждает Марк.\n\n"
+        await m.answer(prefix + ai_manager.template_question(field), reply_markup=ai_reply_kb(uid, in_session=True))
+        return
+    if not m.text:
+        await m.answer("Напишите текстом. Голос и файлы можно приложить в обычной заявке.", reply_markup=ai_reply_kb(uid, in_session=True))
+        return
+    async with _ai_lock(uid):
+        now = time.time()
+        with db() as conn:
+            slot = ai_manager.consume_slot(conn, uid, now, AI_DAILY_CAP, AI_USER_INTERVAL, AI_USER_DAILY)
+            session = ai_manager.load_session(conn, uid)
+        if session is None:
+            with db() as conn:
+                session = ai_manager.begin_session(conn, uid)
+        if slot == "slow":
+            await m.answer("Напишите через пару секунд.", reply_markup=ai_reply_kb(uid, in_session=True))
+            return
+        if slot in {"user_cap", "global_cap"}:
+            result = ai_manager.close_turn(fields=session["fields"], history=session["history"] + [{"role": "user", "content": m.text[:ai_manager.MAX_INPUT]}],
+                                            turns=session["turns"], catalog=ai_catalog(), reason=slot, client_text=m.text)
+            await _ai_commit(m, state, session, result)
+            return
+        if session.get("ticket_id"):
+            await state.clear()
+            await m.answer(f"Заявка №{session['ticket_id']} уже у Марка. Дополнения можно прислать обычным сообщением.", reply_markup=ai_reply_kb(uid, in_session=False))
+            return
+
+        async def complete(messages):
+            return await ai_manager.chat_complete(messages, nvidia_keys=NVIDIA_KEYS, mistral_keys=MISTRAL_KEYS)
+
+        result = await ai_manager.run_turn(client_text=m.text, fields=session["fields"], history=session["history"],
+                                            turns=session["turns"], catalog=ai_catalog(), complete=complete)
+        if result["handoff"]:
+            await _ai_commit(m, state, session, result)
+            return
+        with db() as conn:
+            saved = ai_manager.load_session(conn, uid) or session
+            saved.update(fields=result["fields"], history=result["history"], turns=result["turns"], updated_at=time.time())
+            ai_manager.save_session(conn, uid, saved)
+        await m.answer(escape(result["reply"]), reply_markup=ai_reply_kb(uid, in_session=True))
+
+@dispatcher.message(F.chat.type == "private", F.text.in_({ai_manager.AI_BTN, ai_manager.AI_EXIT}))
+@dispatcher.message(F.chat.type == "private", StateFilter(Ai.chat))
+async def ai_client_message(m: Message, state: FSMContext):
+    if is_admin(m.from_user.id):
+        return
+    await handle_ai_message(m, state)
 
 @dispatcher.message(F.chat.type == "private")
 async def client_message(m: Message, state: FSMContext):
@@ -920,6 +1077,7 @@ async def lifespan(app):
         build_routes()
         bot = Bot(BOT_TOKEN, session=ROUTES["direct"], default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         STATE["last_ok"] = time.time()
+        log.info("AI manager mode=%s nvidia_keys=%s mistral_keys=%s daily_cap=%s", AI_MODE, bool(NVIDIA_KEYS), bool(MISTRAL_KEYS), AI_DAILY_CAP)
         tasks = [asyncio.create_task(c()) for c in (polling_worker, outbox_worker, health_worker)]
     yield
     for task in tasks:
