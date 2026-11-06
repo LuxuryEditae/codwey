@@ -67,7 +67,7 @@
       }
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(typeof j.detail === "string" ? j.detail : "Проверьте поля формы и попробуйте ещё раз.");
-      say(`Заявка №${j.id} принята ✅ Ответим в течение часа (9:00–22:00 МСК). Быстрее — в боте @codwey_bot.`, true);
+      say(`Заявка №${j.id} принята ✅ Ответим в течение часа (9:00–22:00 МСК). Быстрее — в боте @codway_bot.`, true);
       f.reset(); setSolution(null); sid = uuid();
     } catch (err) {
       say((err.message && !/fetch/i.test(err.message) ? err.message : "Не получилось отправить.") + " Напишите нам в Telegram @mexciti или в бот.");

@@ -27,7 +27,7 @@ jobs:
       - name: Check pages contain real content
         run: |
           for p in index telegram-bot-na-zakaz telegram-mini-app-na-zakaz sajt-na-zakaz parser-na-zakaz ceny kontakty; do
-            grep -q "<h1>" dist/$p.html && grep -q "@codwey_bot" dist/$p.html || { echo "bad $p"; exit 1; }
+            grep -q "<h1>" dist/$p.html && grep -q "@codway_bot" dist/$p.html || { echo "bad $p"; exit 1; }
           done
           if grep -rlE "9607536162|960[ -]?753|753-61-62" dist; then echo "phone number must not be published"; exit 1; fi
           test -f dist/CNAME && test -f dist/.nojekyll && ls dist/google*.html dist/yandex_*.html

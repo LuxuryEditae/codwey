@@ -61,7 +61,7 @@ ALERT_EMAIL = os.getenv("ALERT_EMAIL", "coddweyy@gmail.com")
 RATE_SALT = hashlib.sha256((BOT_TOKEN or "local-development").encode()).digest()
 MSK = ZoneInfo("Europe/Moscow")
 DELAY_NOTE_AFTER = 300
-CONTACTS = ("📞 <b>Контакты CodWay</b>\n\nБот для заявок: @codwey_bot\nTelegram: @mexciti\nПочта: coddweyy@gmail.com\n"
+CONTACTS = ("📞 <b>Контакты CodWay</b>\n\nБот для заявок: @codway_bot\nTelegram: @mexciti\nПочта: coddweyy@gmail.com\n"
             "Сайт: https://codway.su\n\nОтвечаем 9:00–22:00 МСК, обычно в течение часа.")
 SERVICE_LABELS = {**{k: v["label"] for k, v in PROJECTS.items()}, "other": "Другое / консультация", "question": "Вопрос"}
 bot: Bot | None = None

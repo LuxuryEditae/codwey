@@ -1,6 +1,6 @@
 # Backend (VDS, /opt/codwey-backend) — reference copy
 
-`app.py` — FastAPI (`/api/health`, `/api/order`) + aiogram 3 support bot @codwey_bot. Prices: `site/data/*.json` (copy to the VDS).
+`app.py` — FastAPI (`/api/health`, `/api/order`) + aiogram 3 support bot @codway_bot. Prices: `site/data/*.json` (copy to the VDS).
 
 Env (/etc/codwey.env): BOT_TOKEN, ADMIN_ID, DATABASE_PATH, ALLOWED_ORIGINS, optional:
 - `TELEGRAM_API_BASE=https://<relay>` — Bot API relay (see ../telegram-relay-worker.js)

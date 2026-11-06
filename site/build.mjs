@@ -7,7 +7,7 @@ const out = path.resolve(here, "../dist");
 const P = JSON.parse(fs.readFileSync(path.join(here, "data/pricing.json"), "utf8"));
 const S = JSON.parse(fs.readFileSync(path.join(here, "data/solutions.json"), "utf8"));
 const SITE = "https://codway.su";
-const C = { tg: "mexciti", email: "coddweyy@gmail.com", bot: "codwey_bot" };
+const C = { tg: "mexciti", email: "coddweyy@gmail.com", bot: "codway_bot" };
 const BUILD = new Date().toISOString().slice(0, 10);
 // Brand: the ONLY logo source. site/brand/logo.svg (currentColor strokes) → header, footer, demos, chat avatar;
 // site/brand/favicon.svg → /favicon.svg; PNG icons live in site/static; og.png is rendered by site/tools/make-og.sh from logo.svg.
@@ -146,7 +146,7 @@ const pages = [
     kicker: "Студия разработки CodWay", h1: "Боты, Mini Apps и сайты, <em>которые приносят заявки</em>",
     lead: "Пишете напрямую разработчику, получаете понятную смету за час и работающий продукт через несколько дней. Без менеджеров, шаблонов и цен «как у агентства».",
     blocks: () => [services(), compare(), solutions(), steps()],
-    faq: [["Сколько стоит Telegram-бот?", "Простой бот с меню и заявками — от 4 900 ₽ за 1–2 дня, бот под ключ — от 8 900 ₽. С оплатой и админкой обычно выходит 12–20 тысяч. Точную цену назовём после короткого разговора."], ...commonFaq, ["Как быстро вы отвечаете?", "Ежедневно с 9:00 до 22:00 по Москве, обычно в течение часа. Быстрее всего — через бота @codwey_bot."]] },
+    faq: [["Сколько стоит Telegram-бот?", "Простой бот с меню и заявками — от 4 900 ₽ за 1–2 дня, бот под ключ — от 8 900 ₽. С оплатой и админкой обычно выходит 12–20 тысяч. Точную цену назовём после короткого разговора."], ...commonFaq, ["Как быстро вы отвечаете?", "Ежедневно с 9:00 до 22:00 по Москве, обычно в течение часа. Быстрее всего — через бота @codway_bot."]] },
   { path: "/telegram-bot-na-zakaz", mock: "bot", project: "bot", start: "svc_bot", crumb: "Telegram-бот на заказ",
     service: { name: "Разработка Telegram-бота на заказ", price: 4900 },
     title: "Telegram-бот на заказ от 4 900 ₽ — разработка за 1–7 дней | CodWay",
@@ -188,7 +188,7 @@ const pages = [
     faq: [["Почему так дешевле, чем в студиях?", "Нет офиса, менеджеров и отдела продаж — вы платите только за разработку."], ["Цена может вырасти в процессе?", "Нет, если задача не меняется. Новые пожелания оцениваем отдельно и только с вашего согласия."], ...commonFaq] },
   { path: "/kontakty", mock: "home", crumb: "Контакты",
     title: "Контакты CodWay — Telegram-бот, Telegram, почта",
-    desc: "Связаться с CodWay: бот для заявок @codwey_bot, Telegram @mexciti, почта coddweyy@gmail.com. Отвечаем ежедневно 9:00–22:00 МСК.",
+    desc: "Связаться с CodWay: бот для заявок @codway_bot, Telegram @mexciti, почта coddweyy@gmail.com. Отвечаем ежедневно 9:00–22:00 МСК.",
     kicker: "Контакты", h1: "Связаться с <em>CodWay</em>",
     lead: "Быстрее всего — через бота: можно приложить фото, файлы и голосовые, ответ придёт туда же. Или пишите напрямую в Telegram или на почту.",
     blocks: () => [`<section class="sec"><div class="wrap"><div class="contacts">${[
@@ -233,5 +233,5 @@ for (const s of S) {
 }
 fs.writeFileSync(path.join(out, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map((p) => `  <url><loc>${SITE}${p.path}</loc><lastmod>${BUILD}</lastmod><priority>${p.path === "/" ? "1.0" : "0.8"}</priority></url>`).concat(S.map((x) => `  <url><loc>${SITE}/demo/${x.id}/</loc><lastmod>${BUILD}</lastmod><priority>0.5</priority></url>`)).join("\n")}\n</urlset>\n`);
 fs.writeFileSync(path.join(out, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /404.html\n\nHost: codway.su\nSitemap: ${SITE}/sitemap.xml\n`);
-fs.writeFileSync(path.join(out, "release.json"), JSON.stringify({ version: "static-v11", build: BUILD, pages: pages.map((p) => p.path) }, null, 2));
+fs.writeFileSync(path.join(out, "release.json"), JSON.stringify({ version: "static-v12", build: BUILD, pages: pages.map((p) => p.path) }, null, 2));
 console.log("built", pages.length, "pages →", out);
